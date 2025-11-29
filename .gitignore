@@ -8,3 +8,10 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Personal chart files and generated reports
+*.hor
+report*.html
+report*.md
+*report.html
+*report.md

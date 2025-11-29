@@ -2,6 +2,13 @@ Project purpose
 ---------------
 Read Morinus `.hor` files, build a neutral internal chart representation, and calculate traditional Astrology data using Swiss Ephemeris (pyswisseph). The goal is to produce a rich, machine-usable, and visually styled terminal dashboard for each planet: sign, House, dignities, sect condition, motion, aspects, fixed stars, synodic phases, and Almuten scoring.
 
+Repository layout
+-----------------
+- Project root: `astro_data/` (git root). Personal `.hor` files may live alongside code and are git-ignored.
+- Package folder: `hor_tools/`
+- Tooling: `pyproject.toml`, `uv.lock`, `README.md`, `context.md`
+- Tests: `tests/`
+
 Current capabilities
 --------------------
 - Parse Morinus `.hor` natal files into a typed `ChartInput`:

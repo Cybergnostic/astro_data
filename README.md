@@ -7,12 +7,12 @@ Requirements
 ------------
 - Python 3.11+
 - uv (https://github.com/astral-sh/uv) installed and on PATH
+- Swiss Ephemeris data files (see below)
 
 Setup
 -----
 ```bash
-# From repo root
-cd hor_tools
+# From repo root (astro_data)
 uv sync
 ```
 
@@ -27,8 +27,8 @@ Place the directory anywhere (e.g., `~/.local/share/swisseph` on Linux) and set 
 Usage
 -----
 ```bash
-# Basic run with the bundled console script
-uv run hor-reader ../Andjela_cybergnostic.hor
+# From repo root (astro_data)
+uv run hor-reader Andjela_cybergnostic.hor
 
 # Point at any Morinus .hor file
 uv run hor-reader path/to/file.hor
@@ -43,12 +43,14 @@ What you get
 
 Project layout
 --------------
-- `hor_tools/models.py`: core dataclasses.
-- `hor_tools/hor_parser.py`: Morinus `.hor` parsing into `ChartInput`.
-- `hor_tools/astro_engine.py`: Swiss Ephemeris wrapper; planets + Whole sign houses.
-- `hor_tools/output.py`: text output + stubs for XLSX/DOCX exports.
-- `hor_tools/cli.py`: CLI entry that wires parse/compute/print.
-- `context.md`: quick architecture guide for AI tools.
+- Repo root (now `astro_data/`):
+  - `pyproject.toml`, `uv.lock`
+  - `hor_tools/` (package)
+  - `tests/`
+  - `context.md` (architecture overview)
+  - Personal `.hor` files (git-ignored) can sit alongside.
+- Entry point: `hor_tools/cli.py` (`hor-reader`).
+- Core modules: `models.py`, `hor_parser.py`, `astro_engine.py`, `analysis/*`, `output.py`.
 
 Extending
 ---------
