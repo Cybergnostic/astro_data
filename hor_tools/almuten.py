@@ -263,20 +263,27 @@ def build_essential_rows(chart: ChartInput, planets: List[PlanetPosition], house
     return rows, total_shares, total_scores
 
 
-def _sunrise_sunset(jd: float, lat: float, lon: float) -> Tuple[float, float]:
-    """Return UT Julian days for sunrise and sunset around the given UT base JD."""
+def _sunrise_sunset(jd: float, lat: float, lon: float, tz_offset_hours: float) -> Tuple[float, float]:
+    """
+    Return UT Julian days for sunrise and sunset around the given UT base JD.
+
+    Morinus uses civil (time-zone) longitude for planetary hours; mirror that by
+    using the time-zone meridian rather than geographic longitude so our values
+    align with its output.
+    """
     swe.set_ephe_path(EPHE_PATH)
+    effective_lon = tz_offset_hours * 15.0
     rise_flag, rise_tret = swe.rise_trans(
         jd,
         swe.SUN,
-        rsmi=swe.CALC_RISE | swe.BIT_DISC_CENTER | swe.BIT_NO_REFRACTION,
-        geopos=(lon, lat, 0.0),
+        rsmi=swe.CALC_RISE | swe.BIT_DISC_CENTER,
+        geopos=(effective_lon, lat, 0.0),
     )
     set_flag, set_tret = swe.rise_trans(
         jd,
         swe.SUN,
-        rsmi=swe.CALC_SET | swe.BIT_DISC_CENTER | swe.BIT_NO_REFRACTION,
-        geopos=(lon, lat, 0.0),
+        rsmi=swe.CALC_SET | swe.BIT_DISC_CENTER,
+        geopos=(effective_lon, lat, 0.0),
     )
 
     if rise_flag < 0 or not rise_tret:
@@ -315,9 +322,9 @@ def planetary_day_hour_rulers(chart: ChartInput) -> Tuple[str, str]:
     )
 
     # Sunrise/sunset for current, previous, next local civil dates (all JDs in UT)
-    sunrise_today, sunset_today = _sunrise_sunset(base_jd, chart.latitude, chart.longitude)
-    sunrise_prev, sunset_prev = _sunrise_sunset(base_jd - 1, chart.latitude, chart.longitude)
-    sunrise_next, sunset_next = _sunrise_sunset(base_jd + 1, chart.latitude, chart.longitude)
+    sunrise_today, sunset_today = _sunrise_sunset(base_jd, chart.latitude, chart.longitude, chart.tz_offset_hours)
+    sunrise_prev, sunset_prev = _sunrise_sunset(base_jd - 1, chart.latitude, chart.longitude, chart.tz_offset_hours)
+    sunrise_next, sunset_next = _sunrise_sunset(base_jd + 1, chart.latitude, chart.longitude, chart.tz_offset_hours)
 
     # Determine planetary day and hours since sunrise (0 - 23)
     if sunrise_today <= birth_jd <= sunset_today:

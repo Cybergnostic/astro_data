@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from .models import PlanetPosition, SynodicPhaseInfo
 
-# Small orb used for cazimi (~0.2667°)
-CAZIMI_ORB_DEG = 16.0 / 60.0 / 60.0 * 15.0
+# Small orb used for cazimi (17 arcminutes ≈ 0.2833°)
+CAZIMI_ORB_DEG = 17.0 / 60.0
 
 # Threshold for considering a planet stationary by daily speed in longitude.
 STATION_THRESHOLD = 0.02
@@ -78,11 +78,17 @@ def compute_superior_synodic_phase(planet: PlanetPosition, sun_long: float) -> S
         if is_station:
             return _phase("superior", "first_station", 7, "First station (east)")
         if is_retro:
+            ahead_from_sun = (planet.longitude - sun_long) % 360.0
             if elong >= 168.0:
                 return _phase("superior", "around_opposition", 9, "Around opposition")
+            if ahead_from_sun > 180.0 and elong > 120.0:
+                return _phase("superior", "retrograde_receding_or_pre_second_station", 10, "Retrograde receding / pre-second station")
             return _phase("superior", "retrograde_approaching_opposition", 8, "Retrograde approaching opposition")
         if is_direct:
-            if elong <= 60.0:
+            ahead_from_sun = (planet.longitude - sun_long) % 360.0
+            if ahead_from_sun >= 300.0:
+                return _phase("superior", "oriental_far_before_station", 6, "Oriental far before station")
+            if elong <= 30.0:
                 return _phase("superior", "oriental_strong", 4, "Oriental strong")
             if elong <= 90.0:
                 return _phase("superior", "oriental_weak", 5, "Oriental weak")
@@ -127,25 +133,27 @@ def compute_inferior_synodic_phase(planet: PlanetPosition, sun_long: float) -> S
     is_direct, is_retro, is_station = motion_flags(planet.speed_long)
 
     combust_orb = 7.0
-    under_east = 12.0
+    under_east = 15.0
     under_west = 15.0
 
     if elong <= CAZIMI_ORB_DEG:
         return _phase("inferior", "cazimi", 1, "Cazimi")
 
     if is_oriental:
+        if is_retro:
+            if elong <= combust_orb:
+                return _phase("inferior", "combust_east_return", 8, "Combust (east, return)")
+            if elong <= under_east:
+                return _phase("inferior", "under_beams_east_return", 7, "Under beams (east, return)")
+            if is_station:
+                return _phase("inferior", "second_station_east", 5, "Second station (east)")
+            return _phase("inferior", "direct_east_closing", 6, "Direct east closing")
         if elong <= combust_orb:
             return _phase("inferior", "combust_east", 2, "Combust (east)")
         if elong <= under_east:
             return _phase("inferior", "under_beams_east", 3, "Under beams (east)")
         if is_station:
             return _phase("inferior", "second_station_east", 5, "Second station (east)")
-        if is_retro:
-            if elong <= combust_orb:
-                return _phase("inferior", "combust_east_return", 8, "Combust (east, return)")
-            if elong <= under_east:
-                return _phase("inferior", "under_beams_east_return", 7, "Under beams (east, return)")
-            return _phase("inferior", "direct_east_closing", 6, "Direct east closing")
         # Direct, oriental
         return _phase("inferior", "oriental_strong_before_second_station", 4, "Oriental strong (before station)")
 
@@ -173,12 +181,14 @@ def compute_lunar_synodic_phase(moon: PlanetPosition, sun_long: float) -> Synodi
     """
     Classify the Moon’s synodic phase using elongation bands from the Sun.
     """
-    elong, is_oriental, is_occidental = compute_elongation_and_orientation(moon.longitude, sun_long)
+    elong, _, _ = compute_elongation_and_orientation(moon.longitude, sun_long)
+    waxing = ((moon.longitude - sun_long) % 360.0) < 180.0
+    waning = not waxing
 
     if elong <= CAZIMI_ORB_DEG:
         return _phase("lunar", "cazimi", 1, "Cazimi")
 
-    if is_oriental:
+    if waxing:
         if elong <= 6.0:
             return _phase("lunar", "combust", 2, "Combust")
         if elong <= 12.0:
@@ -193,7 +203,7 @@ def compute_lunar_synodic_phase(moon: PlanetPosition, sun_long: float) -> Synodi
             return _phase("lunar", "waxing_near_full", 7, "Waxing near full")
         return _phase("lunar", "full", 8, "Full")
 
-    if is_occidental:
+    if waning:
         if elong <= 6.0:
             return _phase("lunar", "combust_west", 14, "Combust (west)")
         if elong <= 12.0:

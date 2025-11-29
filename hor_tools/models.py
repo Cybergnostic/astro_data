@@ -175,6 +175,7 @@ class PlanetReport:
     maltreatment_sources: List[InfluenceSource]
     is_bonified: bool
     is_maltreated: bool
+    is_cazimi: bool
     benefic_enclosure_by_ray: bool
     malefic_enclosure_by_ray: bool
     benefic_enclosure_by_sign: bool

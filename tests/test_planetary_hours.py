@@ -62,9 +62,9 @@ class PlanetaryHoursTest(unittest.TestCase):
             swe.GREG_CAL,
         )
 
-        sunrise_ut, sunset_ut = _sunrise_sunset(base_jd, chart.latitude, chart.longitude)
-        sunrise_local = self._jd_to_local(sunrise_ut, tz_offset_hours)
-        sunset_local = self._jd_to_local(sunset_ut, tz_offset_hours)
+        sunrise_ut, sunset_ut = _sunrise_sunset(base_jd, chart.latitude, chart.longitude, tz_offset_hours)
+        sunrise_local = self._jd_to_local(sunrise_ut, tz_offset_hours).replace(tzinfo=None)
+        sunset_local = self._jd_to_local(sunset_ut, tz_offset_hours).replace(tzinfo=None)
 
         expected_sunrise = datetime.combine(
             local_midnight.date(),

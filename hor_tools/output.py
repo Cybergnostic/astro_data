@@ -123,6 +123,8 @@ def _build_motion_lines(rep: PlanetReport, markup: bool = False) -> list[str]:
     p = rep.planet
     direction = strong("retrograde", "red") if p.retrograde else pale("direct")
     lines = [direction]
+    if rep.is_cazimi:
+        lines.insert(0, strong("CAZIMI", "magenta"))
 
     speed_class = rep.speed_class
     if speed_class.lower() in {"slow", "swift"}:
@@ -136,12 +138,18 @@ def _build_motion_lines(rep: PlanetReport, markup: bool = False) -> list[str]:
     return lines
 
 
-def _format_synodic(rep: PlanetReport) -> str:
+def _format_synodic(rep: PlanetReport, markup: bool = False) -> str:
     """Return a short synodic phase string if available."""
     phase = rep.planet.synodic_phase
     if not phase:
         return ""
-    return f"{phase.label} ({phase.group})"
+    is_cazimi = rep.is_cazimi or ("cazimi" in (phase.code or ""))
+    label = "Cazimi" if is_cazimi else phase.label
+    if markup and is_cazimi:
+        label = f"[bold magenta]{label.upper()}[/]"
+    elif not markup and is_cazimi:
+        label = label.upper()
+    return f"{label} ({phase.group})"
 
 
 def _format_aspect_type(raw: str) -> str:
@@ -257,7 +265,7 @@ def print_full_report(reports: list[PlanetReport], houses: Houses, relationships
         print("  Motion:")
         for ln in motion_lines:
             print(f"    {ln}")
-        synodic_str = _format_synodic(rep)
+        synodic_str = _format_synodic(rep, markup=False)
         if synodic_str:
             print(f"  Synodic: {synodic_str}")
 
@@ -499,7 +507,7 @@ def _render_rich_report(
         dignity_lines = _build_dignity_lines(rep, markup=True)
         sect_lines = _build_sect_lines(rep, markup=True)
         motion_lines = _build_motion_lines(rep, markup=True)
-        synodic = _format_synodic(rep)
+        synodic = _format_synodic(rep, markup=True)
 
         # Highlight retrograde in motion
         motion_text = Text.from_markup("\n".join(motion_lines))

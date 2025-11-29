@@ -7,7 +7,7 @@ from .dignity import essential_dignity, classify_speed, SIGNS
 from .sect import chart_sect, planet_sect, compute_hayz_and_halb
 from .stars import stars_near_longitude
 from .aspects import aspects_for_planet
-from ..synodic import compute_elongation_and_orientation
+from ..synodic import compute_elongation_and_orientation, CAZIMI_ORB_DEG
 from .relationships import aggregate_relationships
 
 
@@ -33,10 +33,11 @@ def build_reports(
         ess = essential_dignity(p.name, p.longitude, is_day_chart=(sect_chart == "day"))
 
         # sect + oriental/occidental
-        _, oriental, occidental = compute_elongation_and_orientation(p.longitude, sun_long)
+        elong, oriental, occidental = compute_elongation_and_orientation(p.longitude, sun_long)
         if p.name == "Sun":
             oriental = False
             occidental = False
+        is_cazimi = p.name != "Sun" and elong <= CAZIMI_ORB_DEG
         sect_plan = planet_sect(p.name, oriental)
         in_sect = sect_plan == sect_chart
         hayz, halb = compute_hayz_and_halb(p, sect_chart, sect_plan)
@@ -78,6 +79,7 @@ def build_reports(
                 maltreatment_sources=[],
                 is_bonified=False,
                 is_maltreated=False,
+                is_cazimi=is_cazimi,
                 benefic_enclosure_by_ray=False,
                 malefic_enclosure_by_ray=False,
                 benefic_enclosure_by_sign=False,

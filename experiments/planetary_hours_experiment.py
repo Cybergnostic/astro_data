@@ -47,7 +47,7 @@ def main() -> None:
         utc_midnight.hour + utc_midnight.minute / 60.0 + utc_midnight.second / 3600.0,
         swe.GREG_CAL,
     )
-    sunrise_ut, sunset_ut = _sunrise_sunset(base_jd, chart.latitude, chart.longitude)
+    sunrise_ut, sunset_ut = _sunrise_sunset(base_jd, chart.latitude, chart.longitude, chart.tz_offset_hours)
     print("birth_jd UT:", jd_birth)
     print("sunrise UT JD:", sunrise_ut, "sunset UT JD:", sunset_ut)
 
