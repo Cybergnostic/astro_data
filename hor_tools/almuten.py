@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, time, timedelta, timezone
+import math
 from typing import Dict, List, Tuple
 
 import swisseph as swe
@@ -124,7 +125,12 @@ def part_of_fortune_longitude(asc_long: float, sun_long: float, moon_long: float
 
 def compute_syzygy_longitude(chart: ChartInput, sect_chart: str) -> float:
     """
-    Approximate previous syzygy (new or full) longitude of the in-sect luminary.
+    Approximate previous syzygy (new or full) longitude.
+
+    Syzygy is the last exact lunation (conjunction or opposition) BEFORE birth.
+    - If conjunction (new), both luminaries share longitude -> return that.
+    - If opposition (full), return the longitude of the luminary that is above the horizon
+      in the syzygy chart (the in-sect luminary for that syzygy moment).
     """
 
     swe.set_ephe_path(EPHE_PATH)
@@ -135,40 +141,92 @@ def compute_syzygy_longitude(chart: ChartInput, sect_chart: str) -> float:
         moon_pos = swe.calc_ut(jd, swe.MOON)[0]
         sun_long = float(sun_pos[0])
         moon_long = float(moon_pos[0])
-        diff = (moon_long - sun_long) % 360.0
-        return min(diff, 360.0 - diff, abs(diff - 180.0))
+        return (moon_long - sun_long) % 360.0
 
-    best_jd = start_jd
-    best_delta = _sun_moon_diff(start_jd)
+    def _phase_distance(diff: float, target: float) -> float:
+        return min((diff - target) % 360.0, (target - diff) % 360.0)
 
-    jd = start_jd
-    # coarse search up to ~30 days back
-    for _ in range(120):
-        jd -= 0.25
-        delta = _sun_moon_diff(jd)
-        if delta < best_delta:
-            best_delta = delta
-            best_jd = jd
+    def _find_previous_phase(target: float) -> float:
+        best_jd = start_jd
+        best_dist = _phase_distance(_sun_moon_diff(start_jd), target)
+        last_dist = best_dist
+        jd = start_jd
+        # coarse backward walk ~40 days
+        for _ in range(160):
+            jd -= 0.25
+            dist = _phase_distance(_sun_moon_diff(jd), target)
+            if dist <= best_dist:
+                best_dist = dist
+                best_jd = jd
+            elif dist > last_dist and best_jd < start_jd:
+                break  # passed the minimum
+            last_dist = dist
 
-    # refine around best_jd
-    for step in (0.1, 0.01, 0.001):
-        improved = True
-        while improved:
-            improved = False
-            for direction in (-step, step):
-                cand = best_jd + direction
-                delta = _sun_moon_diff(cand)
-                if delta < best_delta:
-                    best_delta = delta
-                    best_jd = cand
-                    improved = True
-                    break
+        # refine around best_jd
+        for step in (0.1, 0.01, 0.001):
+            improved = True
+            while improved:
+                improved = False
+                for direction in (-step, step):
+                    cand = best_jd + direction
+                    dist = _phase_distance(_sun_moon_diff(cand), target)
+                    if dist < best_dist and cand <= start_jd:
+                        best_dist = dist
+                        best_jd = cand
+                        improved = True
+                        break
+        return best_jd
 
-    sun_pos = swe.calc_ut(best_jd, swe.SUN)[0]
-    moon_pos = swe.calc_ut(best_jd, swe.MOON)[0]
-    if sect_chart == "day":
-        return float(sun_pos[0]) % 360.0
-    return float(moon_pos[0]) % 360.0
+    new_jd = _find_previous_phase(0.0)
+    full_jd = _find_previous_phase(180.0)
+
+    if new_jd >= full_jd:
+        jd_syzygy = new_jd
+        syzygy_type = "new"
+    else:
+        jd_syzygy = full_jd
+        syzygy_type = "full"
+
+    sun_pos = swe.calc_ut(jd_syzygy, swe.SUN)[0]
+    moon_pos = swe.calc_ut(jd_syzygy, swe.MOON)[0]
+    sun_long = float(sun_pos[0]) % 360.0
+    moon_long = float(moon_pos[0]) % 360.0
+
+    if syzygy_type == "new":
+        return sun_long
+
+    # Full Moon: choose luminary above horizon in syzygy chart.
+    def _altitude(body: int) -> float:
+        # Use equatorial coords to compute true altitude above horizon.
+        res = swe.calc_ut(jd_syzygy, body, swe.FLG_SWIEPH | swe.FLG_EQUATORIAL)
+        equ = res[0] if isinstance(res[0], (list, tuple)) else res
+        if len(equ) < 3:
+            raise RuntimeError("Swiss Ephemeris did not return RA/Dec for altitude computation.")
+        ra, dec = float(equ[0]), float(equ[1])
+        lst = swe.sidtime(jd_syzygy) * 15.0  # degrees
+        ha = (lst + chart.longitude - ra) % 360.0
+        ha_rad = math.radians(ha)
+        dec_rad = math.radians(dec)
+        lat_rad = math.radians(chart.latitude)
+        alt = math.degrees(
+            math.asin(math.sin(dec_rad) * math.sin(lat_rad) + math.cos(dec_rad) * math.cos(lat_rad) * math.cos(ha_rad))
+        )
+        return alt
+
+    sun_alt = _altitude(swe.SUN)
+    moon_alt = _altitude(swe.MOON)
+    if sun_alt > 0 and moon_alt <= 0:
+        return sun_long
+    if moon_alt > 0 and sun_alt <= 0:
+        return moon_long
+
+    # fallback: pick sect luminary for syzygy chart using house-based sect
+    cusps, ascmc = swe.houses_ex(jd_syzygy, chart.latitude, chart.longitude, b"P")
+    asc_sign = int(float(ascmc[0]) // 30)
+    sun_house = ((int(sun_long // 30) - asc_sign) % 12) + 1
+    moon_house = ((int(moon_long // 30) - asc_sign) % 12) + 1
+    syz_sect = chart_sect(sun_house)
+    return sun_long if syz_sect == "day" else moon_long
 
 
 def build_essential_rows(chart: ChartInput, planets: List[PlanetPosition], houses: Houses) -> Tuple[List[EssentialRow], Dict[str, int], Dict[str, int]]:

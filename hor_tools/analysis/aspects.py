@@ -47,6 +47,10 @@ def aspects_for_planet(planet: PlanetPosition, all_planets: List[PlanetPosition]
 
         applying = _is_applying(planet, other, best_angle)
         dexter = _is_dexter(planet.longitude, other.longitude, best_angle)
+        self_applying = _is_self_applying(planet, other, best_angle)
+        other_applying = _is_self_applying(other, planet, best_angle)
+        mutual_application = self_applying and other_applying
+        mutual_separation = (not self_applying) and (not other_applying)
 
         infos.append(
             AspectInfo(
@@ -55,6 +59,9 @@ def aspects_for_planet(planet: PlanetPosition, all_planets: List[PlanetPosition]
                 orb=orb,
                 applying=applying,
                 dexter=dexter,
+                self_applying=self_applying,
+                mutual_application=mutual_application,
+                mutual_separation=mutual_separation,
             )
         )
     return infos
@@ -97,3 +104,20 @@ def _is_dexter(from_long: float, to_long: float, aspect_angle: float) -> bool:
     backward_diff = abs((360.0 - delta) - aspect_angle)
     # If backward solution is closer, treat as dexter.
     return backward_diff < forward_diff
+
+
+def _is_self_applying(moving: PlanetPosition, static: PlanetPosition, aspect_angle: float) -> bool:
+    """
+    Determine if `moving` is heading toward perfection with `static`, ignoring which is faster.
+
+    We measure the difference from moving->static to the aspect angle and see if the planet's
+    own direction of motion is shrinking that gap. Stationary bodies are treated as separating.
+    """
+    if abs(moving.speed_long) < 1e-6:
+        return False
+    delta = (static.longitude - moving.longitude) % 360.0
+    diff_now = min(abs(delta - aspect_angle), abs((360.0 - delta) - aspect_angle))
+    future_long = (moving.longitude + moving.speed_long * 0.01) % 360.0
+    future_delta = (static.longitude - future_long) % 360.0
+    diff_future = min(abs(future_delta - aspect_angle), abs((360.0 - future_delta) - aspect_angle))
+    return diff_future < diff_now

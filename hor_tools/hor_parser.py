@@ -19,17 +19,25 @@ def load_hor(path: str | Path) -> ChartInput:
     lines = [line.strip() for line in raw_text.splitlines() if line.strip()]
 
     # Name: first line starting with 'V' but not '.V'
-    name_line = next(
-        (ln for ln in lines if ln.startswith("V") and not ln.startswith(".V")), None
-    )
-    if not name_line:
-        raise ValueError("Unable to locate name (V...) line in .hor file.")
-    name = name_line[1:].strip()
+    name_line = next((ln for ln in lines if ln.startswith("V") and not ln.startswith(".V")), None)
+    if name_line:
+        name = name_line[1:].strip()
+    else:
+        # Fallback for "Here and now" or other Morinus exports that omit a V-name line.
+        # Try to grab the first quoted string (S'...') from the pickle text, else use the filename stem.
+        quoted_match = re.search(r"S'([^']*)'", raw_text)
+        if quoted_match:
+            name = quoted_match.group(1) or file_path.stem
+        else:
+            name = file_path.stem
 
     # Collect all integer fields in order
     ints: list[int] = [int(m.group(1)) for m in re.finditer(r"\.I(-?\d+)", raw_text)]
     if not ints:
-        raise ValueError("No integer (.I...) entries found in .hor file.")
+        # Fallback: try any bare integers in the file if .I tags are missing.
+        ints = [int(m.group(1)) for m in re.finditer(r"\b(-?\d+)\b", raw_text)]
+    if not ints:
+        raise ValueError("No numeric entries found in .hor file.")
 
     # 1) Get date/time and coordinates (they do not depend on timezone)
     year, month, day, hour, minute, second = _extract_datetime(ints)
@@ -58,9 +66,27 @@ def _extract_timezone_fields(values: list[int]) -> tuple[int, int, int]:
     """
     Extract timezone and DST flag from the .hor header.
 
-    Expected layout at the start of the int list:
-      [zone_hours, zone_minutes, dst_flag, ...]
+    Morinus natal files store the timezone block near the middle of the int
+    stream, immediately before the coordinate block:
+        [..., tz_sign, tz_hours, tz_minutes, dst_flag, lon_deg, ...]
+
+    - tz_sign is 1 for east of Greenwich, 0/-1 for west (we default 0 -> east)
+    - tz_hours / tz_minutes are absolute values
+    - dst_flag is 1 if the user checked the “DST” box in Morinus
+
+    Fall back to the legacy assumption (first 3 ints) if the block is missing.
     """
+    if len(values) >= 15:
+        tz_sign_raw = values[11]
+        tz_sign = 1 if tz_sign_raw >= 0 else -1
+        zone_hours = tz_sign * abs(values[12])
+        zone_minutes = tz_sign * abs(values[13])
+        dst_flag = values[14]
+        # If everything is zero, fall back to the legacy block below.
+        if zone_hours or zone_minutes or dst_flag:
+            return zone_hours, zone_minutes, dst_flag
+
+    # Legacy fallback: first three ints (older heuristic)
     zone_hours = values[0] if len(values) >= 1 else 0
     zone_minutes = values[1] if len(values) >= 2 else 0
     dst_flag = values[2] if len(values) >= 3 else 0
@@ -89,7 +115,7 @@ def _extract_datetime(values: list[int]) -> tuple[int, int, int, int, int, int]:
     for idx, value in enumerate(values):
         if value >= 1000:  # very likely the year
             if len(values) < idx + 5:
-                raise ValueError("Incomplete date/time block in .hor file.")
+                break
             year = value
             month = values[idx + 1]
             day = values[idx + 2]
@@ -97,6 +123,12 @@ def _extract_datetime(values: list[int]) -> tuple[int, int, int, int, int, int]:
             minute = values[idx + 4]
             second = values[idx + 5] if len(values) > idx + 5 else 0
             return year, month, day, hour, minute, second
+
+    # Fallback: assume the first 6 numbers are Y/M/D/H/M/S
+    if len(values) >= 5:
+        year, month, day, hour, minute = values[:5]
+        second = values[5] if len(values) >= 6 else 0
+        return year, month, day, hour, minute, second
 
     raise ValueError("Year not found in .hor integer stream.")
 
@@ -116,11 +148,13 @@ def _parse_coordinates(values: list[int]) -> tuple[float, float]:
         (latitude, longitude) in decimal degrees.
     """
     if len(values) < 8:
-        raise ValueError("Not enough values to decode coordinates.")
+        return 0.0, 0.0
 
     coord_block = values[-9:-1] if len(values) >= 9 else values[-8:]
     if len(coord_block) < 8:
-        raise ValueError("Coordinate block shorter than expected.")
+        coord_block = values[-8:] if len(values) >= 8 else values
+    if len(coord_block) < 8:
+        return 0.0, 0.0
 
     # NOTE: longitude comes first in Morinus .hor, then latitude
     lon_deg, lon_min, lon_sec, east_flag, lat_deg, lat_min, lat_sec, north_flag = coord_block[:8]

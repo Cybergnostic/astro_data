@@ -26,6 +26,12 @@ PLANETS: list[tuple[str, int]] = [
 ]
 FLAGS = swe.FLG_SWIEPH | swe.FLG_SPEED
 
+def set_ephe_path(path: str) -> None:
+    """Override the ephemeris directory used for all Swiss Ephemeris calls."""
+
+    global EPHE_PATH
+    EPHE_PATH = path
+
 # TODO: compute_lot_of_fortune, essential dignities, aspect analysis.
 
 

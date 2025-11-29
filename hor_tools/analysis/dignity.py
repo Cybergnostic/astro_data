@@ -173,3 +173,22 @@ def _face_lord(sign_idx: int, degree: float) -> str:
     decan_index = sign_idx * 3 + decan
     start_offset = 2  # Mars is the first decan ruler of Aries
     return CHALDEAN_SEQUENCE[(start_offset + decan_index) % len(CHALDEAN_SEQUENCE)]
+
+
+def dignity_holders_for_position(longitude: float, is_day_chart: bool) -> dict[str, str | None]:
+    """Return the planets holding each essential dignity at a longitude."""
+
+    sign_idx = sign_index_from_longitude(longitude)
+    deg = degree_in_sign(longitude)
+    ruler = SIGN_RULERS[sign_idx]
+    exaltation_lord = EXALTATIONS.get(sign_idx)
+    triplicity_lord = _triplicity_for_sign(sign_idx, is_day_chart)
+    term_lord = _term_lord(sign_idx, deg)
+    face_lord = _face_lord(sign_idx, deg)
+    return {
+        "domicile": ruler,
+        "exaltation": exaltation_lord,
+        "triplicity": triplicity_lord,
+        "term": term_lord,
+        "face": face_lord,
+    }

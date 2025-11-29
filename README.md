@@ -32,6 +32,9 @@ uv run hor-reader Andjela_cybergnostic.hor
 
 # Point at any Morinus .hor file
 uv run hor-reader path/to/file.hor
+
+# Use a specific ephemeris directory (overrides SWISSEPH_EPHE)
+uv run hor-reader --ephe ~/projects/MorinusWin/SWEP/Ephem Andjela_cybergnostic.hor
 ```
 
 What you get
@@ -39,7 +42,9 @@ What you get
 - Parsed chart input (UTC datetime, decimal lat/lon, tz offset stored).
 - Planet positions (Sun through Saturn) via Swiss Ephemeris, mapped to Whole sign houses.
 - Derived Whole sign house cusps plus Ascendant/MC.
-- Text summary printed to stdout.
+- Traditional analysis bundle per planet: dignities, sect/hayz/halb, motion class, synodic phase, fixed stars, and aspect flags (applying/separating, dexter/sinister, mutual application/separation, counter-rays).
+- Relationship layers: domination/decimation (with aktinobolia), bonification/maltreatment sources, benefic/malefic enclosures, receptions/generosities, translations/collections of light (with natural-speed notes), feral planet marker.
+- Rich console tables with dark HTML/markdown export; Almuten tables included.
 
 Project layout
 --------------
@@ -56,6 +61,7 @@ Extending
 ---------
 - Configure ephemeris path in `astro_engine.py` (`EPHE_PATH` constant).
 - Add Lots, aspects, dignities, or additional bodies in `astro_engine.py`.
+- Relationship logic lives in `analysis/relationships.py`; aspect helpers in `analysis/aspects.py`.
 - Implement exports in `output.py` (XLSX via `openpyxl`, DOCX/ODT via `python-docx` or `odfpy`).
 
 Publish & install on another machine

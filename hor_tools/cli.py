@@ -20,6 +20,7 @@ def main() -> None:
 
     html_path = None
     md_path = None
+    ephe_path = None
     positional = []
     it = iter(sys.argv[1:])
     for arg in it:
@@ -39,11 +40,19 @@ def main() -> None:
                 sys.exit(1)
         elif arg.startswith("--md=") or arg.startswith("--markdown="):
             md_path = arg.split("=", 1)[1]
+        elif arg == "--ephe":
+            try:
+                ephe_path = next(it)
+            except StopIteration:
+                print("Error: --ephe requires a path argument")
+                sys.exit(1)
+        elif arg.startswith("--ephe="):
+            ephe_path = arg.split("=", 1)[1]
         else:
             positional.append(arg)
 
     if len(positional) < 1:
-        print("Usage: hor-reader [--html out.html] [--md out.md] path/to/file.hor")
+        print("Usage: hor-reader [--html out.html] [--md out.md] [--ephe ephe_dir] path/to/file.hor")
         sys.exit(1)
 
     file_path = Path(positional[0])
@@ -57,22 +66,25 @@ def main() -> None:
         print(f"Error parsing .hor file: {exc}")
         raise
 
+    if ephe_path:
+        astro_engine.set_ephe_path(str(Path(ephe_path).expanduser()))
+
     planets = astro_engine.compute_planets(chart)
     houses = astro_engine.compute_houses(chart)
-    reports = build_reports(chart, planets, houses)
+    reports, relationships = build_reports(chart, planets, houses)
 
     # Prefer Rich tables if rich is installed; otherwise fall back to text.
     try:
         import rich  # type: ignore  # noqa: F401
     except ModuleNotFoundError:
-        output.print_full_report(reports, houses)
+        output.print_full_report(reports, houses, relationships)
     else:
-        output.print_rich_report(reports, houses)
+        output.print_rich_report(reports, houses, relationships)
         if html_path:
-            output.export_rich_html(html_path, chart, reports, houses, planets)
+            output.export_rich_html(html_path, chart, reports, houses, planets, relationships)
 
     if md_path:
-        md_content = output.build_markdown_report(chart, reports, houses, planets)
+        md_content = output.build_markdown_report(chart, reports, houses, planets, relationships)
         Path(md_path).write_text(md_content, encoding="utf-8")
 
     # Always show Almuten tables after main report

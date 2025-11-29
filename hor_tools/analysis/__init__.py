@@ -1,16 +1,19 @@
 from __future__ import annotations
 
-from typing import List
+from typing import List, Tuple
 
-from ..models import ChartInput, PlanetPosition, Houses, PlanetReport
+from ..models import ChartInput, PlanetPosition, Houses, PlanetReport, ChartRelationships
 from .dignity import essential_dignity, classify_speed, SIGNS
 from .sect import chart_sect, planet_sect, compute_hayz_and_halb
 from .stars import stars_near_longitude
 from .aspects import aspects_for_planet
 from ..synodic import compute_elongation_and_orientation
+from .relationships import aggregate_relationships
 
 
-def build_reports(chart: ChartInput, planets: List[PlanetPosition], houses: Houses) -> List[PlanetReport]:
+def build_reports(
+    chart: ChartInput, planets: List[PlanetPosition], houses: Houses
+) -> Tuple[List[PlanetReport], ChartRelationships]:
     """
     Build a full PlanetReport for each planet:
     - essential dignity (rulership, exaltation, triplicity, terms, faces)
@@ -71,6 +74,23 @@ def build_reports(chart: ChartInput, planets: List[PlanetPosition], houses: Hous
                 speed_class=speed_class,
                 fixed_stars=star_hits,
                 aspects=aspect_list,
+                bonification_sources=[],
+                maltreatment_sources=[],
+                is_bonified=False,
+                is_maltreated=False,
+                benefic_enclosure_by_ray=False,
+                malefic_enclosure_by_ray=False,
+                benefic_enclosure_by_sign=False,
+                malefic_enclosure_by_sign=False,
+                dominations_over=[],
+                dominated_by=[],
+                receptions_given=[],
+                receptions_received=[],
+                generosities_given=[],
+                generosities_received=[],
+                is_feral=False,
             )
         )
-    return reports
+
+    relationships = aggregate_relationships(reports, planets, sect_chart == "day")
+    return reports, relationships

@@ -7,7 +7,7 @@ from io import StringIO
 from pathlib import Path
 
 from .almuten import ALMUTEN_PLANETS, build_almuten_figuris
-from .models import AspectInfo, ChartInput, Houses, PlanetPosition, PlanetReport
+from .models import AspectInfo, ChartInput, ChartRelationships, Houses, PlanetPosition, PlanetReport
 from .analysis.dignity import SIGNS, degree_in_sign
 
 # Optional: maps for pretty symbols when rendering with Rich
@@ -228,7 +228,7 @@ def print_text(planets: list[PlanetPosition], houses: Houses) -> None:
         print(f"MC:        {_format_long_with_sign(houses.mc)}")
 
 
-def print_full_report(reports: list[PlanetReport], houses: Houses) -> None:
+def print_full_report(reports: list[PlanetReport], houses: Houses, relationships: ChartRelationships | None = None) -> None:
     """
     Print a detailed traditional report for each planet,
     including dignities, sect/hayz/halb, motion, fixed stars, and aspects.
@@ -272,13 +272,82 @@ def print_full_report(reports: list[PlanetReport], houses: Houses) -> None:
             for a in rep.aspects:
                 applying_sep = "applying" if a.applying else "separating"
                 dexter_sin = "dexter" if a.dexter else "sinister"
+                mutual = ""
+                if a.mutual_application:
+                    mutual = " [mutual application]"
+                elif a.mutual_separation:
+                    mutual = " [mutual separation]"
+                counter = " [counter-ray]" if a.counter_ray else ""
                 print(
                     f"    - {a.kind.capitalize()} {a.other} "
-                    f"(orb {a.orb:.2f}°, {applying_sep}, {dexter_sin})"
+                    f"(orb {a.orb:.2f}°, {applying_sep}, {dexter_sin}){mutual}{counter}"
                 )
         else:
             print("  Aspects: none")
 
+        if rep.is_bonified or rep.is_maltreated:
+            if rep.is_bonified:
+                sources = "; ".join(f"{src.reason} ({src.planet})" for src in rep.bonification_sources)
+                print(f"  Bonification: {sources}")
+            if rep.is_maltreated:
+                sources = "; ".join(f"{src.reason} ({src.planet})" for src in rep.maltreatment_sources)
+                print(f"  Maltreatment: {sources}")
+
+        if rep.is_feral:
+            print("  Feral: no whole-sign aspects")
+
+        if rep.receptions_given or rep.receptions_received or rep.generosities_given or rep.generosities_received:
+            if rep.receptions_given:
+                rows = ", ".join(
+                    f"{r.guest} ({'/'.join(r.dignities)}){f' via {r.aspect_kind}' if r.aspect_kind else ''}"
+                    for r in rep.receptions_given
+                )
+                print(f"  Reception given: {rows}")
+            if rep.receptions_received:
+                rows = ", ".join(
+                    f"{r.host} ({'/'.join(r.dignities)}){f' via {r.aspect_kind}' if r.aspect_kind else ''}"
+                    for r in rep.receptions_received
+                )
+                print(f"  Reception received: {rows}")
+            if rep.generosities_given:
+                rows = ", ".join(
+                    f"{r.guest} ({'/'.join(r.dignities)})" for r in rep.generosities_given
+                )
+                print(f"  Generosity given: {rows}")
+            if rep.generosities_received:
+                rows = ", ".join(
+                    f"{r.host} ({'/'.join(r.dignities)})" for r in rep.generosities_received
+                )
+                print(f"  Generosity received: {rows}")
+
+        print()
+
+    if relationships:
+        print("Domination / Decimation:")
+        if relationships.dominations:
+            for dom in relationships.dominations:
+                counter = " with counter-ray" if dom.has_counter_ray else ""
+                print(f"  - {dom.dominator} dominates {dom.dominated} ({dom.relationship}){counter}")
+        else:
+            print("  none")
+        print("\nTranslation of light:")
+        if relationships.translations:
+            for t in relationships.translations:
+                print(
+                    f"  - {t.translator} carries light from {t.from_planet} to {t.to_planet} "
+                    f"({t.aspect_from.kind} -> {t.aspect_to.kind})"
+                )
+        else:
+            print("  none")
+        print("\nCollection of light:")
+        if relationships.collections:
+            for c in relationships.collections:
+                print(
+                    f"  - {c.collector} collects from {c.from_planets[0]} and {c.from_planets[1]} "
+                    f"({c.aspect_from_first.kind} / {c.aspect_from_second.kind})"
+                )
+        else:
+            print("  none")
         print()
 
     # Also print Asc and MC nicely like before
@@ -299,7 +368,11 @@ def print_full_report(reports: list[PlanetReport], houses: Houses) -> None:
 
 
 def build_markdown_report(
-    chart: ChartInput, reports: list[PlanetReport], houses: Houses, planets: list[PlanetPosition]
+    chart: ChartInput,
+    reports: list[PlanetReport],
+    houses: Houses,
+    planets: list[PlanetPosition],
+    relationships: ChartRelationships | None = None,
 ) -> str:
     """
     Return a markdown string mirroring the Rich console output (including Almuten tables).
@@ -309,10 +382,10 @@ def build_markdown_report(
         from rich.console import Console
         from rich.theme import Theme
     except ModuleNotFoundError:
-        return _build_text_markdown(chart, reports, houses, planets)
+        return _build_text_markdown(chart, reports, houses, planets, relationships)
 
     console = Console(record=True, theme=Theme({}))
-    _render_rich_report(console, reports, houses, use_sign_symbols=False)
+    _render_rich_report(console, reports, houses, relationships, use_sign_symbols=False)
     console.print()  # spacer before Almuten section
     print_almuten_tables(chart, planets, houses, console=console)
     text = console.export_text()
@@ -320,7 +393,11 @@ def build_markdown_report(
 
 
 def _build_text_markdown(
-    chart: ChartInput, reports: list[PlanetReport], houses: Houses, planets: list[PlanetPosition]
+    chart: ChartInput,
+    reports: list[PlanetReport],
+    houses: Houses,
+    planets: list[PlanetPosition],
+    relationships: ChartRelationships | None = None,
 ) -> str:
     """
     Fallback markdown when Rich is unavailable; mirrors the plain console output.
@@ -328,13 +405,15 @@ def _build_text_markdown(
 
     buf = StringIO()
     with redirect_stdout(buf):
-        print_full_report(reports, houses)
+        print_full_report(reports, houses, relationships)
         print()
         print_almuten_tables(chart, planets, houses)
     return "```\n" + buf.getvalue().rstrip() + "\n```"
 
 
-def print_rich_report(reports: list[PlanetReport], houses: Houses) -> None:
+def print_rich_report(
+    reports: list[PlanetReport], houses: Houses, relationships: ChartRelationships | None = None
+) -> None:
     """
     Render a rich-styled report with tables for planets, houses, and aspects.
     Requires the 'rich' library; falls back with a helpful error if missing.
@@ -347,7 +426,7 @@ def print_rich_report(reports: list[PlanetReport], houses: Houses) -> None:
         return
 
     console = Console()
-    _render_rich_report(console, reports, houses, use_sign_symbols=False)
+    _render_rich_report(console, reports, houses, relationships, use_sign_symbols=False)
 
 
 def export_rich_html(
@@ -356,6 +435,7 @@ def export_rich_html(
     reports: list[PlanetReport],
     houses: Houses,
     planets: list[PlanetPosition],
+    relationships: ChartRelationships | None = None,
 ) -> None:
     """
     Export the rich report (including Almuten tables) to an HTML file with a dark theme.
@@ -369,7 +449,7 @@ def export_rich_html(
     # Use a neutral theme; we'll inject our own dark background CSS.
     console = Console(record=True, theme=Theme({}))
     # Avoid sign symbols in HTML export so all glyphs share a fixed width.
-    _render_rich_report(console, reports, houses, use_sign_symbols=False)
+    _render_rich_report(console, reports, houses, relationships, use_sign_symbols=False)
     console.print()  # spacer before Almuten section
     print_almuten_tables(chart, planets, houses, console=console)
     html = console.export_html(inline_styles=True)
@@ -393,7 +473,9 @@ pre code span { white-space: pre; font-family: inherit; }
     Path(path).write_text(html, encoding="utf-8")
 
 
-def _render_rich_report(console, reports: list[PlanetReport], houses: Houses, use_sign_symbols: bool = True) -> None:
+def _render_rich_report(
+    console, reports: list[PlanetReport], houses: Houses, relationships: ChartRelationships | None, use_sign_symbols: bool = True
+) -> None:
     """Shared rich rendering so we can also export to HTML."""
     from rich import box
     from rich.table import Table
@@ -471,12 +553,24 @@ def _render_rich_report(console, reports: list[PlanetReport], houses: Houses, us
             status = "[bold green]applying[/]" if asp.applying else "[dim]separating[/]"
             polarity = "[cyan]dexter[/]" if asp.dexter else "[magenta]sinister[/]"
 
-            aspect_table.add_row(pair_label, aspect_name, orb_text, Text.from_markup(status), Text.from_markup(polarity))
+            mutual = "mutual" if asp.mutual_application else ("mutual sep" if asp.mutual_separation else "")
+            counter = "counter-ray" if asp.counter_ray else ""
+            extra = ", ".join([p for p in [mutual, counter] if p])
+            aspect_table.add_row(
+                pair_label,
+                aspect_name,
+                orb_text,
+                Text.from_markup(status if not extra else f"{status} [{extra}]"),
+                Text.from_markup(polarity),
+            )
     else:
         aspect_table.add_row("—", "None", "—", "—", "—")
 
     console.print(aspect_table)
     console.print()
+
+    if relationships:
+        _render_relationship_tables(console, reports, relationships)
 
     # Houses table
     from rich import box as rich_box
@@ -512,6 +606,237 @@ def _format_contrib_cell(contribs: list[int]) -> str:
 
 def _format_row_header(title: str) -> str:
     return f"{title:<8}"
+
+
+def _render_relationship_tables(console, reports: list[PlanetReport], relationships: ChartRelationships) -> None:
+    """Render supplementary relationship tables."""
+    from rich import box
+    from rich.table import Table
+
+    def _aspect_label(kind: str) -> str:
+        clean = kind.replace("_", " ")
+        if "decimation" in clean:
+            parts = clean.split()
+            if len(parts) == 2:
+                return f"{parts[0]} (decimation)"
+        return clean
+
+    def _domination_phrase(reason: str) -> str:
+        rel = reason.replace("domination_", "").replace("counter_domination_", "")
+        return _aspect_label(rel)
+
+    def _format_ray_entries(sources: list[InfluenceSource], icon: str) -> list[str]:
+        grouped: dict[str, set[str]] = {}
+        for src in sources:
+            grouped.setdefault(src.planet, set()).add(src.reason)
+
+        rays: list[str] = []
+        for planet, reasons in grouped.items():
+            aspect_reason = next((r for r in reasons if r.startswith("ray_")), None)
+            conj = "conjunction" in reasons
+            applying = "applying" in reasons
+            special = next((r for r in reasons if r.endswith("_trine") or r.endswith("_opposition")), None)
+            if aspect_reason:
+                aspect = aspect_reason.replace("ray_", "").replace("_", " ")
+                phrase = f"{aspect} ray from {planet}"
+            elif conj:
+                phrase = f"conjoined with {planet} (<=3°)"
+            elif special:
+                short = special.replace("benefic_", "").replace("malefic_", "").replace("_", " ")
+                phrase = f"{short} from {planet}"
+            else:
+                phrase = f"from {planet}"
+            if applying:
+                phrase += " (applying)"
+            rays.append(f"{icon} {phrase}")
+        return rays or ["—"]
+
+    def _format_domination_entries(sources: list[InfluenceSource], enclosure_flags: list[str]) -> list[str]:
+        entries: list[str] = []
+        for src in sources:
+            if src.reason.startswith("domination_"):
+                entries.append(f"🛡 dominated by {src.planet} ({_domination_phrase(src.reason)})")
+            if src.reason.startswith("counter_domination_"):
+                entries.append(f"🛡 counter-ray from {src.planet} ({_domination_phrase(src.reason)})")
+            if src.reason == "dispositor":
+                entries.append(f"🛡 {src.planet} as sign ruler (dispositor)")
+        for flag in enclosure_flags:
+            entries.append(flag)
+        return entries or ["—"]
+
+    legend = (
+        "[green]✅ benefic / help[/]    "
+        "[red]❌ malefic / harm[/]    "
+        "[yellow]🛡 domination / enclosure[/]    "
+        "[magenta]🕳 feral or special[/]"
+    )
+    console.print(legend)
+    console.print()
+
+    cond_table = Table(
+        title="Bonification / Maltreatment",
+        box=box.MINIMAL_DOUBLE_HEAD,
+        expand=False,
+        width=120,
+        padding=(0, 1),
+        caption="Who is helping or harming each planet (rays vs domination/enclosure).",
+    )
+    cond_table.add_column("Planet", style="cyan", no_wrap=True)
+    cond_table.add_column("Benefic rays", style="green", overflow="fold", max_width=24)
+    cond_table.add_column("Malefic rays", style="red", overflow="fold", max_width=24)
+    cond_table.add_column("Benefic dom/enclosure", style="yellow", overflow="fold", max_width=28)
+    cond_table.add_column("Malefic dom/enclosure", style="yellow", overflow="fold", max_width=28)
+    cond_table.add_column("Feral", style="magenta", no_wrap=True)
+
+    for rep in reports:
+        ben_rays = _format_ray_entries(rep.bonification_sources, "✅") if rep.is_bonified else ["—"]
+        mal_rays = _format_ray_entries(rep.maltreatment_sources, "❌") if rep.is_maltreated else ["—"]
+
+        enclosure_ben: list[str] = []
+        enclosure_mal: list[str] = []
+        if rep.benefic_enclosure_by_sign:
+            enclosure_ben.append("🛡 enclosed by benefics (sign)")
+        if rep.benefic_enclosure_by_ray:
+            enclosure_ben.append("🛡 enclosed by benefic rays")
+        if rep.malefic_enclosure_by_sign:
+            enclosure_mal.append("🛡 enclosed by malefics (sign)")
+        if rep.malefic_enclosure_by_ray:
+            enclosure_mal.append("🛡 enclosed by malefic rays")
+
+        ben_dom = _format_domination_entries([s for s in rep.bonification_sources if "domination" in s.reason or s.reason == "dispositor"], enclosure_ben)
+        mal_dom = _format_domination_entries([s for s in rep.maltreatment_sources if "domination" in s.reason or s.reason == "dispositor"], enclosure_mal)
+
+        feral = "[magenta]🕳 YES[/]" if rep.is_feral else "—"
+
+        cond_table.add_row(
+            rep.planet.name,
+            "\n".join(ben_rays),
+            "\n".join(mal_rays),
+            "\n".join(ben_dom),
+            "\n".join(mal_dom),
+            feral,
+        )
+
+    console.print(cond_table)
+    console.print()
+
+    dom_table = Table(
+        title="Domination / Counter-rays",
+        box=box.MINIMAL,
+        expand=False,
+        width=110,
+        padding=(0, 1),
+        caption="Who has the upper hand by sign distance; counter-ray shows the comeback.",
+    )
+    dom_table.add_column("Dominator", style="cyan", no_wrap=True)
+    dom_table.add_column("Dominated", style="magenta", no_wrap=True)
+    dom_table.add_column("Aspect of domination", style="yellow", no_wrap=True)
+    dom_table.add_column("Counter-ray", style="green", no_wrap=True)
+
+    if relationships.dominations:
+        for dom in relationships.dominations:
+            counter = "[dim]—[/]"
+            if dom.has_counter_ray:
+                orb = f" ({dom.orb:.2f}°)" if dom.orb is not None else ""
+                counter = f"[bold green]✅ counter-ray[/]{orb}"
+            dom_table.add_row(dom.dominator, dom.dominated, _aspect_label(dom.relationship), counter)
+    else:
+        dom_table.add_row("—", "—", "—", "—")
+    console.print(dom_table)
+    console.print()
+
+    trans_table = Table(
+        title="Translation of Light",
+        box=box.SIMPLE,
+        expand=False,
+        width=110,
+        padding=(0, 1),
+        caption="A faster planet carries a relationship from one planet to another.",
+    )
+    trans_table.add_column("Translator", style="cyan", no_wrap=True)
+    trans_table.add_column("Connecting (From → To)", style="magenta", overflow="fold", max_width=36)
+    trans_table.add_column("Action", style="yellow", overflow="fold", max_width=54)
+
+    def translator_style(name: str) -> str:
+        if name in {"Venus", "Jupiter"}:
+            return f"[green]{name}[/]"
+        if name in {"Mars", "Saturn"}:
+            return f"[red]{name}[/]"
+        return f"[cyan]{name}[/]"
+
+    if relationships.translations:
+        for t in relationships.translations:
+            chain = f"{t.from_planet} → {t.to_planet}"
+            action = (
+                f"moves from {_aspect_label(t.aspect_from.kind)} with {t.from_planet} "
+                f"to {_aspect_label(t.aspect_to.kind)} with {t.to_planet} (translates light)"
+            )
+            if not t.naturally_fastest:
+                action += " [dim](fast now, not by nature)[/]"
+            trans_table.add_row(translator_style(t.translator), chain, action)
+    else:
+        trans_table.add_row("—", "—", "—")
+    console.print(trans_table)
+    console.print()
+
+    collect_table = Table(
+        title="Collection of Light",
+        box=box.SIMPLE,
+        expand=False,
+        width=110,
+        padding=(0, 1),
+        caption="A slower hub receives two applying aspects and gathers their promise.",
+    )
+    collect_table.add_column("Collector", style="cyan", no_wrap=True)
+    collect_table.add_column("Planets being collected", style="magenta", overflow="fold", max_width=36)
+    collect_table.add_column("Action", style="yellow", overflow="fold", max_width=54)
+
+    if relationships.collections:
+        for c in relationships.collections:
+            from_pair = f"{c.from_planets[0]} & {c.from_planets[1]}"
+            aspects = (
+                f"receives {_aspect_label(c.aspect_from_first.kind)} from {c.from_planets[0]} "
+                f"and {_aspect_label(c.aspect_from_second.kind)} from {c.from_planets[1]}; "
+                f"{c.collector} slower → collects their light"
+            )
+            notes = []
+            if not c.collector_naturally_slower:
+                notes.append("collector only currently slower")
+            if c.naturally_fastest:
+                notes.append(f"naturally fastest feeder: {c.naturally_fastest}")
+            if notes:
+                aspects += f" ({'; '.join(notes)})"
+            collect_table.add_row(f"[bold cyan]{c.collector}[/]", from_pair, aspects)
+    else:
+        collect_table.add_row("—", "—", "—")
+    console.print(collect_table)
+    console.print()
+
+    rec_table = Table(
+        title="Receptions / Generosities",
+        box=box.MINIMAL,
+        expand=False,
+        width=110,
+        padding=(0, 1),
+    )
+    rec_table.add_column("Host", style="cyan", no_wrap=True)
+    rec_table.add_column("Guest", style="magenta", no_wrap=True)
+    rec_table.add_column("Type", style="yellow", no_wrap=True)
+    rec_table.add_column("Dignities", style="green", overflow="fold", max_width=30)
+    rec_table.add_column("Aspect", style="white", no_wrap=True)
+
+    rows_added = False
+    for rep in reports:
+        for r in rep.receptions_given:
+            rec_table.add_row(r.host, r.guest, "reception", "/".join(r.dignities), r.aspect_kind or "—")
+            rows_added = True
+        for g in rep.generosities_given:
+            rec_table.add_row(g.host, g.guest, "generosity", "/".join(g.dignities), "—")
+            rows_added = True
+    if not rows_added:
+        rec_table.add_row("—", "—", "—", "—", "—")
+    console.print(rec_table)
+    console.print()
 
 
 def _format_degree_for_table(longitude: float) -> str:
@@ -622,22 +947,31 @@ def print_almuten_tables(
 
     rich_console = console if console is not None else RichConsole()
 
-    def highlight_row(values: dict[str, int]) -> list[str]:
+    def highlight_row(values: dict[str, int], emphasize: set[str] | None = None) -> list[str]:
         if not values:
             return ["0"] * len(ALMUTEN_PLANETS)
         max_val = max(values.values())
         styled: list[str] = []
         for planet in ALMUTEN_PLANETS:
             v = values.get(planet, 0)
-            if max_val > 0 and v == max_val:
+            if emphasize and planet in emphasize:
+                styled.append(f"[black on cyan]{v}[/]")
+            elif max_val > 0 and v == max_val:
                 styled.append(f"[bold green]{v}[/]")
             else:
                 styled.append(str(v))
         return styled
 
     table_width = 110
+    rich_console.print(
+        "[bold underline magenta]Almuten Figuris – Essential and Accidental Scores[/]"
+    )
+    rich_console.print(
+        "[dim]Row highs in green; grand winner highlighted in the combined totals below.[/]"
+    )
+
     essential_table = Table(
-        title="Essential Contributions",
+        title="Essential dignity shares (sign, exaltation, triplicity, term, face)",
         box=box.MINIMAL_DOUBLE_HEAD,
         expand=False,
         width=table_width,
@@ -659,7 +993,7 @@ def print_almuten_tables(
         )
 
     summary_table = Table(
-        title="Essential Totals",
+        title="Essential dignity totals (shares + scores)",
         box=box.SIMPLE_HEAVY,
         expand=False,
         width=table_width,
@@ -672,7 +1006,7 @@ def print_almuten_tables(
     summary_table.add_row("Scores", *highlight_row(essential_totals))
 
     accidental_table = Table(
-        title="Accidental Scores",
+        title="Accidental strength (House, phase, day/hour bonuses)",
         box=box.SIMPLE,
         expand=False,
         width=table_width,
@@ -689,7 +1023,7 @@ def print_almuten_tables(
     accidental_table.add_row("Hour bonus", *highlight_row(hour_bonus))
 
     totals_table = Table(
-        title="Grand Totals",
+        title="Combined Essential + Accidental",
         box=box.DOUBLE_EDGE,
         expand=False,
         width=table_width,
@@ -700,7 +1034,7 @@ def print_almuten_tables(
         totals_table.add_column(planet, justify="center", no_wrap=True, style="white")
     totals_table.add_row("Essential", *highlight_row(essential_totals))
     totals_table.add_row("Accidental", *highlight_row(accidental["accidental_totals"]))
-    totals_table.add_row("Grand", *highlight_row(grand_scores))
+    totals_table.add_row("Grand", *highlight_row(grand_scores, emphasize=set(almuten or [])))
 
     rich_console.print(essential_table)
     rich_console.print(summary_table)
@@ -708,7 +1042,16 @@ def print_almuten_tables(
     rich_console.print(totals_table)
     if almuten:
         names = ", ".join(almuten)
-        rich_console.print(f"[bold magenta]ALMUTEN FIGURIS:[/] {names} ([green]{almuten_score}[/])")
+        detail_bits = []
+        for name in almuten:
+            detail_bits.append(
+                f"{name} [dim](essential {essential_totals.get(name, 0)} + accidental {accidental['accidental_totals'].get(name, 0)})[/]"
+            )
+        breakdown = "; ".join(detail_bits)
+        rich_console.print(
+            f"[bold magenta]Almuten Figuris:[/] {names} ([green]{almuten_score}[/]) — highest combined score."
+        )
+        rich_console.print(f"[dim]{breakdown}[/]")
 
 
 def _format_long_with_sign(longitude: float) -> str:

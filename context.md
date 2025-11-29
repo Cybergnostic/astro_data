@@ -48,6 +48,14 @@ Current capabilities
     - Orb using the larger of the two planetary orbs
     - Applying vs separating (using real speeds, including retrograde)
     - Dexter vs sinister
+    - Mutual application / mutual separation flags; counter-ray markers
+  - Relationship logic:
+    - Sign-based domination/decimation with aktinobolia (counter-ray) flags
+    - Bonification/maltreatment sources (benefic/malefic rays, application, conjunction, domination, enclosure, dispositor)
+    - Benefic/malefic enclosures (by sign and by ray)
+    - Receptions and generosities from dignity holders
+    - Translation and collection of light (current speed plus natural-speed notes)
+    - Feral planets (no whole-sign aspects)
 - Render a high-fidelity terminal dashboard using `rich`:
   - **Planetary State Table**:
     - Columns: Planet, Position, House, Dignity, Sect, Motion, Synodic
@@ -57,12 +65,17 @@ Current capabilities
   - **Aspects Table**:
     - Columns: Pair, Aspect, Orb (tight orbs highlighted), Status (applying/separating), Polarity (dexter/sinister)
     - Sorted by orb tightness
+    - Shows mutual application/separation and counter-ray hints
   - **Houses & Angles**:
     - Compact “Houses (Whole sign)” table (house + sign only)
     - Separate “Angles” table for Asc/MC
     - Sign symbols suppressed in Rich/HTML to keep mono widths aligned
   - **Almuten Tables**:
     - Colored, with maxima highlighted per row and winners in green
+  - **Relationship tables**:
+    - Bonification/maltreatment + enclosures + feral markers per planet
+    - Domination/decimation with counter-ray orbs
+    - Translation/collection of light with natural-speed notes
   - Export options:
     - `--html out.html` saves a dark-themed HTML that matches the console layout (monospace, fixed widths)
     - `--md out.md` saves a fenced code snapshot of the Rich/text output
@@ -73,7 +86,8 @@ Architecture
   - `ChartInput`: normalized birth data from Morinus `.hor`
   - `PlanetPosition`: raw planetary data (lon/lat, speed, House, retrograde, synodic info)
   - `Houses`: Whole sign cusps + Asc + MC
-  - `AspectInfo`: one aspect from a planet to another planet
+  - `AspectInfo`: one aspect from a planet to another planet (mutual flags, counter-ray)
+  - Relationship dataclasses: domination, reception/generosity, translation/collection of light, enclosures, bonification sources, chart-level aggregates
   - `PlanetReport`: full analysis bundle for a single planet
 - `hor_tools/hor_parser.py`
   - Reads Morinus `.hor` files (ASCII), extracts:
@@ -84,6 +98,7 @@ Architecture
   - Produces `ChartInput` in UTC
 - `hor_tools/astro_engine.py`
   - Swiss Ephemeris wrapper with a shared `EPHE_PATH` (points to ephemeris directory)
+  - `set_ephe_path(path)`: runtime override of the ephemeris directory (also respects `SWISSEPH_EPHE`)
   - `compute_planets(chart)`: planets Sun - Saturn + Whole sign Houses
     - Uses `FLG_SWIEPH | FLG_SPEED` to get speed and retrograde
     - Fills elongation_from_sun and synodic_phase per planet
@@ -92,16 +107,18 @@ Architecture
 - `hor_tools/analysis/`
   - `dignity.py`: rulers, exaltations, triplicities, terms, faces; mean speeds
   - `sect.py`: chart sect, planet sect, hayz/halb, horizon tests
-  - `aspects.py`: aspect detection, orbs, applying/separating, dexter/sinister
+  - `aspects.py`: aspect detection, orbs, applying/separating, dexter/sinister, mutual application/separation helpers
+  - `relationships.py`: domination/decimation, aktinobolia, bonification/maltreatment, receptions/generosities, enclosures, translation/collection of light, feral planets
   - `stars.py`: fixed star lookup via Swiss Ephemeris
   - `__init__.py`: `build_reports` glue for all analysis
 - `hor_tools/output.py`
   - Rich/text/markdown rendering of reports; synodic column included
   - Almuten tables rendered with Rich (fallback to text)
+  - Relationship sections/tables rendered with Rich + HTML
   - HTML export (`export_rich_html`) for dark-themed output
 - `hor_tools/cli.py`
   - `hor-reader` console script entry point:
-    - Usage: `hor-reader [--html out.html] [--md out.md] path/to/file.hor`
+    - Usage: `hor-reader [--html out.html] [--md out.md] [--ephe ephe_dir] path/to/file.hor`
     - Steps:
       1. Parse `.hor` into `ChartInput`
       2. Compute planets and Houses
@@ -118,7 +135,7 @@ External requirements
   - Directory with:
     - Planet and Moon `.se1` files (e.g. `sepl_*.se1`, `semo_*.se1`, `seas_*.se1`)
     - **`sefstars.txt`** for fixed stars
-  - `EPHE_PATH` in `astro_engine.py` must point to that folder
+  - Point to the folder via `SWISSEPH_EPHE` env var or CLI `--ephe`; default is `/home/cyber/swisseph_ephe`
 - Morinus `.hor` files exported in the expected format
 
 Future work
