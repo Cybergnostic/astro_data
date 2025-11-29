@@ -1,0 +1,77 @@
+hor-tools
+=========
+
+Read Morinus `.hor` files, normalize chart data, and compute placements with Swiss Ephemeris (pyswisseph). Uses Whole sign houses by default and is built to be extended with Lots and export formats later.
+
+Requirements
+------------
+- Python 3.11+
+- uv (https://github.com/astral-sh/uv) installed and on PATH
+
+Setup
+-----
+```bash
+# From repo root
+cd hor_tools
+uv sync
+```
+
+Ephemeris data
+--------------
+Swiss Ephemeris data files are required (planet/moon `.se1` files and `sefstars.txt` for fixed stars). Point the code at your ephemeris directory via environment variable `SWISSEPH_EPHE` (otherwise it defaults to `/home/cyber/swisseph_ephe`):
+```bash
+export SWISSEPH_EPHE=/path/to/ephemeris
+```
+Place the directory anywhere (e.g., `~/.local/share/swisseph` on Linux) and set the variable before running.
+
+Usage
+-----
+```bash
+# Basic run with the bundled console script
+uv run hor-reader ../Andjela_cybergnostic.hor
+
+# Point at any Morinus .hor file
+uv run hor-reader path/to/file.hor
+```
+
+What you get
+------------
+- Parsed chart input (UTC datetime, decimal lat/lon, tz offset stored).
+- Planet positions (Sun through Saturn) via Swiss Ephemeris, mapped to Whole sign houses.
+- Derived Whole sign house cusps plus Ascendant/MC.
+- Text summary printed to stdout.
+
+Project layout
+--------------
+- `hor_tools/models.py`: core dataclasses.
+- `hor_tools/hor_parser.py`: Morinus `.hor` parsing into `ChartInput`.
+- `hor_tools/astro_engine.py`: Swiss Ephemeris wrapper; planets + Whole sign houses.
+- `hor_tools/output.py`: text output + stubs for XLSX/DOCX exports.
+- `hor_tools/cli.py`: CLI entry that wires parse/compute/print.
+- `context.md`: quick architecture guide for AI tools.
+
+Extending
+---------
+- Configure ephemeris path in `astro_engine.py` (`EPHE_PATH` constant).
+- Add Lots, aspects, dignities, or additional bodies in `astro_engine.py`.
+- Implement exports in `output.py` (XLSX via `openpyxl`, DOCX/ODT via `python-docx` or `odfpy`).
+
+Publish & install on another machine
+------------------------------------
+1) Publish to GitHub (once):
+```bash
+git init
+git add .
+git commit -m "Initial import of hor-tools"
+gh repo create yourname/hor-tools --source=. --public --push  # or create on GitHub and git remote add origin ...
+git push -u origin main
+```
+
+2) Install and run on another Linux/Mac machine (with uv installed):
+```bash
+git clone https://github.com/yourname/hor-tools.git
+cd hor-tools
+uv sync
+export SWISSEPH_EPHE=/path/to/ephemeris  # set to your Swiss Ephemeris folder
+uv run hor-reader path/to/file.hor --html report.html --md report.md
+```

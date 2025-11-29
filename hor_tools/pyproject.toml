@@ -1,0 +1,25 @@
+[project]
+name = "hor-tools"
+version = "0.1.0"
+description = "Read Morinus .hor files and compute placements with Swiss Ephemeris."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "pyswisseph>=2.10.3.2",
+    "pytest>=9.0.1",
+    "rich>=14.2.0",
+]
+
+[project.scripts]
+hor-reader = "hor_tools.cli:main"
+
+# Optional extras reserved for future exports and document outputs.
+[project.optional-dependencies]
+xlsx = ["openpyxl"]
+docs = ["python-docx", "odfpy"]
+
+[tool.uv]
+package = true
+
+[tool.setuptools]
+packages = ["hor_tools"]
