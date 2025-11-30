@@ -92,9 +92,9 @@ def main() -> None:
     try:
         import rich  # type: ignore  # noqa: F401
     except ModuleNotFoundError:
-        output.print_full_report(reports, houses, relationships)
+        output.print_full_report(chart, reports, houses, relationships)
     else:
-        output.print_rich_report(reports, houses, relationships)
+        output.print_rich_report(chart, reports, houses, relationships)
         if html_path_resolved:
             output.export_rich_html(str(html_path_resolved), chart, reports, houses, planets, relationships)
 

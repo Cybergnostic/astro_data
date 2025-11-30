@@ -22,23 +22,25 @@ uv sync
 
 Ephemeris data
 --------------
-Swiss Ephemeris data files are required (planet/moon `.se1` files and `sefstars.txt` for fixed stars). Point the code at your ephemeris directory via environment variable `SWISSEPH_EPHE` (otherwise it defaults to `/home/cyber/swisseph_ephe`):
+Swiss Ephemeris data files are required (planet/moon `.se1` files and `sefstars.txt` for fixed stars); they are not bundled. Download the ephemeris from the official source (e.g. https://www.astro.com/ftp/swisseph/ephe/) and point the tool at the folder either via `SWISSEPH_EPHE` or `--ephe`. No machine-specific default is assumed.
 ```bash
 export SWISSEPH_EPHE=/path/to/ephemeris
+# or per-run
+uv run hor-reader --ephe /path/to/ephemeris sample_chart.hor
 ```
-Place the directory anywhere (e.g., `~/.local/share/swisseph` on Linux) and set the variable before running.
+Place the directory anywhere (e.g., `~/.local/share/swisseph` on Linux) and set the variable before running. If the path is missing, the CLI will raise a clear error telling you to set it.
 
 Usage
 -----
 ```bash
 # From repo root (astro_data)
-uv run hor-reader Andjela_cybergnostic.hor
+uv run hor-reader sample_chart.hor
 
 # Point at any Morinus .hor file
 uv run hor-reader path/to/file.hor
 
 # Use a specific ephemeris directory (overrides SWISSEPH_EPHE)
-uv run hor-reader --ephe ~/projects/MorinusWin/SWEP/Ephem Andjela_cybergnostic.hor
+uv run hor-reader --ephe ~/projects/MorinusWin/SWEP/Ephem sample_chart.hor
 
 # HTML/Markdown exports now go to ./outputs/ by default when relative paths are used
 uv run hor-reader path/to/file.hor --html report.html --md report.md
@@ -47,6 +49,7 @@ uv run hor-reader path/to/file.hor --html report.html --md report.md
 
 What you get
 ------------
+- Chart header at the top of every report (console/HTML/Markdown): name, local time (with UTC offset), UTC time, location, house system, zodiac.
 - Parsed chart input (UTC datetime, decimal lat/lon, tz offset stored).
 - Planet positions (Sun through Saturn) via Swiss Ephemeris, mapped to Whole sign houses.
 - Derived Whole sign house cusps plus Ascendant/MC.
@@ -79,8 +82,8 @@ Extending
 - Relationship logic lives in `analysis/relationships.py`; aspect helpers in `analysis/aspects.py`.
 - Implement exports in `output.py` (XLSX via `openpyxl`, DOCX/ODT via `python-docx` or `odfpy`).
 
-Publish & install on another machine
-------------------------------------
+For maintainers: publish & install elsewhere
+--------------------------------------------
 1) Publish to GitHub (once):
 ```bash
 git init

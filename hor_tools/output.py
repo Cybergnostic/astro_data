@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import timedelta
 from contextlib import redirect_stdout
 from io import StringIO
 from pathlib import Path
@@ -35,6 +36,41 @@ SIGN_SYMBOLS = {
     "Aquarius": "♒",
     "Pisces": "♓",
 }
+
+
+def _format_coord(value: float, positive_label: str, negative_label: str, precision: int = 4) -> str:
+    """Return a signed coordinate with cardinal direction."""
+
+    hemi = positive_label if value >= 0 else negative_label
+    return f"{abs(value):.{precision}f}° {hemi}"
+
+
+def _tz_offset_str(offset_hours: float) -> str:
+    """Format timezone offset hours as UTC±HH:MM."""
+
+    sign = "+" if offset_hours >= 0 else "-"
+    hours = int(abs(offset_hours))
+    minutes = int(round((abs(offset_hours) - hours) * 60))
+    return f"UTC{sign}{hours:02d}:{minutes:02d}"
+
+
+def _chart_header_lines(chart: ChartInput) -> list[str]:
+    """Human-readable chart basics for the top of the report."""
+
+    offset = chart.tz_offset_hours
+    local_dt = chart.datetime_utc + timedelta(hours=offset)
+    offset_str = _tz_offset_str(offset)
+    lat_str = _format_coord(chart.latitude, "N", "S")
+    lon_str = _format_coord(chart.longitude, "E", "W")
+    house_sys = "Whole sign" if chart.house_system == "W" else chart.house_system
+    zodiac = "Tropical" if chart.zodiac == "T" else chart.zodiac
+    return [
+        f"Chart: {chart.name}",
+        f"Local: {local_dt.strftime('%Y-%m-%d %H:%M:%S')} ({offset_str})",
+        f"UTC:   {chart.datetime_utc.strftime('%Y-%m-%d %H:%M:%S')} (UTC)",
+        f"Location: {lat_str}, {lon_str}",
+        f"House system: {house_sys} | Zodiac: {zodiac}",
+    ]
 
 
 def _build_dignity_lines(rep: PlanetReport, markup: bool = False) -> list[str]:
@@ -304,11 +340,18 @@ def print_text(planets: list[PlanetPosition], houses: Houses) -> None:
         print(f"MC:        {_format_long_with_sign(houses.mc)}")
 
 
-def print_full_report(reports: list[PlanetReport], houses: Houses, relationships: ChartRelationships | None = None) -> None:
+def print_full_report(
+    chart: ChartInput, reports: list[PlanetReport], houses: Houses, relationships: ChartRelationships | None = None
+) -> None:
     """
     Print a detailed traditional report for each planet,
     including dignities, sect/hayz/halb, motion, fixed stars, and aspects.
     """
+
+    header = _chart_header_lines(chart)
+    for line in header:
+        print(line)
+    print()
 
     for rep in reports:
         p = rep.planet
@@ -473,7 +516,7 @@ def build_markdown_report(
         return _build_text_markdown(chart, reports, houses, planets, relationships, include_almuten)
 
     console = Console(record=True, theme=Theme({}))
-    _render_rich_report(console, reports, houses, relationships, use_sign_symbols=False)
+    _render_rich_report(console, chart, reports, houses, relationships, use_sign_symbols=False, use_narrow_icons=True)
     if include_almuten:
         console.print()  # spacer before Almuten section
         print_almuten_tables(chart, planets, houses, console=console)
@@ -495,7 +538,7 @@ def _build_text_markdown(
 
     buf = StringIO()
     with redirect_stdout(buf):
-        print_full_report(reports, houses, relationships)
+        print_full_report(chart, reports, houses, relationships)
         if include_almuten:
             print()
             print_almuten_tables(chart, planets, houses)
@@ -503,7 +546,7 @@ def _build_text_markdown(
 
 
 def print_rich_report(
-    reports: list[PlanetReport], houses: Houses, relationships: ChartRelationships | None = None
+    chart: ChartInput, reports: list[PlanetReport], houses: Houses, relationships: ChartRelationships | None = None
 ) -> None:
     """
     Render a rich-styled report with tables for planets, houses, and aspects.
@@ -517,7 +560,9 @@ def print_rich_report(
         return
 
     console = Console()
-    _render_rich_report(console, reports, houses, relationships, use_sign_symbols=True, use_narrow_icons=False)
+    _render_rich_report(
+        console, chart, reports, houses, relationships, use_sign_symbols=True, use_narrow_icons=False
+    )
 
 
 def export_rich_html(
@@ -540,7 +585,9 @@ def export_rich_html(
     # Use a neutral theme; we'll inject our own dark background CSS.
     console = Console(record=True, theme=Theme({}))
     # Avoid sign symbols in HTML export so all glyphs share a fixed width.
-    _render_rich_report(console, reports, houses, relationships, use_sign_symbols=False, use_narrow_icons=True)
+    _render_rich_report(
+        console, chart, reports, houses, relationships, use_sign_symbols=False, use_narrow_icons=True
+    )
     console.print()  # spacer before Almuten section
     print_almuten_tables(chart, planets, houses, console=console)
     html = console.export_html(inline_styles=True)
@@ -566,6 +613,7 @@ pre code span { white-space: pre; font-family: inherit; }
 
 def _render_rich_report(
     console,
+    chart: ChartInput,
     reports: list[PlanetReport],
     houses: Houses,
     relationships: ChartRelationships | None,
@@ -576,6 +624,12 @@ def _render_rich_report(
     from rich import box
     from rich.table import Table
     from rich.text import Text
+
+    header_lines = _chart_header_lines(chart)
+    console.print(f"[bold cyan]{header_lines[0]}[/]")
+    for line in header_lines[1:]:
+        console.print(line)
+    console.print()
 
     # Planetary State table
     planet_table = Table(title="Planetary State", box=box.ROUNDED, expand=False, width=110, padding=(0, 1))

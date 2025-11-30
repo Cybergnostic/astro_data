@@ -14,7 +14,7 @@ from .synodic import (
     compute_superior_synodic_phase,
 )
 
-EPHE_PATH = os.environ.get("SWISSEPH_EPHE", "/home/cyber/swisseph_ephe")
+EPHE_PATH = os.environ.get("SWISSEPH_EPHE")
 PLANETS: list[tuple[str, int]] = [
     ("Sun", swe.SUN),
     ("Moon", swe.MOON),
@@ -32,13 +32,30 @@ def set_ephe_path(path: str) -> None:
     global EPHE_PATH
     EPHE_PATH = path
 
+
+def ensure_ephe_path() -> str:
+    """
+    Resolve the ephemeris path from the global setting or env var.
+
+    Raises a clear error if not provided; we cannot ship ephemeris data, so the
+    user must point the code at their local Swiss Ephemeris folder.
+    """
+
+    path = EPHE_PATH or os.environ.get("SWISSEPH_EPHE")
+    if not path:
+        raise RuntimeError(
+            "Swiss Ephemeris path is not set. Set SWISSEPH_EPHE or pass --ephe to hor-reader."
+        )
+    swe.set_ephe_path(path)
+    return path
+
 # TODO: compute_lot_of_fortune, essential dignities, aspect analysis.
 
 
 def compute_planets(chart: ChartInput) -> list[PlanetPosition]:
     """Calculate planetary longitudes/latitudes and map them to Whole sign houses."""
 
-    swe.set_ephe_path(EPHE_PATH)
+    ensure_ephe_path()
     jd_ut = julian_day_from_chart(chart)
     asc_longitude, _ = _ascendant_and_mc(jd_ut, chart.latitude, chart.longitude)
     asc_sign = int(asc_longitude // 30)
@@ -79,7 +96,7 @@ def compute_planets(chart: ChartInput) -> list[PlanetPosition]:
 def compute_houses(chart: ChartInput) -> Houses:
     """Compute Ascendant/MC and derive Whole sign cusps."""
 
-    swe.set_ephe_path(EPHE_PATH)
+    ensure_ephe_path()
     jd_ut = julian_day_from_chart(chart)
     asc_longitude, mc_longitude = _ascendant_and_mc(jd_ut, chart.latitude, chart.longitude)
     asc_sign = int(asc_longitude // 30)

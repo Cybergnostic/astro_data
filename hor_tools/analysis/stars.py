@@ -5,7 +5,7 @@ from typing import List
 import swisseph as swe
 
 from ..models import ChartInput
-from ..astro_engine import julian_day_from_chart, EPHE_PATH
+from ..astro_engine import julian_day_from_chart, ensure_ephe_path
 
 BRIGHT_STARS = [
     "Regulus",
@@ -36,7 +36,7 @@ def stars_near_longitude(
     jd_ut = julian_day_from_chart(chart)
 
     # Use the same ephemeris path as planets.
-    swe.set_ephe_path(EPHE_PATH)
+    ensure_ephe_path()
 
     hits: List[str] = []
 

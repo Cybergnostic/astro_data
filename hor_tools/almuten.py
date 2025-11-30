@@ -9,7 +9,7 @@ import swisseph as swe
 
 from .analysis.dignity import SIGNS, TRIPLICITIES, essential_dignity, degree_in_sign, sign_index_from_longitude
 from .analysis.sect import chart_sect
-from .astro_engine import EPHE_PATH, julian_day_from_chart
+from .astro_engine import ensure_ephe_path, julian_day_from_chart
 from .models import ChartInput, Houses, PlanetPosition
 
 CHALDEAN_ORDER = ["Saturn", "Jupiter", "Mars", "Sun", "Venus", "Mercury", "Moon"]
@@ -133,7 +133,7 @@ def compute_syzygy_longitude(chart: ChartInput, sect_chart: str) -> float:
       in the syzygy chart (the in-sect luminary for that syzygy moment).
     """
 
-    swe.set_ephe_path(EPHE_PATH)
+    ensure_ephe_path()
     start_jd = julian_day_from_chart(chart)
 
     def _sun_moon_diff(jd: float) -> float:
@@ -271,7 +271,7 @@ def _sunrise_sunset(jd: float, lat: float, lon: float, tz_offset_hours: float) -
     using the time-zone meridian rather than geographic longitude so our values
     align with its output.
     """
-    swe.set_ephe_path(EPHE_PATH)
+    ensure_ephe_path()
     effective_lon = tz_offset_hours * 15.0
     rise_flag, rise_tret = swe.rise_trans(
         jd,
