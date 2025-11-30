@@ -35,6 +35,10 @@ uv run hor-reader path/to/file.hor
 
 # Use a specific ephemeris directory (overrides SWISSEPH_EPHE)
 uv run hor-reader --ephe ~/projects/MorinusWin/SWEP/Ephem Andjela_cybergnostic.hor
+
+# HTML/Markdown exports now go to ./outputs/ by default when relative paths are used
+uv run hor-reader path/to/file.hor --html report.html --md report.md
+# writes outputs/report.html and outputs/report.md
 ```
 
 What you get
@@ -45,6 +49,7 @@ What you get
 - Traditional analysis bundle per planet: dignities, sect/hayz/halb, motion class, synodic phase, fixed stars, and aspect flags (applying/separating, dexter/sinister, mutual application/separation, counter-rays).
 - Relationship layers: domination/decimation (with aktinobolia), bonification/maltreatment sources, benefic/malefic enclosures, receptions/generosities, translations/collections of light (with natural-speed notes), feral planet marker.
 - Rich console tables with dark HTML/markdown export; Almuten tables included.
+- CLI/text, HTML, and Markdown share the same renderer; when you change the console layout in code, it automatically carries through to HTML/MD.
 
 Project layout
 --------------
@@ -56,6 +61,9 @@ Project layout
   - Personal `.hor` files (git-ignored) can sit alongside.
 - Entry point: `hor_tools/cli.py` (`hor-reader`).
 - Core modules: `models.py`, `hor_parser.py`, `astro_engine.py`, `analysis/*`, `output.py`.
+- Helpers:
+  - `scan_events.py`: list ingresses and exact aspects in a date range (see below).
+  - `asc_window_scan.py`: generate reports for each Ascendant change in a window.
 
 Extending
 ---------
@@ -83,3 +91,29 @@ uv sync
 export SWISSEPH_EPHE=/path/to/ephemeris  # set to your Swiss Ephemeris folder
 uv run hor-reader path/to/file.hor --html report.html --md report.md
 ```
+
+Helper scripts
+--------------
+**Ingresses + aspects (scan_events.py)**
+```
+uv run scan_events.py \
+  --start "2028-01-01T00:00:00Z" \
+  --end "2028-02-01T00:00:00Z" \
+  --lat 40.7 --lon -74.0 \
+  --step-min 60 --tol-min 0.1 \
+  --aspect 0=conj --aspect 60=sextile --aspect 90=square --aspect 120=trine --aspect 180=opp
+```
+Lists every sign ingress and exact aspect hit (Sun–Saturn). Accepts custom aspects and an optional `--ephe` path.
+
+**Ascendant window scan (asc_window_scan.py)**
+```
+uv run asc_window_scan.py \
+  --primer path/to/template.hor \
+  --start-date 2028-04-20 --end-date 2028-05-05 \
+  --window-start 12:00 --window-end 18:00 \
+  --step-min 10 --tol-min 0.2
+```
+- Uses the primer `.hor` for location/tz/house/zodiac; iterates through the date window and daily time window to find every Ascendant sign change.
+- Writes a consolidated Markdown report to `outputs/asc_scan_<start>_<end>.md` by default and prints the file path.
+- Default output is lightweight (no Almuten tables); add `--verbose` to include full reports with Almuten.
+- Set `--out myfile.md` to control the output path (relative paths go under `outputs/`).

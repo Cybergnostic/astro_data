@@ -7,6 +7,7 @@ Repository layout
 - Project root: `astro_data/` (git root). Personal `.hor` files may live alongside code and are git-ignored.
 - Package folder: `hor_tools/`
 - Tooling: `pyproject.toml`, `uv.lock`, `README.md`, `context.md`
+- Helper scripts: `scan_events.py` (ingresses/aspects), `asc_window_scan.py` (Asc sign changes in a window)
 - Tests: `tests/`
 
 Current capabilities
@@ -79,6 +80,8 @@ Current capabilities
   - Export options:
     - `--html out.html` saves a dark-themed HTML that matches the console layout (monospace, fixed widths)
     - `--md out.md` saves a fenced code snapshot of the Rich/text output
+    - Relative HTML/MD paths default under `outputs/` (auto-created; git-ignored)
+    - CLI/text, HTML, and Markdown share the same renderer; layout changes propagate across all formats
 
 Architecture
 ------------
@@ -116,6 +119,7 @@ Architecture
   - Almuten tables rendered with Rich (fallback to text)
   - Relationship sections/tables rendered with Rich + HTML
   - HTML export (`export_rich_html`) for dark-themed output
+  - `build_markdown_report(..., include_almuten: bool)` allows lightweight reports (used by helpers)
 - `hor_tools/cli.py`
   - `hor-reader` console script entry point:
     - Usage: `hor-reader [--html out.html] [--md out.md] [--ephe ephe_dir] path/to/file.hor`
@@ -125,6 +129,17 @@ Architecture
       3. Build `PlanetReport` list
       4. Render Rich tables to stdout (or text if Rich missing)
       5. Optional HTML/Markdown export
+    - Relative HTML/MD outputs are placed in `outputs/` by default
+
+Helper scripts (standalone, import the package)
+-----------------------------------------------
+- `scan_events.py`: list sign ingresses and exact aspects between two dates for a location.
+  - Inputs: start/end datetimes (ISO, timezone-aware or UTC), lat/lon, step/tolerance, optional custom aspects, optional `--ephe`.
+  - Outputs to stdout; does not modify files.
+- `asc_window_scan.py`: for a primer `.hor`, find every Ascendant sign change within a date range and daily time window.
+  - Inputs: `--primer`, start/end dates, local window times, step/tolerance, optional `--ephe`, optional `--out`.
+  - Default output is lightweight (no Almuten tables); `--verbose` includes full reports.
+  - Writes a consolidated Markdown to `outputs/asc_scan_<start>_<end>.md` by default and prints the path.
 
 External requirements
 ---------------------
@@ -137,6 +152,10 @@ External requirements
     - **`sefstars.txt`** for fixed stars
   - Point to the folder via `SWISSEPH_EPHE` env var or CLI `--ephe`; default is `/home/cyber/swisseph_ephe`
 - Morinus `.hor` files exported in the expected format
+
+Generated/ignored files
+-----------------------
+- `outputs/` (auto-created for HTML/MD exports and helper outputs) is git-ignored.
 
 Future work
 -----------

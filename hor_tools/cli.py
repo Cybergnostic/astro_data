@@ -4,10 +4,13 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from datetime import timezone
 
 from . import astro_engine, hor_parser, output
 from .analysis import build_reports
 from .models import ChartInput
+
+DEFAULT_OUTPUT_DIR = Path("outputs")
 
 
 def main() -> None:
@@ -69,6 +72,18 @@ def main() -> None:
     if ephe_path:
         astro_engine.set_ephe_path(str(Path(ephe_path).expanduser()))
 
+    def resolve_output_path(path_str: str | None) -> Path | None:
+        if not path_str:
+            return None
+        p = Path(path_str)
+        if not p.is_absolute() and p.parent == Path("."):
+            p = DEFAULT_OUTPUT_DIR / p
+        p.parent.mkdir(parents=True, exist_ok=True)
+        return p
+
+    html_path_resolved = resolve_output_path(html_path)
+    md_path_resolved = resolve_output_path(md_path)
+
     planets = astro_engine.compute_planets(chart)
     houses = astro_engine.compute_houses(chart)
     reports, relationships = build_reports(chart, planets, houses)
@@ -80,16 +95,33 @@ def main() -> None:
         output.print_full_report(reports, houses, relationships)
     else:
         output.print_rich_report(reports, houses, relationships)
-        if html_path:
-            output.export_rich_html(html_path, chart, reports, houses, planets, relationships)
+        if html_path_resolved:
+            output.export_rich_html(str(html_path_resolved), chart, reports, houses, planets, relationships)
 
-    if md_path:
+    if md_path_resolved:
         md_content = output.build_markdown_report(chart, reports, houses, planets, relationships)
-        Path(md_path).write_text(md_content, encoding="utf-8")
+        md_path_resolved.write_text(md_content, encoding="utf-8")
 
     # Always show Almuten tables after main report
     print()
     output.print_almuten_tables(chart, planets, houses)
+
+    # Offer a ready-to-edit scan_events.py command with chart location prefilled.
+    dt_utc = chart.datetime_utc
+    if dt_utc.tzinfo is not None:
+        dt_utc = dt_utc.astimezone(timezone.utc).replace(tzinfo=None)
+    dt_str = dt_utc.isoformat() + "Z"
+    scan_cmd_parts = [
+        "python",
+        "scan_events.py",
+        f'--start "{dt_str}"',
+        '--end "<END_ISO_UTC>"',
+        f"--lat {chart.latitude}",
+        f"--lon {chart.longitude}",
+    ]
+    if ephe_path:
+        scan_cmd_parts.append(f'--ephe "{Path(ephe_path).expanduser()}"')
+    print("\nScan helper template:", " ".join(scan_cmd_parts))
 
 
 if __name__ == "__main__":

@@ -381,21 +381,25 @@ def build_markdown_report(
     houses: Houses,
     planets: list[PlanetPosition],
     relationships: ChartRelationships | None = None,
+    include_almuten: bool = True,
 ) -> str:
     """
-    Return a markdown string mirroring the Rich console output (including Almuten tables).
+    Return a markdown string mirroring the Rich console output.
+
+    By default includes Almuten tables; set include_almuten=False for a lighter report.
     """
 
     try:
         from rich.console import Console
         from rich.theme import Theme
     except ModuleNotFoundError:
-        return _build_text_markdown(chart, reports, houses, planets, relationships)
+        return _build_text_markdown(chart, reports, houses, planets, relationships, include_almuten)
 
     console = Console(record=True, theme=Theme({}))
     _render_rich_report(console, reports, houses, relationships, use_sign_symbols=False)
-    console.print()  # spacer before Almuten section
-    print_almuten_tables(chart, planets, houses, console=console)
+    if include_almuten:
+        console.print()  # spacer before Almuten section
+        print_almuten_tables(chart, planets, houses, console=console)
     text = console.export_text()
     return "```\n" + text.rstrip() + "\n```"
 
@@ -406,6 +410,7 @@ def _build_text_markdown(
     houses: Houses,
     planets: list[PlanetPosition],
     relationships: ChartRelationships | None = None,
+    include_almuten: bool = True,
 ) -> str:
     """
     Fallback markdown when Rich is unavailable; mirrors the plain console output.
@@ -414,8 +419,9 @@ def _build_text_markdown(
     buf = StringIO()
     with redirect_stdout(buf):
         print_full_report(reports, houses, relationships)
-        print()
-        print_almuten_tables(chart, planets, houses)
+        if include_almuten:
+            print()
+            print_almuten_tables(chart, planets, houses)
     return "```\n" + buf.getvalue().rstrip() + "\n```"
 
 
