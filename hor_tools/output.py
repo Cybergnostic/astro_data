@@ -205,7 +205,7 @@ def _format_reflection_line(label: str, target_longitude: float, hits: list[Refl
 
 
 def _format_domicile_lines(rep: PlanetReport, markup: bool = False) -> list[str]:
-    """Return aversion/sees lines for each domicile."""
+    """Return aversion/witness lines for each domicile."""
 
     def style(text: str, color: str) -> str:
         return f"[bold {color}]{text}[/]" if markup else text
@@ -214,7 +214,7 @@ def _format_domicile_lines(rep: PlanetReport, markup: bool = False) -> list[str]
     for dom in rep.domicile_aversions:
         status: str
         if dom.sees:
-            status = style("sees domicile", "green")
+            status = style("witnesses domicile", "green")
         elif dom.avoided:
             status = style("aversion avoided", "yellow")
         else:
@@ -302,7 +302,7 @@ def _collect_domicile_aversion(reports: list[PlanetReport]) -> list[tuple[str, s
     for rep in reports:
         for idx, dom in enumerate(rep.domicile_aversions):
             if dom.sees:
-                status = "[green]sees[/]"
+                status = "[green]witnesses[/]"
             elif dom.avoided:
                 status = "[yellow]aversion avoided[/]"
             else:

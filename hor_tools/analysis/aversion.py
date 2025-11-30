@@ -38,7 +38,7 @@ def compute_domicile_aversion(
     translations: List[TranslationOfLight],
 ) -> None:
     """
-    For each planet, mark whether it sees each of its domiciles or is in aversion.
+    For each planet, mark whether it witnesses each of its domiciles or is in aversion.
 
     Aversion is avoided if:
       1) A translation of light links the planet with a planet located in its domicile sign, or

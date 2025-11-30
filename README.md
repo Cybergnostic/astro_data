@@ -55,7 +55,7 @@ What you get
 - Derived Whole sign house cusps plus Ascendant/MC.
 - Traditional analysis bundle per planet: dignities, sect/hayz/halb, motion class, synodic phase, fixed stars, and aspect flags (applying/separating, dexter/sinister, mutual application/separation, counter-rays).
 - Antiscia + contra-antiscia reflection points with detected planet contacts (degree-sum rule, no orbs).
-- Domicile sight / aversion: whether a planet “sees” its own domiciles by sign; aversion can be avoided via translation of light to a planet in its domicile or by being in an antiscia/contra-antiscia sign to that domicile.
+- Domicile sight / aversion: whether a planet “witnesses” its own domiciles by sign; aversion can be avoided via translation of light to a planet in its domicile or by being in an antiscia/contra-antiscia sign to that domicile.
 - Relationship layers: domination/decimation (with aktinobolia), bonification/maltreatment sources, benefic/malefic enclosures, receptions/generosities, translations/collections of light (with natural-speed notes), feral planet marker.
 - Rich console tables with dark HTML/markdown export; Almuten tables included.
 - CLI/text, HTML, and Markdown share the same renderer; when you change the console layout in code, it automatically carries through to HTML/MD.
