@@ -61,14 +61,20 @@ def compute_domicile_aversion(
             occupants = occupants_by_sign.get(dom_idx, [])
 
             if not sees:
+                # Rule 0: co-domicile — if the planet sits in one of its domiciles, it is not in
+                # aversion to the other domicile (e.g., Mars in Aries is not averse to Scorpio).
+                if current_sign in doms:
+                    avoided = True
+                    avoided_by.append("co-domicile (in own sign)")
                 # Rule 1: translation of light via a planet in domicile sign.
-                for t in translations:
-                    if name not in {t.from_planet, t.to_planet}:
-                        continue
-                    other = t.to_planet if t.from_planet == name else t.from_planet
-                    if sign_map.get(other) == dom_idx:
-                        avoided = True
-                        avoided_by.append(f"translation via {t.translator} with {other}")
+                if not avoided:
+                    for t in translations:
+                        if name not in {t.from_planet, t.to_planet}:
+                            continue
+                        other = t.to_planet if t.from_planet == name else t.from_planet
+                        if sign_map.get(other) == dom_idx:
+                            avoided = True
+                            avoided_by.append(f"translation via {t.translator} with {other}")
                 # Rule 2: antiscia / contra-antiscia sign pairing
                 if not avoided:
                     anti_pair = _antiscia_pair(dom_idx)

@@ -292,10 +292,15 @@ def _collect_reflections(reports: list[PlanetReport]) -> list[tuple[str, str, fl
 
 
 def _collect_domicile_aversion(reports: list[PlanetReport]) -> list[tuple[str, str, str, str]]:
-    """Return rows: planet, domicile, status, detail."""
+    """
+    Return rows for the domicile aversion table.
+
+    Subsequent domiciles of the same planet get an empty planet label so the table
+    does not visually repeat the planet name on every line.
+    """
     rows: list[tuple[str, str, str, str]] = []
     for rep in reports:
-        for dom in rep.domicile_aversions:
+        for idx, dom in enumerate(rep.domicile_aversions):
             if dom.sees:
                 status = "[green]sees[/]"
             elif dom.avoided:
@@ -308,7 +313,8 @@ def _collect_domicile_aversion(reports: list[PlanetReport]) -> list[tuple[str, s
             if dom.avoided_by:
                 details.append("; ".join(dom.avoided_by))
             detail_txt = "; ".join(details) if details else "—"
-            rows.append((rep.planet.name, dom.domicile_sign, status, detail_txt))
+            planet_label = rep.planet.name if idx == 0 else ""
+            rows.append((planet_label, dom.domicile_sign, status, detail_txt))
     return rows
 
 
