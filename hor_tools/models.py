@@ -69,6 +69,26 @@ class AspectInfo:
 
 
 @dataclass
+class ReflectionHit:
+    """Contact to a planet via antiscia or contra-antiscia."""
+
+    other: str
+    orb: float
+    target_longitude: float
+
+
+@dataclass
+class DomicileAversion:
+    """Whether a planet sees its own domicile sign(s) or is in aversion."""
+
+    domicile_sign: str
+    sees: bool
+    avoided: bool
+    avoided_by: list[str]
+    occupants: list[str]
+
+
+@dataclass
 class InfluenceSource:
     """One source of bonification/maltreatment."""
 
@@ -169,6 +189,11 @@ class PlanetReport:
 
     # Aspects
     aspects: List[AspectInfo]
+    antiscia_longitude: float
+    contra_antiscia_longitude: float
+    antiscia_hits: List[ReflectionHit]
+    contra_antiscia_hits: List[ReflectionHit]
+    domicile_aversions: List[DomicileAversion]
 
     # Relationship flags
     bonification_sources: List[InfluenceSource]

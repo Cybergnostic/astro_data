@@ -7,6 +7,8 @@ from .dignity import essential_dignity, classify_speed, SIGNS
 from .sect import chart_sect, planet_sect, compute_hayz_and_halb
 from .stars import stars_near_longitude
 from .aspects import aspects_for_planet
+from .antiscia import antiscia_longitude, contra_antiscia_longitude, reflection_hits_for_planet
+from .aversion import compute_domicile_aversion
 from ..synodic import compute_elongation_and_orientation, CAZIMI_ORB_DEG
 from .relationships import aggregate_relationships
 
@@ -50,6 +52,9 @@ def build_reports(
 
         # aspects
         aspect_list = aspects_for_planet(p, planets)
+        antiscia_target = antiscia_longitude(p.longitude)
+        contra_target = contra_antiscia_longitude(p.longitude)
+        antiscia_hits, contra_hits = reflection_hits_for_planet(p, planets)
 
         reports.append(
             PlanetReport(
@@ -75,6 +80,11 @@ def build_reports(
                 speed_class=speed_class,
                 fixed_stars=star_hits,
                 aspects=aspect_list,
+                antiscia_longitude=antiscia_target,
+                contra_antiscia_longitude=contra_target,
+                antiscia_hits=antiscia_hits,
+                contra_antiscia_hits=contra_hits,
+                domicile_aversions=[],
                 bonification_sources=[],
                 maltreatment_sources=[],
                 is_bonified=False,
@@ -95,4 +105,5 @@ def build_reports(
         )
 
     relationships = aggregate_relationships(reports, planets, sect_chart == "day")
+    compute_domicile_aversion(reports, planets, relationships.translations)
     return reports, relationships

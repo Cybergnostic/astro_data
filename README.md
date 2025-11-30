@@ -3,6 +3,10 @@ hor-tools
 
 Read Morinus `.hor` files, normalize chart data, and compute placements with Swiss Ephemeris (pyswisseph). Uses Whole sign houses by default and is built to be extended with Lots and export formats later.
 
+Preview
+-------
+![hor-reader terminal dashboard](docs/img/report_example.png)
+
 Requirements
 ------------
 - Python 3.11+
@@ -47,6 +51,8 @@ What you get
 - Planet positions (Sun through Saturn) via Swiss Ephemeris, mapped to Whole sign houses.
 - Derived Whole sign house cusps plus Ascendant/MC.
 - Traditional analysis bundle per planet: dignities, sect/hayz/halb, motion class, synodic phase, fixed stars, and aspect flags (applying/separating, dexter/sinister, mutual application/separation, counter-rays).
+- Antiscia + contra-antiscia reflection points with detected planet contacts (degree-sum rule, no orbs).
+- Domicile sight / aversion: whether a planet “sees” its own domiciles by sign; aversion can be avoided via translation of light to a planet in its domicile or by being in an antiscia/contra-antiscia sign to that domicile.
 - Relationship layers: domination/decimation (with aktinobolia), bonification/maltreatment sources, benefic/malefic enclosures, receptions/generosities, translations/collections of light (with natural-speed notes), feral planet marker.
 - Rich console tables with dark HTML/markdown export; Almuten tables included.
 - CLI/text, HTML, and Markdown share the same renderer; when you change the console layout in code, it automatically carries through to HTML/MD.
@@ -56,6 +62,7 @@ Project layout
 - Repo root (now `astro_data/`):
   - `pyproject.toml`, `uv.lock`
   - `hor_tools/` (package)
+  - `docs/img/` (screenshots for the README)
   - `tests/`
   - `context.md` (architecture overview)
   - Personal `.hor` files (git-ignored) can sit alongside.

@@ -7,7 +7,7 @@ from io import StringIO
 from pathlib import Path
 
 from .almuten import ALMUTEN_PLANETS, build_almuten_figuris
-from .models import AspectInfo, ChartInput, ChartRelationships, Houses, PlanetPosition, PlanetReport
+from .models import AspectInfo, ChartInput, ChartRelationships, Houses, PlanetPosition, PlanetReport, ReflectionHit
 from .analysis.dignity import SIGNS, degree_in_sign
 
 # Optional: maps for pretty symbols when rendering with Rich
@@ -159,6 +159,41 @@ def _format_aspect_type(raw: str) -> str:
     return f"[dim]{raw}[/]"
 
 
+def _format_reflection_line(label: str, target_longitude: float, hits: list[ReflectionHit]) -> str:
+    """Build a concise antiscia/contra-antiscia line for text output."""
+    target = _format_long_with_sign(target_longitude)
+    if not hits:
+        return f"{label}: {target} (degree-sum rule, no contacts)"
+    hit_bits = ", ".join(f"{hit.other} (Δ {hit.orb:.2f}°)" for hit in hits)
+    return f"{label}: {target} -> {hit_bits} [deg sum 29]"
+
+
+def _format_domicile_lines(rep: PlanetReport, markup: bool = False) -> list[str]:
+    """Return aversion/sees lines for each domicile."""
+
+    def style(text: str, color: str) -> str:
+        return f"[bold {color}]{text}[/]" if markup else text
+
+    lines: list[str] = []
+    for dom in rep.domicile_aversions:
+        status: str
+        if dom.sees:
+            status = style("sees domicile", "green")
+        elif dom.avoided:
+            status = style("aversion avoided", "yellow")
+        else:
+            status = style("in aversion", "red")
+
+        details = []
+        if dom.occupants:
+            details.append(f"occupants: {', '.join(dom.occupants)}")
+        if dom.avoided_by:
+            details.extend(dom.avoided_by)
+        detail_txt = f" ({'; '.join(details)})" if details else ""
+        lines.append(f"{dom.domicile_sign}: {status}{detail_txt}")
+    return lines
+
+
 def _house_style(house_num: int) -> str:
     """Return a style for houses: angular, succedent, cadent."""
     if house_num in {1, 4, 7, 10}:
@@ -206,6 +241,39 @@ def _unique_aspects(reports: list[PlanetReport]) -> list[tuple[str, AspectInfo]]
             collected.append((rep.planet.name, asp))
     collected.sort(key=lambda item: item[1].orb)
     return collected
+
+
+def _collect_reflections(reports: list[PlanetReport]) -> list[tuple[str, str, float, ReflectionHit]]:
+    """Collect antiscia/contra-antiscia hits sorted by orb."""
+    rows: list[tuple[str, str, float, ReflectionHit]] = []
+    for rep in reports:
+        rows.extend((rep.planet.name, "antiscia", rep.antiscia_longitude, hit) for hit in rep.antiscia_hits)
+        rows.extend(
+            (rep.planet.name, "contra-antiscia", rep.contra_antiscia_longitude, hit) for hit in rep.contra_antiscia_hits
+        )
+    rows.sort(key=lambda row: row[3].orb)
+    return rows
+
+
+def _collect_domicile_aversion(reports: list[PlanetReport]) -> list[tuple[str, str, str, str]]:
+    """Return rows: planet, domicile, status, detail."""
+    rows: list[tuple[str, str, str, str]] = []
+    for rep in reports:
+        for dom in rep.domicile_aversions:
+            if dom.sees:
+                status = "[green]sees[/]"
+            elif dom.avoided:
+                status = "[yellow]aversion avoided[/]"
+            else:
+                status = "[red]in aversion[/]"
+            details = []
+            if dom.occupants:
+                details.append(f"occupants: {', '.join(dom.occupants)}")
+            if dom.avoided_by:
+                details.append("; ".join(dom.avoided_by))
+            detail_txt = "; ".join(details) if details else "—"
+            rows.append((rep.planet.name, dom.domicile_sign, status, detail_txt))
+    return rows
 
 
 def print_text(planets: list[PlanetPosition], houses: Houses) -> None:
@@ -292,6 +360,15 @@ def print_full_report(reports: list[PlanetReport], houses: Houses, relationships
                 )
         else:
             print("  Aspects: none")
+
+        print(f"  {_format_reflection_line('Antiscia', rep.antiscia_longitude, rep.antiscia_hits)}")
+        print(f"  {_format_reflection_line('Contra-antiscia', rep.contra_antiscia_longitude, rep.contra_antiscia_hits)}")
+
+        dom_lines = _format_domicile_lines(rep, markup=False)
+        if dom_lines:
+            print("  Domicile sight:")
+            for ln in dom_lines:
+                print(f"    {ln}")
 
         if rep.is_bonified or rep.is_maltreated:
             if rep.is_bonified:
@@ -440,7 +517,7 @@ def print_rich_report(
         return
 
     console = Console()
-    _render_rich_report(console, reports, houses, relationships, use_sign_symbols=False)
+    _render_rich_report(console, reports, houses, relationships, use_sign_symbols=True, use_narrow_icons=False)
 
 
 def export_rich_html(
@@ -463,7 +540,7 @@ def export_rich_html(
     # Use a neutral theme; we'll inject our own dark background CSS.
     console = Console(record=True, theme=Theme({}))
     # Avoid sign symbols in HTML export so all glyphs share a fixed width.
-    _render_rich_report(console, reports, houses, relationships, use_sign_symbols=False)
+    _render_rich_report(console, reports, houses, relationships, use_sign_symbols=False, use_narrow_icons=True)
     console.print()  # spacer before Almuten section
     print_almuten_tables(chart, planets, houses, console=console)
     html = console.export_html(inline_styles=True)
@@ -488,7 +565,12 @@ pre code span { white-space: pre; font-family: inherit; }
 
 
 def _render_rich_report(
-    console, reports: list[PlanetReport], houses: Houses, relationships: ChartRelationships | None, use_sign_symbols: bool = True
+    console,
+    reports: list[PlanetReport],
+    houses: Houses,
+    relationships: ChartRelationships | None,
+    use_sign_symbols: bool = True,
+    use_narrow_icons: bool = False,
 ) -> None:
     """Shared rich rendering so we can also export to HTML."""
     from rich import box
@@ -583,8 +665,65 @@ def _render_rich_report(
     console.print(aspect_table)
     console.print()
 
+    reflections = _collect_reflections(reports)
+    reflection_table = Table(
+        title="Antiscia / Contra-antiscia",
+        box=box.SIMPLE,
+        expand=False,
+        width=110,
+        padding=(0, 1),
+    )
+    reflection_table.add_column("From", style="cyan", no_wrap=True)
+    reflection_table.add_column("Type", style="magenta", no_wrap=True)
+    reflection_table.add_column("Target", style="yellow", no_wrap=True)
+    reflection_table.add_column("Contact", style="green", overflow="fold", max_width=38)
+    reflection_table.add_column("Δ (deg)", justify="right", style="white", no_wrap=True)
+
+    report_map = {rep.planet.name: rep for rep in reports}
+    if reflections:
+        for src, kind, target_long, hit in reflections:
+            target = _format_long_with_sign(target_long)
+            other_rep = report_map.get(hit.other)
+            if other_rep:
+                other_pos = _format_position(other_rep.planet, other_rep.sign, use_sign_symbols).strip()
+                contact = f"{hit.other} @ {other_pos}"
+            else:
+                contact = hit.other
+            kind_label = "Antiscia" if kind == "antiscia" else "Contra-antiscia"
+            orb_text = Text(f"{hit.orb:.2f}°")
+            if hit.orb < 1.0:
+                orb_text.stylize("bold white on red")
+            reflection_table.add_row(src, kind_label, target, contact, orb_text)
+    else:
+        reflection_table.add_row("—", "—", "—", "—", "—")
+
+    console.print(reflection_table)
+    console.print()
+
+    domicile_rows = _collect_domicile_aversion(reports)
+    domicile_table = Table(
+        title="Domicile Sight / Aversion",
+        box=box.MINIMAL_DOUBLE_HEAD,
+        expand=False,
+        width=110,
+        padding=(0, 1),
+    )
+    domicile_table.add_column("Planet", style="cyan", no_wrap=True)
+    domicile_table.add_column("Domicile", style="magenta", no_wrap=True)
+    domicile_table.add_column("Status", style="yellow", no_wrap=True)
+    domicile_table.add_column("Details", style="green", overflow="fold", max_width=60)
+
+    if domicile_rows:
+        for planet, domicile, status, detail in domicile_rows:
+            domicile_table.add_row(planet, domicile, status, detail)
+    else:
+        domicile_table.add_row("—", "—", "—", "—")
+
+    console.print(domicile_table)
+    console.print()
+
     if relationships:
-        _render_relationship_tables(console, reports, relationships)
+        _render_relationship_tables(console, reports, relationships, use_narrow_icons=use_narrow_icons)
 
     # Houses table
     from rich import box as rich_box
@@ -622,7 +761,9 @@ def _format_row_header(title: str) -> str:
     return f"{title:<8}"
 
 
-def _render_relationship_tables(console, reports: list[PlanetReport], relationships: ChartRelationships) -> None:
+def _render_relationship_tables(
+    console, reports: list[PlanetReport], relationships: ChartRelationships, use_narrow_icons: bool = False
+) -> None:
     """Render supplementary relationship tables."""
     from rich import box
     from rich.table import Table
@@ -638,6 +779,11 @@ def _render_relationship_tables(console, reports: list[PlanetReport], relationsh
     def _domination_phrase(reason: str) -> str:
         rel = reason.replace("domination_", "").replace("counter_domination_", "")
         return _aspect_label(rel)
+
+    ben_icon = "+" if use_narrow_icons else "✅"
+    mal_icon = "x" if use_narrow_icons else "❌"
+    dom_icon = "#" if use_narrow_icons else "🛡"
+    feral_icon = "o" if use_narrow_icons else "🕳"
 
     def _format_ray_entries(sources: list[InfluenceSource], icon: str) -> list[str]:
         grouped: dict[str, set[str]] = {}
@@ -665,24 +811,26 @@ def _render_relationship_tables(console, reports: list[PlanetReport], relationsh
             rays.append(f"{icon} {phrase}")
         return rays or ["—"]
 
-    def _format_domination_entries(sources: list[InfluenceSource], enclosure_flags: list[str]) -> list[str]:
+    def _format_domination_entries(
+        sources: list[InfluenceSource], enclosure_flags: list[str], icon: str
+    ) -> list[str]:
         entries: list[str] = []
         for src in sources:
             if src.reason.startswith("domination_"):
-                entries.append(f"🛡 dominated by {src.planet} ({_domination_phrase(src.reason)})")
+                entries.append(f"{icon} dominated by {src.planet} ({_domination_phrase(src.reason)})")
             if src.reason.startswith("counter_domination_"):
-                entries.append(f"🛡 counter-ray from {src.planet} ({_domination_phrase(src.reason)})")
+                entries.append(f"{icon} counter-ray from {src.planet} ({_domination_phrase(src.reason)})")
             if src.reason == "dispositor":
-                entries.append(f"🛡 {src.planet} as sign ruler (dispositor)")
+                entries.append(f"{icon} {src.planet} as sign ruler (dispositor)")
         for flag in enclosure_flags:
             entries.append(flag)
         return entries or ["—"]
 
     legend = (
-        "[green]✅ benefic / help[/]    "
-        "[red]❌ malefic / harm[/]    "
-        "[yellow]🛡 domination / enclosure[/]    "
-        "[magenta]🕳 feral or special[/]"
+        f"[green]{ben_icon} benefic / help[/]    "
+        f"[red]{mal_icon} malefic / harm[/]    "
+        f"[yellow]{dom_icon} domination / enclosure[/]    "
+        f"[magenta]{feral_icon} feral or special[/]"
     )
     console.print(legend)
     console.print()
@@ -703,24 +851,32 @@ def _render_relationship_tables(console, reports: list[PlanetReport], relationsh
     cond_table.add_column("Feral", style="magenta", no_wrap=True)
 
     for rep in reports:
-        ben_rays = _format_ray_entries(rep.bonification_sources, "✅") if rep.is_bonified else ["—"]
-        mal_rays = _format_ray_entries(rep.maltreatment_sources, "❌") if rep.is_maltreated else ["—"]
+        ben_rays = _format_ray_entries(rep.bonification_sources, ben_icon) if rep.is_bonified else ["—"]
+        mal_rays = _format_ray_entries(rep.maltreatment_sources, mal_icon) if rep.is_maltreated else ["—"]
 
         enclosure_ben: list[str] = []
         enclosure_mal: list[str] = []
         if rep.benefic_enclosure_by_sign:
-            enclosure_ben.append("🛡 enclosed by benefics (sign)")
+            enclosure_ben.append(f"{dom_icon} enclosed by benefics (sign)")
         if rep.benefic_enclosure_by_ray:
-            enclosure_ben.append("🛡 enclosed by benefic rays")
+            enclosure_ben.append(f"{dom_icon} enclosed by benefic rays")
         if rep.malefic_enclosure_by_sign:
-            enclosure_mal.append("🛡 enclosed by malefics (sign)")
+            enclosure_mal.append(f"{dom_icon} enclosed by malefics (sign)")
         if rep.malefic_enclosure_by_ray:
-            enclosure_mal.append("🛡 enclosed by malefic rays")
+            enclosure_mal.append(f"{dom_icon} enclosed by malefic rays")
 
-        ben_dom = _format_domination_entries([s for s in rep.bonification_sources if "domination" in s.reason or s.reason == "dispositor"], enclosure_ben)
-        mal_dom = _format_domination_entries([s for s in rep.maltreatment_sources if "domination" in s.reason or s.reason == "dispositor"], enclosure_mal)
+        ben_dom = _format_domination_entries(
+            [s for s in rep.bonification_sources if "domination" in s.reason or s.reason == "dispositor"],
+            enclosure_ben,
+            dom_icon,
+        )
+        mal_dom = _format_domination_entries(
+            [s for s in rep.maltreatment_sources if "domination" in s.reason or s.reason == "dispositor"],
+            enclosure_mal,
+            dom_icon,
+        )
 
-        feral = "[magenta]🕳 YES[/]" if rep.is_feral else "—"
+        feral = f"[magenta]{feral_icon} YES[/]" if rep.is_feral else "—"
 
         cond_table.add_row(
             rep.planet.name,

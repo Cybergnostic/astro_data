@@ -41,6 +41,12 @@ Current capabilities
     - Daily speed in longitude
     - Speed compared to mean (ratio + class: slow / average / swift)
     - Ecliptic latitude
+  - Antiscia / contra-antiscia:
+    - Reflection points across the solstice and equinox axes
+    - Contacts to other traditional planets flagged using the larger planetary orb
+  - Domicile sight / aversion:
+    - Whole-sign visibility to each own domicile (sees vs in aversion)
+    - Aversion avoided if linked by translation of light to a planet in domicile or if placed in the domicile’s antiscia/contra-antiscia sign
   - Synodic phases (superior, inferior, lunar) with elongation/orientation and stations
   - Phase scoring (Ezra-style) for superior planets using elongation bands
   - Fixed stars (1st/2nd magnitude list) within a user-defined orb (default 3°) using `sefstars.txt`
