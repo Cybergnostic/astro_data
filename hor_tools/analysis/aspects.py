@@ -4,6 +4,8 @@ from typing import List
 
 from ..models import PlanetPosition, AspectInfo
 
+# These are the teacher-specific planetary orbs used by this project.
+# Do not replace them with the public/course handout table.
 PLANET_ORBS = {
     "Saturn": 9.0,
     "Jupiter": 10.0,
@@ -25,8 +27,14 @@ ASPECT_ANGLES = list(ASPECTS.keys())
 
 
 def _shortest_distance(a: float, b: float) -> float:
-    diff = abs(a - b)
+    diff = abs(a - b) % 360.0
     return min(diff, 360.0 - diff)
+
+
+def _distance_to_aspect(lon1: float, lon2: float, aspect_angle: float) -> float:
+    """Return the absolute orb from the nearest branch of an aspect."""
+    separation = _shortest_distance(lon1, lon2)
+    return abs(separation - aspect_angle)
 
 
 def aspects_for_planet(planet: PlanetPosition, all_planets: List[PlanetPosition]) -> List[AspectInfo]:
@@ -69,26 +77,22 @@ def aspects_for_planet(planet: PlanetPosition, all_planets: List[PlanetPosition]
 
 def _is_applying(p1: PlanetPosition, p2: PlanetPosition, aspect_angle: float) -> bool:
     """
-    Determine if the aspect between p1 and p2 is applying relative to the faster planet.
+    Determine whether the two moving planets are approaching perfection.
 
-    1. Identify faster planet by |speed_long|.
-    2. Measure separation from slower to faster.
-    3. If the faster planet's motion reduces the difference to exact angle, it's applying.
+    Compare the current orb with the orb a short time later while moving BOTH
+    planets by their signed longitudinal speeds. This avoids the old 0°/360°
+    wrap bug and automatically handles both branches of sextiles, squares and
+    trines, as well as retrograde motion.
     """
-    # choose faster and slower
-    if abs(p1.speed_long) >= abs(p2.speed_long):
-        faster, slower = p1, p2
-    else:
-        faster, slower = p2, p1
+    if abs(p1.speed_long - p2.speed_long) < 1e-12:
+        return False
 
-    delta = (faster.longitude - slower.longitude) % 360.0
-    # current difference to exact aspect
-    diff_now = delta - aspect_angle
-    # motion sign: +1 direct, -1 retrograde
-    motion_sign = 1 if faster.speed_long >= 0 else -1
-
-    # If motion_sign * diff_now < 0, faster is moving toward perfection
-    return motion_sign * diff_now < 0
+    dt_days = 0.01
+    orb_now = _distance_to_aspect(p1.longitude, p2.longitude, aspect_angle)
+    future_p1 = (p1.longitude + p1.speed_long * dt_days) % 360.0
+    future_p2 = (p2.longitude + p2.speed_long * dt_days) % 360.0
+    orb_future = _distance_to_aspect(future_p1, future_p2, aspect_angle)
+    return orb_future < orb_now - 1e-12
 
 
 def _is_dexter(from_long: float, to_long: float, aspect_angle: float) -> bool:
@@ -96,28 +100,25 @@ def _is_dexter(from_long: float, to_long: float, aspect_angle: float) -> bool:
     Return True if aspect from 'from_long' to 'to_long' is dexter.
 
     Compute zodiacal separation from casting planet to receiving planet.
-    If the receiving planet lies 'behind' the exact forward aspect point,
-    we treat the ray as cast backward (dexter), otherwise forward (sinister).
+    If the receiving planet lies closer to the backward aspect branch, the ray
+    is dexter; otherwise it is sinister.
     """
     delta = (to_long - from_long) % 360.0
     forward_diff = abs(delta - aspect_angle)
     backward_diff = abs((360.0 - delta) - aspect_angle)
-    # If backward solution is closer, treat as dexter.
     return backward_diff < forward_diff
 
 
 def _is_self_applying(moving: PlanetPosition, static: PlanetPosition, aspect_angle: float) -> bool:
     """
-    Determine if `moving` is heading toward perfection with `static`, ignoring which is faster.
-
-    We measure the difference from moving->static to the aspect angle and see if the planet's
-    own direction of motion is shrinking that gap. Stationary bodies are treated as separating.
+    Determine if ``moving`` is heading toward perfection with ``static`` while
+    holding the latter fixed. The calculation is circular and works across 0°.
     """
-    if abs(moving.speed_long) < 1e-6:
+    if abs(moving.speed_long) < 1e-12:
         return False
-    delta = (static.longitude - moving.longitude) % 360.0
-    diff_now = min(abs(delta - aspect_angle), abs((360.0 - delta) - aspect_angle))
-    future_long = (moving.longitude + moving.speed_long * 0.01) % 360.0
-    future_delta = (static.longitude - future_long) % 360.0
-    diff_future = min(abs(future_delta - aspect_angle), abs((360.0 - future_delta) - aspect_angle))
-    return diff_future < diff_now
+
+    dt_days = 0.01
+    orb_now = _distance_to_aspect(moving.longitude, static.longitude, aspect_angle)
+    future_long = (moving.longitude + moving.speed_long * dt_days) % 360.0
+    orb_future = _distance_to_aspect(future_long, static.longitude, aspect_angle)
+    return orb_future < orb_now - 1e-12
