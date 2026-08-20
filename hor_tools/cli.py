@@ -10,7 +10,9 @@ from typing import Sequence
 
 from . import astro_engine, hor_parser, output
 from .analysis import build_reports
+from .analysis.technical import build_natal_technical_report
 from .models import ChartInput
+from .rendering.technical import build_technical_markdown, print_terminal_summary
 
 DEFAULT_OUTPUT_DIR = Path("outputs")
 
@@ -25,16 +27,30 @@ def _package_version() -> str:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="hor-reader",
-        description="Read a Morinus .hor file and render the traditional astrology report.",
+        description=(
+            "Read a Morinus .hor file, show the compact traditional-astrology snapshot, "
+            "and write the complete technical Markdown report."
+        ),
     )
     parser.add_argument("hor_file", type=Path, help="Path to a Morinus .hor file.")
-    parser.add_argument("--html", metavar="PATH", help="Export a Rich HTML report.")
-    parser.add_argument(
+    parser.add_argument("--html", metavar="PATH", help="Export the legacy Rich HTML report.")
+    markdown = parser.add_mutually_exclusive_group()
+    markdown.add_argument(
         "--md",
         "--markdown",
         dest="md",
         metavar="PATH",
-        help="Export a Markdown report.",
+        help="Override the default Markdown output path.",
+    )
+    markdown.add_argument(
+        "--no-md",
+        action="store_true",
+        help="Do not write the automatic complete Markdown report.",
+    )
+    parser.add_argument(
+        "--verbose-terminal",
+        action="store_true",
+        help="Also print the previous full terminal tables after the compact snapshot.",
     )
     parser.add_argument(
         "--ephe",
@@ -62,38 +78,57 @@ def resolve_output_path(path_str: str | None) -> Path | None:
     return path
 
 
+def _default_markdown_path(hor_file: Path) -> Path:
+    path = DEFAULT_OUTPUT_DIR / f"{hor_file.stem}_report.md"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    return path
+
+
 def _render_report(
     chart: ChartInput,
     html_path: Path | None,
     md_path: Path | None,
+    *,
+    verbose_terminal: bool,
 ) -> None:
     planets = astro_engine.compute_planets(chart)
     houses = astro_engine.compute_houses(chart)
     reports, relationships = build_reports(chart, planets, houses)
+    technical = build_natal_technical_report(
+        chart, planets, houses, reports, relationships
+    )
 
-    # Rich is a runtime dependency, but keeping the text fallback makes the
-    # library usable in constrained environments and preserves old behavior.
-    try:
-        import rich  # type: ignore  # noqa: F401
-    except ModuleNotFoundError:  # pragma: no cover - dependency safety net
-        output.print_full_report(chart, reports, houses, relationships)
-        if html_path is not None:
+    print_terminal_summary(chart, reports, houses, technical)
+
+    if verbose_terminal:
+        print()
+        try:
+            import rich  # type: ignore  # noqa: F401
+        except ModuleNotFoundError:  # pragma: no cover - dependency safety net
+            output.print_full_report(chart, reports, houses, relationships)
+        else:
+            output.print_rich_report(chart, reports, houses, relationships)
+        print()
+        output.print_almuten_tables(chart, planets, houses)
+
+    if html_path is not None:
+        try:
+            import rich  # type: ignore  # noqa: F401
+        except ModuleNotFoundError:  # pragma: no cover
             raise RuntimeError("HTML export requires the 'rich' package.") from None
-    else:
-        output.print_rich_report(chart, reports, houses, relationships)
-        if html_path is not None:
-            output.export_rich_html(
-                str(html_path), chart, reports, houses, planets, relationships
-            )
+        output.export_rich_html(
+            str(html_path), chart, reports, houses, planets, relationships
+        )
 
     if md_path is not None:
-        md_content = output.build_markdown_report(
+        legacy = output.build_markdown_report(
             chart, reports, houses, planets, relationships
         )
+        md_content = build_technical_markdown(
+            chart, reports, houses, technical, legacy
+        )
         md_path.write_text(md_content, encoding="utf-8")
-
-    print()
-    output.print_almuten_tables(chart, planets, houses)
+        print(f"\nFull Markdown report: {md_path}")
 
 
 def _scan_helper_template(chart: ChartInput, ephe_path: str | None) -> str:
@@ -124,8 +159,19 @@ def run(args: argparse.Namespace) -> int:
 
     chart = hor_parser.load_hor(file_path)
     html_path = resolve_output_path(args.html)
-    md_path = resolve_output_path(args.md)
-    _render_report(chart, html_path, md_path)
+    if args.no_md:
+        md_path = None
+    elif args.md:
+        md_path = resolve_output_path(args.md)
+    else:
+        md_path = _default_markdown_path(file_path)
+
+    _render_report(
+        chart,
+        html_path,
+        md_path,
+        verbose_terminal=args.verbose_terminal,
+    )
 
     print("\nScan helper template:", _scan_helper_template(chart, args.ephe))
     return 0
