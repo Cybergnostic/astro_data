@@ -1,9 +1,9 @@
 """Course temperament worksheet calculation.
 
 The course scores four humoral outcomes (K/S/M/F) from a fixed set of
-witnesses. Some planetary phase entries state only one primal quality (for
-example 'dry'); those testimonies therefore contribute to both temperaments
-that contain that quality instead of silently inventing a second quality.
+witnesses. The lecture practice keeps Saturn melancholic, Jupiter sanguine and
+Mars choleric regardless of orientation; Venus and Mercury are the two planets
+whose temperament is changed by oriental/occidental position.
 """
 
 from __future__ import annotations
@@ -76,24 +76,22 @@ def _score_sign(longitude: float) -> dict[str, int]:
 
 
 def _planet_qualities(report: PlanetReport) -> set[str]:
-    """Return the course table's phase-sensitive planetary qualities."""
+    """Return the planetary nature used in the teacher's working method."""
     name = report.planet.name
     if name == "Sun":
         return {"hot", "dry"}
     if name == "Moon":
         return {"cold", "moist"}
-
-    oriental = report.oriental
     if name == "Saturn":
-        return {"cold", "dry"} if oriental else {"dry"}
+        return {"cold", "dry"}
     if name == "Jupiter":
-        return {"hot", "moist"} if oriental else {"moist"}
+        return {"hot", "moist"}
     if name == "Mars":
-        return {"hot", "dry"} if oriental else {"dry"}
+        return {"hot", "dry"}
     if name == "Venus":
-        return {"hot", "moist"} if oriental else {"cold", "moist"}
+        return {"hot", "moist"} if report.oriental else {"cold", "moist"}
     if name == "Mercury":
-        return {"hot", "moist"} if oriental else {"cold", "dry"}
+        return {"hot", "moist"} if report.oriental else {"cold", "dry"}
     return set()
 
 
@@ -111,10 +109,12 @@ def _add_sign(row: TemperamentRow, longitude: float, label: str) -> None:
 def _add_planet_nature(row: TemperamentRow, report: PlanetReport, label: str) -> None:
     qualities = _planet_qualities(report)
     _merge_scores(row.scores, _qualities_to_scores(qualities))
-    phase = "oriental" if report.oriental else "occidental"
-    row.evidence.append(
-        f"{label}: {report.planet.name} ({phase}; {', '.join(sorted(qualities))})"
-    )
+    if report.planet.name in {"Venus", "Mercury"}:
+        phase = "oriental" if report.oriental else "occidental"
+        context = f"{phase}; {', '.join(sorted(qualities))}"
+    else:
+        context = ", ".join(sorted(qualities))
+    row.evidence.append(f"{label}: {report.planet.name} ({context})")
 
 
 def _contact(
@@ -198,9 +198,7 @@ def _first_magnitude_stars_on_asc(chart: ChartInput, asc: float) -> list[str]:
             continue
         diff = abs((float(pos[0]) - asc + 180.0) % 360.0 - 180.0)
         if diff <= 1.5:
-            hits.append(
-                f"{display} (mag {magnitude:.2f}, orb {diff:.2f}°)"
-            )
+            hits.append(f"{display} (mag {magnitude:.2f}, orb {diff:.2f}°)")
     return hits
 
 
@@ -323,9 +321,7 @@ def build_temperament(
         row.note = "No unique Almuten Figuris available."
     rows.append(row)
 
-    totals = {
-        key: sum(row.scores[key] for row in rows) for key in TEMPERAMENTS
-    }
+    totals = {key: sum(row.scores[key] for row in rows) for key in TEMPERAMENTS}
     maximum = max(totals.values(), default=0)
     dominant = [
         TEMPERAMENT_LABELS[key]
