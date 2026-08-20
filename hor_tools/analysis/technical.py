@@ -113,6 +113,14 @@ def build_natal_technical_report(
     behaviour.evidence.append(
         "temperament filter: " + (", ".join(temperament.dominant) or "unresolved")
     )
+    mind = build_mind_factors(chart, reports)
+    mercury_report = next(report for report in reports if report.planet.name == "Mercury")
+    if mercury_report.is_cazimi:
+        mind.mercury = [
+            item
+            for item in mind.mercury
+            if not item.startswith(("combust:", "under beams:"))
+        ]
     syzygy = next(row.longitude for row in almuten.rows if row.name == "Syzygy")
 
     return NatalTechnicalReport(
@@ -127,6 +135,6 @@ def build_natal_technical_report(
         primary_motivation=build_primary_motivation(planets, houses, reports),
         behaviour=behaviour,
         geniture=build_geniture_factors(reports),
-        mind=build_mind_factors(chart, reports),
+        mind=mind,
         syzygy_longitude=syzygy,
     )
