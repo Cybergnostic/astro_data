@@ -109,6 +109,10 @@ def build_natal_technical_report(
     lots = build_lots(planets, houses, solar.is_day)
     almuten_name = almuten.almuten[0] if len(almuten.almuten) == 1 else None
     temperament = build_temperament(chart, planets, houses, reports, almuten_name)
+    behaviour = build_behaviour_ruler(planets, houses, reports)
+    behaviour.evidence.append(
+        "temperament filter: " + (", ".join(temperament.dominant) or "unresolved")
+    )
     syzygy = next(row.longitude for row in almuten.rows if row.name == "Syzygy")
 
     return NatalTechnicalReport(
@@ -121,7 +125,7 @@ def build_natal_technical_report(
         houses=_house_structure(planets, houses),
         temperament=temperament,
         primary_motivation=build_primary_motivation(planets, houses, reports),
-        behaviour=build_behaviour_ruler(planets, houses, reports),
+        behaviour=behaviour,
         geniture=build_geniture_factors(reports),
         mind=build_mind_factors(chart, reports),
         syzygy_longitude=syzygy,
