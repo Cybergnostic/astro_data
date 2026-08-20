@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
@@ -15,6 +16,7 @@ from hor_tools.analysis.natal_synthesis import (
 )
 from hor_tools.analysis.technical import build_natal_technical_report
 from hor_tools.hor_parser import load_hor
+from hor_tools.models import ChartInput
 
 
 FIXTURE = Path(__file__).parent / "fixtures" / "sample_nis.hor"
@@ -82,3 +84,31 @@ def test_reference_chart_mind_records_sign_structure(
     assert "element: fire" in moon
     assert "modality: cardinal" in moon
     assert "ascension: short-ascending" in moon
+
+
+def test_cazimi_mercury_is_not_also_reported_as_combust(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(astro_engine, "EPHE_PATH", str(tmp_path))
+    chart = ChartInput(
+        name="Cazimi regression",
+        datetime_utc=datetime(2026, 3, 7, 11, 0, tzinfo=timezone.utc),
+        tz_offset_hours=0.0,
+        latitude=0.0,
+        longitude=0.0,
+        house_system="Whole Sign",
+        zodiac="Tropical",
+    )
+    planets = astro_engine.compute_planets(chart)
+    houses = astro_engine.compute_houses(chart)
+    reports, relationships = build_reports(chart, planets, houses)
+    mercury_report = next(report for report in reports if report.planet.name == "Mercury")
+    assert mercury_report.is_cazimi is True
+
+    technical = build_natal_technical_report(
+        chart, planets, houses, reports, relationships
+    )
+    mercury = technical.mind.mercury
+    assert any("cazimi" in item for item in mercury)
+    assert not any(item.startswith("combust:") for item in mercury)
+    assert not any(item.startswith("under beams:") for item in mercury)
