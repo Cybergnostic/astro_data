@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import os
 from datetime import timezone
+from pathlib import Path
+
 import swisseph as swe
 
 from .models import ChartInput, Houses, PlanetPosition
@@ -31,25 +33,31 @@ _STATION_PLANETS = {swe.MERCURY, swe.VENUS, swe.MARS, swe.JUPITER, swe.SATURN}
 def set_ephe_path(path: str) -> None:
     """Override the ephemeris directory used for all Swiss Ephemeris calls."""
     global EPHE_PATH
-    EPHE_PATH = path
+    EPHE_PATH = str(Path(path).expanduser())
 
 
 def ensure_ephe_path() -> str:
-    """Resolve and activate the Swiss Ephemeris path."""
-    path = EPHE_PATH or os.environ.get("SWISSEPH_EPHE")
-    if not path:
+    """Resolve, validate and activate the Swiss Ephemeris directory."""
+    raw_path = EPHE_PATH or os.environ.get("SWISSEPH_EPHE")
+    if not raw_path:
         raise RuntimeError(
-            "Swiss Ephemeris path is not set. Set SWISSEPH_EPHE or pass --ephe to hor-reader."
+            "Swiss Ephemeris path is not set. Set SWISSEPH_EPHE or pass --ephe."
         )
-    swe.set_ephe_path(path)
-    return path
+
+    path = Path(raw_path).expanduser()
+    if not path.is_dir():
+        raise RuntimeError(f"Swiss Ephemeris directory does not exist: {path}")
+
+    resolved = str(path.resolve())
+    swe.set_ephe_path(resolved)
+    return resolved
 
 
 def _station_phase_near(jd_ut: float, planet_id: int) -> str | None:
     """Detect a first/second station from the motion trend around the chart day.
 
     The course instructs the student to inspect adjacent ephemeris days rather
-    than use one universal absolute-speed cutoff.  We therefore compare signed
+    than use one universal absolute-speed cutoff. We therefore compare signed
     longitudinal motion one day before and one day after the chart moment:
     direct -> retrograde is the first station; retrograde -> direct the second.
     """
@@ -64,6 +72,19 @@ def _station_phase_near(jd_ut: float, planet_id: int) -> str | None:
     if past_speed < 0.0 and future_speed > 0.0:
         return "second"
     return None
+
+
+def compute_longitudes(chart: ChartInput) -> dict[str, float]:
+    """Return only Sun-Saturn longitudes for lightweight scanning tasks.
+
+    This deliberately avoids Ascendant/house calculation, station checks and
+    synodic post-processing. Event scanners call this repeatedly during coarse
+    stepping and binary refinement, where the extra work in ``compute_planets``
+    is unnecessary.
+    """
+    ensure_ephe_path()
+    jd_ut = julian_day_from_chart(chart)
+    return {name: _planet_position(jd_ut, swe_id)[0] for name, swe_id in PLANETS}
 
 
 def compute_planets(chart: ChartInput) -> list[PlanetPosition]:
@@ -122,7 +143,7 @@ def compute_houses(chart: ChartInput) -> Houses:
 
 
 def julian_day_from_chart(chart: ChartInput) -> float:
-    """Convert the chart's datetime into a Julian day (UT frame)."""
+    """Convert the chart's UTC datetime into a Gregorian Julian day."""
     dt_utc = chart.datetime_utc
     if dt_utc.tzinfo is not None:
         dt_utc = dt_utc.astimezone(timezone.utc).replace(tzinfo=None)
@@ -150,9 +171,11 @@ def _planet_position(jd_ut: float, planet_id: int) -> tuple[float, float, float,
     return lon, lat, speed_long, speed_lat
 
 
-def _ascendant_and_mc(jd_ut: float, latitude: float, longitude: float) -> tuple[float, float | None]:
-    """Compute Ascendant and MC using Swiss Ephemeris housing (Placidus for angles)."""
-    cusps, ascmc = swe.houses_ex(jd_ut, latitude, longitude, b"P")
+def _ascendant_and_mc(
+    jd_ut: float, latitude: float, longitude: float
+) -> tuple[float, float | None]:
+    """Compute Ascendant and MC using Swiss Ephemeris (Placidus only for angles)."""
+    _cusps, ascmc = swe.houses_ex(jd_ut, latitude, longitude, b"P")
     asc = float(ascmc[0])
     mc = float(ascmc[1]) if len(ascmc) > 1 else None
     return asc, mc
