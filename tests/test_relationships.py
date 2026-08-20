@@ -66,7 +66,7 @@ class RelationshipDetectionTest(unittest.TestCase):
         self.assertTrue(merc.is_maltreated)
         self.assertTrue(merc.benefic_enclosure_by_sign)
 
-    def test_translation_collection_and_malefic_enclosure(self) -> None:
+    def test_translation_and_malefic_enclosure_without_false_collection(self) -> None:
         planets = [
             _make_pos("Sun", 120.0, 1.0, house=10),
             _make_pos("Moon", 5.0, 13.0),
@@ -78,7 +78,11 @@ class RelationshipDetectionTest(unittest.TestCase):
         ]
         reports, relationships = build_reports(_dummy_chart(), planets, _dummy_houses())
         self.assertTrue(any(t.translator == "Moon" for t in relationships.translations))
-        self.assertTrue(any(c.collector == "Saturn" for c in relationships.collections))
+
+        # The old degree-only engine misread Mars 5 Capricorn / Saturn 28 Pisces
+        # as a square and therefore manufactured a Saturn collection. Those signs
+        # are sextile signs, and the actual sextile is outside the planetary orb.
+        self.assertFalse(any(c.collector == "Saturn" for c in relationships.collections))
 
         jupiter_rep = next(r for r in reports if r.planet.name == "Jupiter")
         self.assertTrue(jupiter_rep.malefic_enclosure_by_sign)
