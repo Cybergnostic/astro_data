@@ -142,6 +142,17 @@ def test_reference_chart_behaviour_ruler_uses_mercury_moon_fallback(
     assert "conjunct Mercury" in technical.behaviour.evidence[0]
 
 
+def test_reference_chart_preserves_specific_primary_motivation(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    _chart, _planets, _houses, _reports, technical = _fixture_report(monkeypatch, tmp_path)
+    asc = technical.primary_motivation.factors[0]
+    asc_ruler = technical.primary_motivation.factors[1]
+    assert asc.motivation == "power through energetic exchange and interaction with others"
+    assert asc_ruler.motivation == "accumulation and preservation of material values"
+    assert "in aversion to Ascendant sign" in asc_ruler.condition
+
+
 def test_reference_chart_exposes_human_judgment_sections_without_fake_winners(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
