@@ -7,6 +7,12 @@ import swisseph as swe
 
 from asc_window_scan import offset_hours_at, resolve_zone
 from hor_tools.analysis.aspects import PLANET_ORBS, _is_applying
+from hor_tools.analysis.conditions import (
+    _crosses_major_aspect,
+    is_in_planetary_joy,
+    is_in_via_combusta,
+    latitude_condition,
+)
 from hor_tools.analysis.dignity import MEAN_SPEED, _term_lord, classify_speed
 from hor_tools.analysis.relationship_rules import (
     _qualifies_for_reception,
@@ -97,7 +103,7 @@ class RelationshipRuleRegressionTest(unittest.TestCase):
         mercury = _planet("Mercury", 60.0, 1.0)
         venus = _planet("Venus", 300.0, 0.8)
         jupiter = _planet("Jupiter", 0.0, 0.1)
-        saturn = _planet("Saturn", 180.0, 0.01)  # globally slower but uninvolved
+        saturn = _planet("Saturn", 180.0, 0.01)
         applying = AspectInfo(
             other="Jupiter",
             kind="sextile",
@@ -143,6 +149,35 @@ class RelationshipRuleRegressionTest(unittest.TestCase):
             [dominated, dominator], {("Saturn", "Sun"): applying}
         )
         self.assertTrue(next(d for d in doms if d.dominator == "Saturn").has_counter_ray)
+
+
+class AccidentalConditionRegressionTest(unittest.TestCase):
+    def test_planetary_joy_table(self) -> None:
+        self.assertTrue(is_in_planetary_joy(_planet("Mercury", 0.0, 1.0, house=1)))
+        self.assertTrue(is_in_planetary_joy(_planet("Moon", 0.0, 13.0, house=3)))
+        self.assertTrue(is_in_planetary_joy(_planet("Venus", 0.0, 1.0, house=5)))
+        self.assertTrue(is_in_planetary_joy(_planet("Mars", 0.0, 0.5, house=6)))
+        self.assertTrue(is_in_planetary_joy(_planet("Sun", 0.0, 1.0, house=9)))
+        self.assertTrue(is_in_planetary_joy(_planet("Jupiter", 0.0, 0.08, house=11)))
+        self.assertTrue(is_in_planetary_joy(_planet("Saturn", 0.0, 0.03, house=12)))
+        self.assertFalse(is_in_planetary_joy(_planet("Saturn", 0.0, 0.03, house=11)))
+
+    def test_latitude_strength_testimony(self) -> None:
+        self.assertEqual("north_strengthening", latitude_condition(_planet("Venus", 0.0, 1.0, latitude=2.0)))
+        self.assertEqual("south_weakening", latitude_condition(_planet("Venus", 0.0, 1.0, latitude=-2.0)))
+        self.assertEqual("on_ecliptic", latitude_condition(_planet("Venus", 0.0, 1.0, latitude=0.0)))
+
+    def test_via_combusta_formal_course_core(self) -> None:
+        self.assertFalse(is_in_via_combusta(198.9999))
+        self.assertTrue(is_in_via_combusta(199.0))  # 19° Libra
+        self.assertTrue(is_in_via_combusta(212.9999))
+        self.assertTrue(is_in_via_combusta(213.0))  # 3° Scorpio
+        self.assertFalse(is_in_via_combusta(213.0001))
+
+    def test_void_of_course_aspect_crossing_uses_both_branches(self) -> None:
+        self.assertTrue(_crosses_major_aspect(299.5, 300.5))
+        self.assertTrue(_crosses_major_aspect(359.5, 0.5))
+        self.assertFalse(_crosses_major_aspect(301.0, 302.0))
 
 
 class HorizonRegressionTest(unittest.TestCase):
