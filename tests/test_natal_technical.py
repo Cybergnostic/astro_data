@@ -9,7 +9,7 @@ from hor_tools.analysis import build_reports
 from hor_tools.analysis.duads import dodekatemorion_longitude
 from hor_tools.analysis.repulsion import _debilities_of_host_at_guest
 from hor_tools.analysis.technical import build_natal_technical_report
-from hor_tools.analysis.temperament import _qualities_to_scores
+from hor_tools.analysis.temperament import DUAD_CONTACT_ORB, _qualities_to_scores
 from hor_tools.hor_parser import load_hor
 
 
@@ -37,6 +37,7 @@ def test_course_duad_examples() -> None:
     assert dodekatemorion_longitude(mars) == pytest.approx(
         90 + 3 + 24 / 60, abs=1e-9
     )
+    assert DUAD_CONTACT_ORB == 5.0
 
 
 def test_partial_planetary_quality_is_not_forced_into_one_temperament() -> None:
@@ -46,9 +47,7 @@ def test_partial_planetary_quality_is_not_forced_into_one_temperament() -> None:
 
 
 def test_repulsion_uses_host_detriment_or_fall() -> None:
-    # Jupiter in Capricorn is in the Moon's detriment: Moon has odbojnost to Jupiter.
     assert _debilities_of_host_at_guest("Moon", 270.0) == ["detriment"]
-    # Saturn in Aries is in Saturn's fall.
     assert _debilities_of_host_at_guest("Saturn", 0.0) == ["fall"]
 
 
@@ -96,9 +95,7 @@ def test_reference_chart_exposes_human_judgment_sections_without_fake_winners(
     assert technical.geniture.candidates
     assert technical.mind.mercury_almuten.winners
     assert technical.mind.moon_almuten.winners
-    assert technical.fortune_adversity.sect_light == "Sun"
-    assert len(technical.fortune_adversity.rulers) == 3
-    assert "final" in technical.fortune_adversity.note.lower() or "does not" in technical.fortune_adversity.note.lower()
+    assert not hasattr(technical, "fortune_adversity")
 
 
 def test_temperament_report_is_auditable_row_by_row(
