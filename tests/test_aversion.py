@@ -63,6 +63,8 @@ def empty_report_for(p: PlanetPosition) -> PlanetReport:
         receptions_received=[],
         generosities_given=[],
         generosities_received=[],
+        repulsions_given=[],
+        repulsions_received=[],
         is_feral=False,
     )
 
