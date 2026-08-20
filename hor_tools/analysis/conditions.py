@@ -86,15 +86,45 @@ def _crosses_major_aspect(rel0: float, rel1: float) -> bool:
     return False
 
 
+def _last_jd_inside_moon_sign(
+    start_jd: float, end_jd: float, moon_sign: int, iterations: int = 36
+) -> float:
+    """Bisect a step that crosses sign ingress and return a moment just inside.
+
+    Using ephemeris positions avoids assuming perfectly linear lunar motion in
+    the final step.  The returned lower bound remains on the original side of
+    the sign boundary, so an aspect exact only at/after ingress is not counted.
+    """
+    low = start_jd
+    high = end_jd
+    for _ in range(iterations):
+        mid = (low + high) / 2.0
+        sign = int(_planet_longitude(mid, swe.MOON) // 30) % 12
+        if sign == moon_sign:
+            low = mid
+        else:
+            high = mid
+    return low
+
+
+def _aspect_crosses_between(previous: dict[str, float], current: dict[str, float]) -> bool:
+    for other in _PLANET_IDS:
+        if other == "Moon":
+            continue
+        rel0 = (previous[other] - previous["Moon"]) % 360.0
+        rel1 = (current[other] - current["Moon"]) % 360.0
+        if _crosses_major_aspect(rel0, rel1):
+            return True
+    return False
+
+
 def moon_void_of_course(chart: ChartInput, moon: PlanetPosition, step_hours: float = 0.5) -> bool:
     """Return whether the Moon perfects no major aspect before leaving its sign.
 
-    This is evaluated from ephemeris positions rather than from a static orb or
-    the Moon's current speed. The search walks forward until the Moon changes
-    zodiacal sign and looks for exact conjunction, sextile, square, trine or
-    opposition perfection to the other traditional planets. A 30-minute step is
-    safely small for the Moon; crossings are detected on the unwrapped relative
-    angle, so 0°/360° and the negative branches of aspects are handled.
+    The search walks forward through ephemeris positions until sign egress and
+    checks exact conjunction, sextile, square, trine or opposition perfection.
+    If ingress occurs inside the final step, that step is bisected and aspects
+    are checked up to a moment still inside the old sign before VOC is declared.
     """
     if moon.name != "Moon":
         raise ValueError("moon_void_of_course requires the Moon position")
@@ -103,9 +133,9 @@ def moon_void_of_course(chart: ChartInput, moon: PlanetPosition, step_hours: flo
     jd = julian_day_from_chart(chart)
     moon_sign = int(moon.longitude // 30) % 12
     step = step_hours / 24.0
-    # Five days is comfortably longer than the Moon can remain in one sign.
     max_steps = int(5.0 * 24.0 / step_hours) + 2
 
+    previous_jd = jd
     previous = {name: _planet_longitude(jd, body_id) for name, body_id in _PLANET_IDS.items()}
 
     for index in range(1, max_steps + 1):
@@ -113,16 +143,19 @@ def moon_void_of_course(chart: ChartInput, moon: PlanetPosition, step_hours: flo
         current = {name: _planet_longitude(next_jd, body_id) for name, body_id in _PLANET_IDS.items()}
 
         if int(current["Moon"] // 30) % 12 != moon_sign:
+            inside_jd = _last_jd_inside_moon_sign(previous_jd, next_jd, moon_sign)
+            inside = {
+                name: _planet_longitude(inside_jd, body_id)
+                for name, body_id in _PLANET_IDS.items()
+            }
+            if _aspect_crosses_between(previous, inside):
+                return False
             return True
 
-        for other in _PLANET_IDS:
-            if other == "Moon":
-                continue
-            rel0 = (previous[other] - previous["Moon"]) % 360.0
-            rel1 = (current[other] - current["Moon"]) % 360.0
-            if _crosses_major_aspect(rel0, rel1):
-                return False
+        if _aspect_crosses_between(previous, current):
+            return False
 
+        previous_jd = next_jd
         previous = current
 
     # Defensive fallback: if ephemeris data somehow failed to show a lunar sign
