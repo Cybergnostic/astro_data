@@ -404,6 +404,7 @@ def build_technical_markdown(
         "",
         f"**Almuten of Mercury degree:** {', '.join(technical.mind.mercury_almuten.winners) or '—'} ({technical.mind.mercury_almuten.score})",
         f"**Almuten of Moon degree:** {', '.join(technical.mind.moon_almuten.winners) or '—'} ({technical.mind.moon_almuten.score})",
+        f"**Composite Almuten of Mind:** {', '.join(technical.mind.composite_almuten.winners) or '—'} ({technical.mind.composite_almuten.score})",
         "",
         "### Secondary contacts",
         *([f"- {item}" for item in technical.mind.secondary_contacts] or ["- none"]),
