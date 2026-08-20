@@ -106,7 +106,7 @@ def build_natal_technical_report(
     solar = solar_frame_for_chart(chart)
     day_ruler, hour_ruler = planetary_day_hour_rulers(chart)
     almuten = build_almuten_figuris(chart, planets, houses)
-    lots = build_lots(planets, houses, solar.is_day)
+    lots = build_lots(planets, houses, solar.is_day, chart.male)
     almuten_name = almuten.almuten[0] if len(almuten.almuten) == 1 else None
     temperament = build_temperament(chart, planets, houses, reports, almuten_name)
     behaviour = build_behaviour_ruler(planets, houses, reports)
