@@ -1,0 +1,19 @@
+exit_code=2
+commit=c2faf004559dec6b492bd672dea5ff6086c5e199
+--- pytest ---
+
+==================================== ERRORS ====================================
+____________ ERROR collecting tests/test_calculation_regressions.py ____________
+ImportError while importing test module '/home/runner/work/astro_data/astro_data/tests/test_calculation_regressions.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_calculation_regressions.py:8: in <module>
+    from asc_window_scan import offset_hours_at, resolve_zone
+E   ModuleNotFoundError: No module named 'asc_window_scan'
+=========================== short test summary info ============================
+ERROR tests/test_calculation_regressions.py
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+1 error in 0.28s
