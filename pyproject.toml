@@ -1,25 +1,45 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "hor-tools"
 version = "0.1.0"
-description = "Read Morinus .hor files and compute placements with Swiss Ephemeris."
+description = "Read Morinus .hor files and compute traditional astrology data with Swiss Ephemeris."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "pyswisseph>=2.10.3.2",
-    "pytest>=9.0.1",
     "rich>=14.2.0",
 ]
 
 [project.scripts]
 hor-reader = "hor_tools.cli:main"
+hor-scan-events = "hor_tools.commands.scan_events:main"
+hor-scan-asc = "hor_tools.commands.asc_window:main"
 
 # Optional extras reserved for future exports and document outputs.
 [project.optional-dependencies]
 xlsx = ["openpyxl"]
 docs = ["python-docx", "odfpy"]
 
+[dependency-groups]
+dev = [
+    "build>=1.2.2",
+    "pytest>=9.0.1",
+    "ruff>=0.12.0",
+]
+
 [tool.uv]
 package = true
 
-[tool.setuptools]
-packages = ["hor_tools"]
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["hor_tools*"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
