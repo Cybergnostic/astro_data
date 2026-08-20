@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -9,7 +10,11 @@ from hor_tools.analysis import build_reports
 from hor_tools.analysis.duads import dodekatemorion_longitude
 from hor_tools.analysis.repulsion import _debilities_of_host_at_guest
 from hor_tools.analysis.technical import build_natal_technical_report
-from hor_tools.analysis.temperament import DUAD_CONTACT_ORB, _qualities_to_scores
+from hor_tools.analysis.temperament import (
+    DUAD_CONTACT_ORB,
+    _planet_qualities,
+    _qualities_to_scores,
+)
 from hor_tools.hor_parser import load_hor
 
 
@@ -44,6 +49,27 @@ def test_partial_planetary_quality_is_not_forced_into_one_temperament() -> None:
     assert _qualities_to_scores({"dry"}) == {"K": 1, "S": 0, "M": 1, "F": 0}
     assert _qualities_to_scores({"moist"}) == {"K": 0, "S": 1, "M": 0, "F": 1}
     assert _qualities_to_scores({"hot", "dry"}) == {"K": 1, "S": 0, "M": 0, "F": 0}
+
+
+def test_teacher_temperament_keeps_superior_natures_fixed() -> None:
+    for name, expected in (
+        ("Saturn", {"cold", "dry"}),
+        ("Jupiter", {"hot", "moist"}),
+        ("Mars", {"hot", "dry"}),
+    ):
+        oriental = SimpleNamespace(planet=SimpleNamespace(name=name), oriental=True)
+        occidental = SimpleNamespace(planet=SimpleNamespace(name=name), oriental=False)
+        assert _planet_qualities(oriental) == expected
+        assert _planet_qualities(occidental) == expected
+
+    venus_oriental = SimpleNamespace(planet=SimpleNamespace(name="Venus"), oriental=True)
+    venus_occidental = SimpleNamespace(planet=SimpleNamespace(name="Venus"), oriental=False)
+    mercury_oriental = SimpleNamespace(planet=SimpleNamespace(name="Mercury"), oriental=True)
+    mercury_occidental = SimpleNamespace(planet=SimpleNamespace(name="Mercury"), oriental=False)
+    assert _planet_qualities(venus_oriental) == {"hot", "moist"}
+    assert _planet_qualities(venus_occidental) == {"cold", "moist"}
+    assert _planet_qualities(mercury_oriental) == {"hot", "moist"}
+    assert _planet_qualities(mercury_occidental) == {"cold", "dry"}
 
 
 def test_repulsion_uses_host_detriment_or_fall() -> None:
