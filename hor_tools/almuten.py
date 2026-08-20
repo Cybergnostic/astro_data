@@ -15,9 +15,23 @@ from .models import ChartInput, Houses, PlanetPosition
 CHALDEAN_ORDER = ["Saturn", "Jupiter", "Mars", "Sun", "Venus", "Mercury", "Moon"]
 ALMUTEN_PLANETS = CHALDEAN_ORDER
 
-# Ibn Ezra ordering used for Almuten Figuris accidental house points.
-HOUSE_STRENGTH_ORDER = [1, 10, 7, 4, 11, 5, 2, 8, 9, 3, 12, 6]
-HOUSE_STRENGTH_SCORES = {house: score for house, score in zip(HOUSE_STRENGTH_ORDER, range(12, 0, -1))}
+# Teacher-configured Morinus Almuten Figuris accidental house scores.
+# This setup intentionally gives VIII=4 and IX=5 (the teacher's actual Morinus
+# options), which differs from the 5/4 ordering printed in the course PDF.
+HOUSE_STRENGTH_SCORES = {
+    1: 12,
+    2: 6,
+    3: 3,
+    4: 9,
+    5: 7,
+    6: 1,
+    7: 10,
+    8: 4,
+    9: 5,
+    10: 11,
+    11: 8,
+    12: 2,
+}
 
 # Project/Morinus Almuten Figuris convention already established for this
 # calculator. The course transcript confirms day/hour ruler points are added;
@@ -330,32 +344,33 @@ def planetary_day_hour_rulers(chart: ChartInput) -> Tuple[str, str]:
 
 
 def phase_score(planet: PlanetPosition, sun_longitude: float) -> int:
-    """Ibn Ezra's extra solar-phase points for superior Almuten candidates.
+    """Return the teacher-configured Morinus Sun-phase score.
 
-    This bonus belongs only to the oriental half in which the Sun is separating
-    from a direct superior planet: 15-60° = 3, >60-90° = 2, and >90° until
-    the first station = 1.  The old implementation used absolute elongation and
-    therefore incorrectly awarded the same points on the occidental return half.
+    Morinus scores only Mars, Jupiter, and Saturn.  It measures the directional
+    zodiacal distance from the superior planet forward to the Sun,
+    ``(Sun - planet) mod 360``, and uses five strict bands:
+
+    18-30 = weak (1), 30-40 = medium (2), 40-80 = strong (3),
+    80-100 = medium (2), 100-120 = weak (1).
+
+    The original Morinus ``inorbsinister`` implementation uses strict
+    inequalities, so exact band boundaries receive no phase score.  It does
+    not test direct/retrograde motion or station state here.
     """
     if planet.name not in {"Saturn", "Jupiter", "Mars"}:
         return 0
-    if planet.speed_long <= 0 or planet.station in {"first", "second"}:
-        return 0
 
-    # Superior planet behind the Sun in zodiacal order: the Sun is moving away
-    # from it from conjunction toward opposition. This is the oriental/right-hand
-    # half described by the course.
-    sun_ahead = (sun_longitude - planet.longitude) % 360.0
-    if not (0.0 < sun_ahead < 180.0):
-        return 0
-
-    elong = sun_ahead
-    if 15.0 <= elong <= 60.0:
-        return 3
-    if 60.0 < elong <= 90.0:
-        return 2
-    if elong > 90.0:
-        return 1
+    separation = (sun_longitude - planet.longitude) % 360.0
+    bands = (
+        (18.0, 30.0, 1),
+        (30.0, 40.0, 2),
+        (40.0, 80.0, 3),
+        (80.0, 100.0, 2),
+        (100.0, 120.0, 1),
+    )
+    for lower, upper, score in bands:
+        if lower < separation < upper:
+            return score
     return 0
 
 
