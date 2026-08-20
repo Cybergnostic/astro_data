@@ -1,19 +1,67 @@
-exit_code=2
-commit=c2faf004559dec6b492bd672dea5ff6086c5e199
+exit_code=1
+commit=7797ff0b3464d49e3e08fee9fe493f77bf662525
 --- pytest ---
+............................FF........                                   [100%]
+=================================== FAILURES ===================================
+___ RelationshipDetectionTest.test_collection_requires_faster_planet_closer ____
 
-==================================== ERRORS ====================================
-____________ ERROR collecting tests/test_calculation_regressions.py ____________
-ImportError while importing test module '/home/runner/work/astro_data/astro_data/tests/test_calculation_regressions.py'.
-Hint: make sure your test modules/packages have valid Python names.
-Traceback:
-/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/importlib/__init__.py:126: in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-tests/test_calculation_regressions.py:8: in <module>
-    from asc_window_scan import offset_hours_at, resolve_zone
-E   ModuleNotFoundError: No module named 'asc_window_scan'
+self = <test_relationships.RelationshipDetectionTest testMethod=test_collection_requires_faster_planet_closer>
+
+    def test_collection_requires_faster_planet_closer(self) -> None:
+        collector = _make_pos("Saturn", 0.0, 0.05)
+        fast = _make_pos("Mars", 58.0, 0.5)
+        slow = _make_pos("Venus", 61.0, 0.2)
+        planets = [_make_pos("Sun", 120.0, 1.0, house=10), collector, fast, slow]
+>       _reports, relationships = build_reports(_dummy_chart(), planets, _dummy_houses())
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_relationships.py:91: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+chart = ChartInput(name='synthetic', datetime_utc=datetime.datetime(2000, 1, 1, 0, 0, tzinfo=datetime.timezone.utc), tz_offset_hours=0.0, latitude=0.0, longitude=0.0, house_system='W', zodiac='T')
+planets = [PlanetPosition(name='Sun', longitude=120.0, latitude=0.0, speed_long=1.0, speed_lat=0.0, house=10, retrograde=False, ... latitude=0.0, speed_long=0.2, speed_lat=0.0, house=1, retrograde=False, elongation_from_sun=None, synodic_phase=None)]
+houses = Houses(cusps=[0.0, 0.0, 30.0, 60.0, 90.0, 120.0, 150.0, 180.0, 210.0, 240.0, 270.0, 300.0, 330.0], asc=0.0, mc=90.0)
+
+    def build_reports(
+        chart: ChartInput, planets: List[PlanetPosition], houses: Houses
+    ) -> Tuple[List[PlanetReport], ChartRelationships]:
+        """Build the complete traditional report for every planet."""
+        sun = next(p for p in planets if p.name == "Sun")
+>       moon = next(p for p in planets if p.name == "Moon")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       StopIteration
+
+hor_tools/analysis/__init__.py:27: StopIteration
+__________ RelationshipDetectionTest.test_fast_planet_cannot_collect ___________
+
+self = <test_relationships.RelationshipDetectionTest testMethod=test_fast_planet_cannot_collect>
+
+    def test_fast_planet_cannot_collect(self) -> None:
+        collector = _make_pos("Mercury", 0.0, 1.0)
+        ven = _make_pos("Venus", 60.0, 0.8)
+        mar = _make_pos("Mars", 120.0, 0.6)
+        planets = [_make_pos("Sun", 180.0, 1.0, house=10), collector, ven, mar]
+>       _reports, relationships = build_reports(_dummy_chart(), planets, _dummy_houses())
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_relationships.py:99: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+chart = ChartInput(name='synthetic', datetime_utc=datetime.datetime(2000, 1, 1, 0, 0, tzinfo=datetime.timezone.utc), tz_offset_hours=0.0, latitude=0.0, longitude=0.0, house_system='W', zodiac='T')
+planets = [PlanetPosition(name='Sun', longitude=180.0, latitude=0.0, speed_long=1.0, speed_lat=0.0, house=10, retrograde=False, ... latitude=0.0, speed_long=0.6, speed_lat=0.0, house=1, retrograde=False, elongation_from_sun=None, synodic_phase=None)]
+houses = Houses(cusps=[0.0, 0.0, 30.0, 60.0, 90.0, 120.0, 150.0, 180.0, 210.0, 240.0, 270.0, 300.0, 330.0], asc=0.0, mc=90.0)
+
+    def build_reports(
+        chart: ChartInput, planets: List[PlanetPosition], houses: Houses
+    ) -> Tuple[List[PlanetReport], ChartRelationships]:
+        """Build the complete traditional report for every planet."""
+        sun = next(p for p in planets if p.name == "Sun")
+>       moon = next(p for p in planets if p.name == "Moon")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       StopIteration
+
+hor_tools/analysis/__init__.py:27: StopIteration
 =========================== short test summary info ============================
-ERROR tests/test_calculation_regressions.py
-!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
-1 error in 0.28s
+FAILED tests/test_relationships.py::RelationshipDetectionTest::test_collection_requires_faster_planet_closer - StopIteration
+FAILED tests/test_relationships.py::RelationshipDetectionTest::test_fast_planet_cannot_collect - StopIteration
+2 failed, 36 passed in 0.21s
