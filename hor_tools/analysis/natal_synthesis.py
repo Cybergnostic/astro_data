@@ -30,21 +30,25 @@ MOTIVATION_LABELS = {
     "water": "emotional security and stability",
     "earth": "material and physical security",
 }
-# The course refines the four elemental motives by sign. Keep the specific
-# sign-level formulation in the report instead of flattening all fire/air/etc.
 SIGN_MOTIVATION = {
-    0: "initiative, ambition, conquest, freedom and independence",  # Aries
-    1: "accumulation and preservation of material values",  # Taurus
-    2: "initiating conversation and free exchange of ideas and information",  # Gemini
-    3: "initiating nurturing and protection",  # Cancer
-    4: "accumulation of power, freedom, independence and authority",  # Leo
-    5: "investment, trading and exchange of material values",  # Virgo
-    6: "accumulation of knowledge and free exchange of information",  # Libra
-    7: "absorption and retention of emotional contents",  # Scorpio
-    8: "power through energetic exchange and interaction with others",  # Sagittarius
-    9: "initiating the acquisition of material security",  # Capricorn
-    10: "transmission of ideas and information and freedom of movement",  # Aquarius
-    11: "adaptation and release of emotional contents",  # Pisces
+    0: "initiative, ambition, conquest, freedom and independence",
+    1: "accumulation and preservation of material values",
+    2: "initiating conversation and free exchange of ideas and information",
+    3: "initiating nurturing and protection",
+    4: "accumulation of power, freedom, independence and authority",
+    5: "investment, trading and exchange of material values",
+    6: "accumulation of knowledge and free exchange of information",
+    7: "absorption and retention of emotional contents",
+    8: "power through energetic exchange and interaction with others",
+    9: "initiating the acquisition of material security",
+    10: "transmission of ideas and information and freedom of movement",
+    11: "adaptation and release of emotional contents",
+}
+MERCURY_ELEMENT_LABELS = {
+    "fire": "enthusiastic, positive and proud",
+    "earth": "pragmatic, slow and deliberative",
+    "air": "quick, curious, versatile and scattered",
+    "water": "cautious, reserved and reflective",
 }
 ANGULAR_HOUSES = {1, 4, 7, 10}
 SUCCEDENT_HOUSES = {2, 5, 8, 11}
@@ -103,15 +107,26 @@ class DegreeAlmuten:
 
 
 @dataclass
+class CompositeAlmuten:
+    points: tuple[str, ...]
+    winners: list[str]
+    score: int
+    scores: dict[str, int]
+
+
+@dataclass
 class MindFactorsReport:
     mercury: list[str]
     moon: list[str]
     mercury_almuten: DegreeAlmuten
     moon_almuten: DegreeAlmuten
+    composite_almuten: CompositeAlmuten
     secondary_contacts: list[str]
     mercury_moon_relation: list[str]
     note: str = (
-        "Formal factors/descriptors only; final quality-of-mind synthesis belongs to the astrologer."
+        "Formal factors/descriptors only. The composite Almuten is the summed dignity "
+        "score of Mercury and Moon positions; its interpretive dominance still depends "
+        "on condition and contact with the significators."
     )
 
 
@@ -365,18 +380,44 @@ def _degree_almuten(
     )
 
 
+def _composite_almuten(
+    points: tuple[tuple[str, float], ...], is_day_chart: bool
+) -> CompositeAlmuten:
+    scores = {planet: 0 for planet in ALMUTEN_PLANETS}
+    for _name, longitude in points:
+        contributions = essential_contributions_at_degree(longitude, is_day_chart)
+        for planet in ALMUTEN_PLANETS:
+            scores[planet] += sum(contributions[planet])
+    maximum = max(scores.values(), default=0)
+    winners = [
+        planet
+        for planet, score in scores.items()
+        if score == maximum and score > 0
+    ]
+    return CompositeAlmuten(
+        points=tuple(name for name, _longitude in points),
+        winners=winners,
+        score=maximum,
+        scores=scores,
+    )
+
+
 def build_mind_factors(
     chart,
     reports: list[PlanetReport],
 ) -> MindFactorsReport:
-    """Return Mercury/Moon factors and source-explicit Mercury descriptors."""
+    """Return Mercury/Moon factors and the course's topical Almuten of Mind."""
     by_name = {report.planet.name: report for report in reports}
     mercury = by_name["Mercury"]
     moon = by_name["Moon"]
     is_day = mercury.sect_chart == "day"
+    mercury_element = _element(mercury.planet.longitude)
+    mercury_dispositor = by_name[mercury.ruler]
+    moon_dispositor = by_name[moon.ruler]
 
     mercury_items = [
         f"{mercury.sign}, House {mercury.planet.house}",
+        f"element: {mercury_element} — {MERCURY_ELEMENT_LABELS[mercury_element]}",
         (
             "above horizon: easier expression and communication"
             if is_above_horizon(chart, mercury.planet)
@@ -412,11 +453,23 @@ def build_mind_factors(
     else:
         mercury_items.append("direct: objective, less hesitation")
     mercury_items.extend(f"condition: {item}" for item in _condition(mercury))
+    mercury_items.append(
+        f"dispositor: {mercury_dispositor.planet.name} in {mercury_dispositor.sign}, "
+        f"House {mercury_dispositor.planet.house}"
+    )
+    mercury_items.extend(
+        f"dispositor condition: {item}" for item in _condition(mercury_dispositor)
+    )
 
     moon_items = [
         f"{moon.sign}, House {moon.planet.house}",
-        f"dispositor: {moon.ruler}",
+        f"dispositor: {moon_dispositor.planet.name} in {moon_dispositor.sign}, "
+        f"House {moon_dispositor.planet.house}",
         *[f"condition: {item}" for item in _condition(moon)],
+        *[
+            f"dispositor condition: {item}"
+            for item in _condition(moon_dispositor)
+        ],
     ]
     if moon.planet.synodic_phase:
         moon_items.append(f"phase: {moon.planet.synodic_phase.label}")
@@ -433,6 +486,18 @@ def build_mind_factors(
                 secondary.append(
                     f"{target.planet.name} {aspect.kind} {aspect.other}, orb {aspect.orb:.2f}°"
                 )
+
+    mercury_almuten = _degree_almuten(
+        "Mercury", mercury.planet.longitude, is_day
+    )
+    moon_almuten = _degree_almuten("Moon", moon.planet.longitude, is_day)
+    composite_almuten = _composite_almuten(
+        (
+            ("Mercury", mercury.planet.longitude),
+            ("Moon", moon.planet.longitude),
+        ),
+        is_day,
+    )
 
     relation: list[str] = []
     merc_moon = next(
@@ -464,14 +529,18 @@ def build_mind_factors(
             relation.append(
                 f"Moon repels Mercury by {', '.join(repulsion.debilities)}"
             )
+    relation.append(
+        "Composite Almuten of Mind: "
+        + (", ".join(composite_almuten.winners) or "—")
+        + f" ({composite_almuten.score})"
+    )
 
     return MindFactorsReport(
         mercury=mercury_items,
         moon=moon_items,
-        mercury_almuten=_degree_almuten(
-            "Mercury", mercury.planet.longitude, is_day
-        ),
-        moon_almuten=_degree_almuten("Moon", moon.planet.longitude, is_day),
+        mercury_almuten=mercury_almuten,
+        moon_almuten=moon_almuten,
+        composite_almuten=composite_almuten,
         secondary_contacts=secondary,
         mercury_moon_relation=relation,
     )
