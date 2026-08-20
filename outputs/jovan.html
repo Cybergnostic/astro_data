@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Natal Technical Report — Jovan</title><style>
+:root{--bg:#f5f1e8;--paper:#fffdf8;--ink:#292722;--muted:#6d675c;--line:#ded5c7;--accent:#795f3d;--soft:#eee6d8;--good:#e6eee4;--bad:#f3e2df}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Georgia,'Times New Roman',serif}
+a{color:var(--accent)}.layout{display:grid;grid-template-columns:230px minmax(0,1fr);max-width:1500px;margin:auto;min-height:100vh}.side{position:sticky;top:0;height:100vh;padding:28px 18px;border-right:1px solid var(--line);background:#eee8dd}.side strong{display:block;font-size:19px;margin-bottom:18px}.side a{display:block;text-decoration:none;padding:5px 0;color:#544b40;font-family:system-ui,sans-serif;font-size:13px}.report{background:var(--paper);padding:56px 64px;min-width:0}h1{font-size:38px;margin:0 0 8px}h2{font-size:27px;margin:56px 0 18px;padding-bottom:8px;border-bottom:1px solid var(--line)}h3{font-size:18px}p{max-width:900px}.subtitle,.muted,small{color:var(--muted)}.hero{margin-bottom:34px}.eyebrow{text-transform:uppercase;letter-spacing:.12em;font:600 12px system-ui,sans-serif;color:var(--accent)}.snapshot{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:12px}.card,.factor-card,.lot-card{border:1px solid var(--line);background:#fff;padding:16px;border-radius:8px}.card small,.lot-card small{display:block;font:600 11px system-ui,sans-serif;text-transform:uppercase;letter-spacing:.06em}.card b{font-size:18px}.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:7px;background:#fff}table{border-collapse:collapse;width:100%;font-family:system-ui,sans-serif;font-size:13px}th{text-align:left;background:var(--soft);font-size:12px;letter-spacing:.02em}th,td{padding:9px 11px;border-bottom:1px solid #eee7dc;vertical-align:top}.lot-list{display:grid;grid-template-columns:repeat(2,minmax(280px,1fr));gap:12px}.lot-title{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding-bottom:8px}.lot-title span{color:var(--muted)}.lot-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}.formula{margin-bottom:0}.factor-grid{display:grid;grid-template-columns:repeat(2,minmax(260px,1fr));gap:12px}.factor-card h3{margin:0 0 6px}.tag{display:inline-block;background:var(--soft);padding:2px 8px;border-radius:999px;font:600 11px system-ui,sans-serif;text-transform:uppercase}.scorebar{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}.score{padding:8px 12px;border-radius:6px;background:var(--soft);font-family:system-ui,sans-serif}.score b{font-size:20px}details{border:1px solid var(--line);border-radius:8px;padding:12px 14px;background:#fff;margin:18px 0}summary{cursor:pointer;font-weight:bold}.legacy{white-space:pre-wrap;font:12px/1.45 ui-monospace,SFMono-Regular,Consolas,monospace;overflow:auto;background:#faf8f3;padding:14px;border-radius:6px}code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.9em}ul{padding-left:22px}
+@media(max-width:1000px){.layout{display:block}.side{position:relative;height:auto;border-right:0;border-bottom:1px solid var(--line)}.side a{display:inline-block;margin-right:12px}.report{padding:36px 24px}.snapshot{grid-template-columns:repeat(2,1fr)}.lot-list,.factor-grid{grid-template-columns:1fr}}
+@media(max-width:600px){.snapshot{grid-template-columns:1fr}.report{padding:28px 15px}h1{font-size:30px}.lot-title{display:block}}
+@media print{body{background:#fff}.layout{display:block}.side{display:none}.report{padding:0}.card,.lot-card,.factor-card,.table-wrap,details{break-inside:avoid}h2{break-after:avoid}}
+</style></head>
+<body><div class="layout"><nav class="side"><strong>Jovan<br>Natal Report</strong><a href="#frame">Chart frame</a><a href="#planets">Planets</a><a href="#houses">Houses</a><a href="#relations">Relationships</a><a href="#lots">Lots</a><a href="#temperament">Temperament</a><a href="#motivation">Primary motivation</a><a href="#behaviour">Behaviour</a><a href="#geniture">Geniture</a><a href="#mind">Quality of mind</a><a href="#duads">Duads</a><a href="#almuten">Almuten Figuris</a><a href="#details">Full detailed tables</a></nav><main class="report">
+<header class="hero"><div class="eyebrow">Traditional astrology · technical worksheet</div><h1>Natal Technical Report</h1><p class="subtitle">Jovan · 1988-06-08 19:15 local · Niš </p></header>
+<section class="snapshot">
+<div class="card"><small>Sect</small><b>Day</b><div>Mercury day · Mars hour</div></div>
+<div class="card"><small>Ascendant</small><b>07°47&#x27;48&quot; Sagittarius</b><div>MC 27°46&#x27;06&quot; Virgo</div></div>
+<div class="card"><small>Fortune / Spirit</small><b>26°46&#x27;26&quot; Virgo</b><div>Spirit 18°49&#x27;09&quot; Aquarius</div></div>
+<div class="card"><small>Temperament</small><b>K 3 · S 3 · M 2 · F 3</b><div>Choleric, Sanguine, Phlegmatic</div></div>
+<div class="card"><small>Almuten Figuris</small><b>Mercury</b><div>score 44</div></div>
+<div class="card"><small>Ruler of behaviour</small><b>Venus</b><div>secondary Jupiter</div></div>
+<div class="card"><small>Prenatal syzygy</small><b>10°11&#x27;53&quot; Gemini</b></div>
+<div class="card"><small>Native sex</small><b>Male</b></div>
+</section>
+
+<section id="frame"><h2>1. Chart frame</h2><div class="table-wrap"><table class=""><thead><tr><th>Item</th><th>Value</th></tr></thead><tbody><tr><td>Local time</td><td>1988-06-08 19:15:00</td></tr><tr><td>UTC</td><td>1988-06-08 17:15:00</td></tr><tr><td>Location</td><td>Niš · 43.316667, 21.900000</td></tr><tr><td>Altitude</td><td>195 m</td></tr><tr><td>Sect</td><td>Day</td></tr><tr><td>Sun true altitude</td><td>+8.0821°</td></tr><tr><td>Apparent sunrise / sunset</td><td>04:52:05 / 20:11:04</td></tr><tr><td>Planetary day / hour</td><td>Mercury / Mars</td></tr></tbody></table></div><p class="muted">Sect uses the Sun's true geometric altitude; apparent sunrise/sunset is used for planetary-hour division.</p></section>
+
+<section id="planets"><h2>2. Planets</h2><div class="table-wrap"><table class=""><thead><tr><th>Planet</th><th>Position</th><th>H</th><th>Condition</th><th>Phase</th></tr></thead><tbody><tr><td>Sun</td><td>18°06&#x27;33&quot; Gemini</td><td>7</td><td>—, sect, hayz</td><td>—</td></tr><tr><td>Moon</td><td>07°05&#x27;12&quot; Aries</td><td>5</td><td>—</td><td>Waning crescent</td></tr><tr><td>Mercury</td><td>24°44&#x27;20&quot; Gemini</td><td>7</td><td>dom, Rx</td><td>Combust (west, return)</td></tr><tr><td>Venus</td><td>24°49&#x27;59&quot; Gemini</td><td>7</td><td>—, Rx</td><td>Combust (west, return)</td></tr><tr><td>Mars</td><td>10°51&#x27;33&quot; Pisces</td><td>4</td><td>—, hayz</td><td>After easternization / before first station</td></tr><tr><td>Jupiter</td><td>21°16&#x27;23&quot; Taurus</td><td>6</td><td>—, sect</td><td>Strong easternization</td></tr><tr><td>Saturn</td><td>00°06&#x27;28&quot; Capricorn</td><td>2</td><td>dom, sect, Rx</td><td>Retrograde approaching opposition</td></tr></tbody></table></div><h3>Major degree contacts</h3><div class="table-wrap"><table class=""><thead><tr><th>Pair</th><th>Aspect</th><th>Orb</th><th>State</th></tr></thead><tbody><tr><td>Mercury – Venus</td><td>conjunction</td><td>0.09°</td><td>app</td></tr><tr><td>Sun – Mercury</td><td>conjunction</td><td>6.63°</td><td>app</td></tr><tr><td>Sun – Venus</td><td>conjunction</td><td>6.72°</td><td>app</td></tr><tr><td>Moon – Saturn</td><td>square</td><td>6.98°</td><td>sep</td></tr><tr><td>Sun – Mars</td><td>square</td><td>7.25°</td><td>sep</td></tr><tr><td>Sun – Moon</td><td>sextile</td><td>11.02°</td><td>app</td></tr></tbody></table></div></section>
+<section id="houses"><h2>3. Houses</h2><div class="table-wrap"><table class=""><thead><tr><th>H</th><th>Sign</th><th>Ruler</th><th>Ruler located</th><th>Occupants</th></tr></thead><tbody><tr><td>1</td><td>Sagittarius</td><td>Jupiter</td><td>H6</td><td>—</td></tr><tr><td>2</td><td>Capricorn</td><td>Saturn</td><td>H2</td><td>Saturn</td></tr><tr><td>3</td><td>Aquarius</td><td>Saturn</td><td>H2</td><td>—</td></tr><tr><td>4</td><td>Pisces</td><td>Jupiter</td><td>H6</td><td>Mars</td></tr><tr><td>5</td><td>Aries</td><td>Mars</td><td>H4</td><td>Moon</td></tr><tr><td>6</td><td>Taurus</td><td>Venus</td><td>H7</td><td>Jupiter</td></tr><tr><td>7</td><td>Gemini</td><td>Mercury</td><td>H7</td><td>Sun, Mercury, Venus</td></tr><tr><td>8</td><td>Cancer</td><td>Moon</td><td>H5</td><td>—</td></tr><tr><td>9</td><td>Leo</td><td>Sun</td><td>H7</td><td>—</td></tr><tr><td>10</td><td>Virgo</td><td>Mercury</td><td>H7</td><td>—</td></tr><tr><td>11</td><td>Libra</td><td>Venus</td><td>H7</td><td>—</td></tr><tr><td>12</td><td>Scorpio</td><td>Mars</td><td>H4</td><td>—</td></tr></tbody></table></div></section>
+<section id="relations"><h2>4. Reception, generosity and repulsion</h2><div class="table-wrap"><table class=""><thead><tr><th>Type</th><th>Direction</th><th>Basis</th><th>Contact</th></tr></thead><tbody><tr><td>Reception</td><td>Sun → Moon</td><td>exaltation, triplicity</td><td>sextile</td></tr><tr><td>Generosity</td><td>Moon → Jupiter</td><td>exaltation</td><td>no aspect</td></tr><tr><td>Repulsion / odbojnost</td><td>Moon → Saturn</td><td>detriment</td><td>square</td></tr><tr><td>Reception</td><td>Mercury → Sun</td><td>domicile</td><td>conjunction</td></tr><tr><td>Reception</td><td>Mercury → Venus</td><td>domicile</td><td>conjunction</td></tr><tr><td>Repulsion / odbojnost</td><td>Mercury → Mars</td><td>detriment, fall</td><td>no major aspect</td></tr><tr><td>Generosity</td><td>Venus → Mars</td><td>exaltation, triplicity, term</td><td>no aspect</td></tr><tr><td>Generosity</td><td>Venus → Jupiter</td><td>domicile, triplicity</td><td>no aspect</td></tr><tr><td>Repulsion / odbojnost</td><td>Venus → Moon</td><td>detriment</td><td>no major aspect</td></tr><tr><td>Reception</td><td>Mars → Sun</td><td>term, face</td><td>square</td></tr><tr><td>Generosity</td><td>Mars → Moon</td><td>domicile, face</td><td>no aspect</td></tr><tr><td>Generosity</td><td>Mars → Saturn</td><td>exaltation</td><td>no aspect</td></tr><tr><td>Repulsion / odbojnost</td><td>Mars → Jupiter</td><td>detriment</td><td>no major aspect</td></tr><tr><td>Generosity</td><td>Jupiter → Mars</td><td>domicile, face</td><td>no aspect</td></tr><tr><td>Repulsion / odbojnost</td><td>Jupiter → Sun</td><td>detriment</td><td>no major aspect</td></tr><tr><td>Repulsion / odbojnost</td><td>Jupiter → Mercury</td><td>detriment</td><td>no major aspect</td></tr><tr><td>Repulsion / odbojnost</td><td>Jupiter → Venus</td><td>detriment</td><td>no major aspect</td></tr><tr><td>Repulsion / odbojnost</td><td>Jupiter → Saturn</td><td>fall</td><td>no major aspect</td></tr><tr><td>Generosity</td><td>Saturn → Mercury</td><td>triplicity, term</td><td>no aspect</td></tr><tr><td>Generosity</td><td>Saturn → Venus</td><td>triplicity, term</td><td>no aspect</td></tr><tr><td>Repulsion / odbojnost</td><td>Saturn → Moon</td><td>fall</td><td>square</td></tr></tbody></table></div></section>
+<section id="lots"><h2>5. Lots</h2><p class="muted">Lots have no orb of their own. Contacts shown here are rays cast by planets using the planet's orb.</p><h3>Seven Hermetic Lots</h3><div class="lot-list">
+    <article class="lot-card">
+      <div class="lot-title"><strong>Fortune</strong><span>26°46&#x27;26&quot; Virgo · H10</span></div>
+      <div class="lot-grid">
+        <div><small>Ruler</small><b>Mercury · H7</b></div>
+        <div><small>Ruler sees Lot</small><b>Yes</b></div>
+      </div>
+      <p><small>Planetary contacts</small><br>Venus square (1.94°); Mercury square (2.04°); Jupiter trine (5.50°); Sun square (8.66°)</p>
+      <p class="formula"><small>Formula</small><br><code>Asc + Moon - Sun</code></p>
+    </article>
+    <article class="lot-card">
+      <div class="lot-title"><strong>Spirit</strong><span>18°49&#x27;09&quot; Aquarius · H3</span></div>
+      <div class="lot-grid">
+        <div><small>Ruler</small><b>Saturn · H2</b></div>
+        <div><small>Ruler sees Lot</small><b>No</b></div>
+      </div>
+      <p><small>Planetary contacts</small><br>Sun trine (0.71°); Jupiter square (2.45°); Mercury trine (5.92°); Venus trine (6.01°); Moon sextile (11.73°)</p>
+      <p class="formula"><small>Formula</small><br><code>Asc + Sun - Moon</code></p>
+    </article>
+    <article class="lot-card">
+      <div class="lot-title"><strong>Enemy</strong><span>04°27&#x27;46&quot; Virgo · H10</span></div>
+      <div class="lot-grid">
+        <div><small>Ruler</small><b>Mercury · H7</b></div>
+        <div><small>Ruler sees Lot</small><b>Yes</b></div>
+      </div>
+      <p><small>Planetary contacts</small><br>Saturn trine (4.35°); Mars opposition (6.40°); Sun square (13.65°)</p>
+      <p class="formula"><small>Formula</small><br><code>Asc + Fortune - Saturn</code></p>
+    </article>
+    <article class="lot-card">
+      <div class="lot-title"><strong>Victory</strong><span>10°15&#x27;02&quot; Pisces · H4</span></div>
+      <div class="lot-grid">
+        <div><small>Ruler</small><b>Jupiter · H6</b></div>
+        <div><small>Ruler sees Lot</small><b>Yes</b></div>
+      </div>
+      <p><small>Planetary contacts</small><br>Mars conjunction (0.61°); Sun square (7.86°)</p>
+      <p class="formula"><small>Formula</small><br><code>Asc + Jupiter - Spirit</code></p>
+    </article>
+    <article class="lot-card">
+      <div class="lot-title"><strong>Courage</strong><span>23°42&#x27;42&quot; Gemini · H7</span></div>
+      <div class="lot-grid">
+        <div><small>Ruler</small><b>Mercury · H7</b></div>
+        <div><small>Ruler sees Lot</small><b>Yes</b></div>
+      </div>
+      <p><small>Planetary contacts</small><br>Mercury conjunction (1.03°); Venus conjunction (1.12°); Sun conjunction (5.60°)</p>
+      <p class="formula"><small>Formula</small><br><code>Asc + Fortune - Mars</code></p>
+    </article>
+    <article class="lot-card">
+      <div class="lot-title"><strong>Eros (Hermetic)</strong><span>13°48&#x27;38&quot; Aries · H5</span></div>
+      <div class="lot-grid">
+        <div><small>Ruler</small><b>Mars · H4</b></div>
+        <div><small>Ruler sees Lot</small><b>No</b></div>
+      </div>
+      <p><small>Planetary contacts</small><br>Sun sextile (4.30°); Moon conjunction (6.72°)</p>
+      <p class="formula"><small>Formula</small><br><code>Asc + Venus - Spirit</code></p>
+    </article>
+    <article class="lot-card">
+      <div class="lot-title"><strong>Necessity</strong><span>09°49&#x27;54&quot; Pisces · H4</span></div>
+      <div class="lot-grid">
+        <div><small>Ruler</small><b>Jupiter · H6</b></div>
+        <div><small>Ruler sees Lot</small><b>Yes</b></div>
+      </div>
+      <p><small>Planetary contacts</small><br>Mars conjunction (1.03°); Sun square (8.28°)</p>
+      <p class="formula"><small>Formula</small><br><code>Asc + Fortune - Mercury</code></p>
+    </article></div><h3>Topical Lots</h3><div class="lot-list">
+    <article class="lot-card">
+      <div class="lot-title"><strong>Siblings</strong><span>28°57&#x27;42&quot; Aries · H5</span></div>
+      <div class="lot-grid">
+        <div><small>Ruler</small><b>Mars · H4</b></div>
+        <div><small>Ruler sees Lot</small><b>No</b></div>
+      </div>
+      <p><small>Planetary contacts</small><br>Saturn trine (1.15°); Venus sextile (4.13°); Mercury sextile (4.22°); Sun sextile (10.85°)</p>
+      <p class="formula"><small>Formula</small><br><code>day formula: Asc + Jupiter - Saturn / reversed</code></p>
+    </article>
+    <article class="lot-card">
+      <div class="lot-title"><strong>Number of siblings</strong><span>13°09&#x27;56&quot; Gemini · H7</span></div>
+      <div class="lot-grid">
+        <div><small>Ruler</small><b>Mercury · H7</b></div>
+        <div><small>Ruler sees Lot</small><b>Yes</b></div>
+      </div>
+      <p><small>Planetary contacts</small><br>Mars square (2.31°); Sun conjunction (4.94°); Moon sextile (6.08°)</p>
+      <p class="formula"><small>Formula</small><br><code>Asc + Saturn - Mercury</code></p>
+    </article>
+    <article class="lot-card">
+      <div class="lot-title"><strong>Father</strong><span>19°47&#x27;43&quot; Gemini · H7</span></div>
+      <div class="lot-grid">
+        <div><small>Ruler</small><b>Mercury · H7</b></div>
+        <div><small>Ruler sees Lot</small><b>Yes</b></div>
+      </div>
+      <p><small>Planetary contacts</small><br>Sun conjunction (1.69°); Mercury conjunction (4.94°); Venus conjunction (5.04°)</p>
+      <p class="formula"><small>Formula</small><br><code>day formula: Asc + Saturn - Sun / reversed</code></p>
+    </article>
+    <article class="lot-card">
+      <div class="lot-title"><strong>Mother</strong><span>20°03&#x27;01&quot; Virgo · H10</span></div>
+      <div class="lot-grid">
+        <div><small>Ruler</small><b>Mercury · H7</b></div>
+        <div><small>Ruler sees Lot</small><b>Yes</b></div>
+      </div>
+      <p><small>Planetary contacts</small><br>Jupiter trine (1.22°); Sun square (1.94°); Mercury square (4.69°); Venus square (4.78°)</p>
+      <p class="formula"><small>Formula</small><br><code>day formula: Asc + Moon - Venus / reversed</code></p>
+    </article>
+    <article class="lot-card">
+      <div class="lot-title"><strong>Friends</strong><span>25°26&#x27;55&quot; Aquarius · H3</span></div>
+      <div class="lot-grid">
+        <div><small>Ruler</small><b>Saturn · H2</b></div>
+        <div><small>Ruler sees Lot</small><b>No</b></div>
+      </div>
+      <p><small>Planetary contacts</small><br>Venus trine (0.62°); Mercury trine (0.71°); Jupiter square (4.18°); Sun trine (7.34°)</p>
+      <p class="formula"><small>Formula</small><br><code>Asc + Mercury - Moon</code></p>
+    </article>
+    <article class="lot-card">
+      <div class="lot-title"><strong>Travel</strong><span>19°41&#x27;14&quot; Capricorn · H2</span></div>
+      <div class="lot-grid">
+        <div><small>Ruler</small><b>Saturn · H2</b></div>
+        <div><small>Ruler sees Lot</small><b>Yes</b></div>
+      </div>
+      <p><small>Planetary contacts</small><br>Jupiter trine (1.59°)</p>
+      <p class="formula"><small>Formula</small><br><code>Asc + 9th House - Sun</code></p>
+    </article>
+    <article class="lot-card">
+      <div class="lot-title"><strong>Knowledge</strong><span>15°54&#x27;14&quot; Scorpio · H12</span></div>
+      <div class="lot-grid">
+        <div><small>Ruler</small><b>Mars · H4</b></div>
+        <div><small>Ruler sees Lot</small><b>Yes</b></div>
+      </div>
+      <p><small>Planetary contacts</small><br>Mars trine (5.04°); Jupiter opposition (5.37°)</p>
+      <p class="formula"><small>Formula</small><br><code>Mercury + Jupiter - Saturn</code></p>
+    </article>
+    <article class="lot-card">
+      <div class="lot-title"><strong>Faith</strong><span>25°26&#x27;55&quot; Aquarius · H3</span></div>
+      <div class="lot-grid">
+        <div><small>Ruler</small><b>Saturn · H2</b></div>
+        <div><small>Ruler sees Lot</small><b>No</b></div>
+      </div>
+      <p><small>Planetary contacts</small><br>Venus trine (0.62°); Mercury trine (0.71°); Jupiter square (4.18°); Sun trine (7.34°)</p>
+      <p class="formula"><small>Formula</small><br><code>day formula: Asc + Mercury - Moon / reversed</code></p>
+    </article>
+    <article class="lot-card">
+      <div class="lot-title"><strong>Children</strong><span>16°37&#x27;53&quot; Cancer · H8</span></div>
+      <div class="lot-grid">
+        <div><small>Ruler</small><b>Moon · H5</b></div>
+        <div><small>Ruler sees Lot</small><b>Yes</b></div>
+      </div>
+      <p><small>Planetary contacts</small><br>Jupiter sextile (4.64°); Mars trine (5.77°); Moon square (9.54°)</p>
+      <p class="formula"><small>Formula</small><br><code>day formula: Asc + Saturn - Jupiter / reversed</code></p>
+    </article>
+    <article class="lot-card">
+      <div class="lot-title"><strong>Daughters</strong><span>11°21&#x27;24&quot; Capricorn · H2</span></div>
+      <div class="lot-grid">
+        <div><small>Ruler</small><b>Saturn · H2</b></div>
+        <div><small>Ruler sees Lot</small><b>Yes</b></div>
+      </div>
+      <p><small>Planetary contacts</small><br>Mars sextile (0.50°); Moon square (4.27°); Jupiter trine (9.92°)</p>
+      <p class="formula"><small>Formula</small><br><code>day formula: Asc + Venus - Jupiter / reversed</code></p>
+    </article>
+    <article class="lot-card">
+      <div class="lot-title"><strong>Sons</strong><span>11°15&#x27;44&quot; Capricorn · H2</span></div>
+      <div class="lot-grid">
+        <div><small>Ruler</small><b>Saturn · H2</b></div>
+        <div><small>Ruler sees Lot</small><b>Yes</b></div>
+      </div>
+      <p><small>Planetary contacts</small><br>Mars sextile (0.40°); Moon square (4.18°)</p>
+      <p class="formula"><small>Formula</small><br><code>day formula: Asc + Mercury - Jupiter / reversed</code></p>
+    </article>
+    <article class="lot-card">
+      <div class="lot-title"><strong>Marriage (Hermes — male)</strong><span>02°31&#x27;18&quot; Gemini · H7</span></div>
+      <div class="lot-grid">
+        <div><small>Ruler</small><b>Mercury · H7</b></div>
+        <div><small>Ruler sees Lot</small><b>Yes</b></div>
+      </div>
+      <p><small>Planetary contacts</small><br>Moon sextile (4.57°)</p>
+      <p class="formula"><small>Formula</small><br><code>Asc + Venus - Saturn (fixed; not reversed by sect)</code></p>
+    </article>
+    <article class="lot-card">
+      <div class="lot-title"><strong>Divorce</strong><span>11°21&#x27;24&quot; Capricorn · H2</span></div>
+      <div class="lot-grid">
+        <div><small>Ruler</small><b>Saturn · H2</b></div>
+        <div><small>Ruler sees Lot</small><b>Yes</b></div>
+      </div>
+      <p><small>Planetary contacts</small><br>Mars sextile (0.50°); Moon square (4.27°); Jupiter trine (9.92°)</p>
+      <p class="formula"><small>Formula</small><br><code>day formula: Asc + Venus - Jupiter / reversed</code></p>
+    </article>
+    <article class="lot-card">
+      <div class="lot-title"><strong>Eros (relationship-course variant)</strong><span>05°51&#x27;20&quot; Virgo · H10</span></div>
+      <div class="lot-grid">
+        <div><small>Ruler</small><b>Mercury · H7</b></div>
+        <div><small>Ruler sees Lot</small><b>Yes</b></div>
+      </div>
+      <p><small>Planetary contacts</small><br>Mars opposition (5.00°); Saturn trine (5.75°); Sun square (12.25°)</p>
+      <p class="formula"><small>Formula</small><br><code>day formula: Asc + Venus - Fortune / reversed</code></p>
+    </article>
+    <article class="lot-card">
+      <div class="lot-title"><strong>Profession</strong><span>14°46&#x27;31&quot; Pisces · H4</span></div>
+      <div class="lot-grid">
+        <div><small>Ruler</small><b>Jupiter · H6</b></div>
+        <div><small>Ruler sees Lot</small><b>Yes</b></div>
+      </div>
+      <p><small>Planetary contacts</small><br>Sun square (3.33°); Mars conjunction (3.92°); Jupiter sextile (6.50°)</p>
+      <p class="formula"><small>Formula</small><br><code>Asc + Moon - Saturn</code></p>
+    </article></div><details><summary>Deliberately not calculated</summary><ul><li>Death (Paul): Sensitive formula omitted from the default technical report.</li><li>Hermes disease: Sensitive/variant formula omitted from the default technical report.</li></ul></details></section>
+<section id="temperament"><h2>6. Temperament</h2><div class="scorebar"><div class="score">K <b>3</b></div><div class="score">S <b>3</b></div><div class="score">M <b>2</b></div><div class="score">F <b>3</b></div></div><p><b>Highest:</b> Choleric, Sanguine, Phlegmatic</p><div class="table-wrap"><table class=""><thead><tr><th>Factor</th><th>Evidence</th><th>K</th><th>S</th><th>M</th><th>F</th></tr></thead><tbody><tr><td>ASC</td><td>Ascendant: Sagittarius</td><td>1</td><td>0</td><td>0</td><td>0</td></tr><tr><td>ASC ruler nature</td><td>Jupiter: Jupiter (hot, moist)</td><td>0</td><td>1</td><td>0</td><td>0</td></tr><tr><td>ASC ruler sign</td><td>Jupiter: Taurus</td><td>0</td><td>0</td><td>1</td><td>0</td></tr><tr><td>Aspects to ASC ruler</td><td>—</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>Planets and nodes in House I</td><td>—</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>Planetary duads / 1st-mag stars on ASC</td><td>—</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>Aspects to ASC</td><td>Moon trine 0.71°: Aries; Mars square 3.06°: Pisces</td><td>1</td><td>0</td><td>0</td><td>1</td></tr><tr><td>Lunar phase</td><td>Last Quarter to New</td><td>0</td><td>0</td><td>0</td><td>1</td></tr><tr><td>Moon sign</td><td>Moon: Aries</td><td>1</td><td>0</td><td>0</td><td>0</td></tr><tr><td>Moon dispositor sign</td><td>Mars: Pisces</td><td>0</td><td>0</td><td>0</td><td>1</td></tr><tr><td>Moon aspects</td><td>—</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>Season</td><td>Spring</td><td>0</td><td>1</td><td>0</td><td>0</td></tr><tr><td>Almuten Figuris nature</td><td>Mercury: Mercury (occidental; cold, dry)</td><td>0</td><td>0</td><td>1</td><td>0</td></tr><tr><td>Almuten Figuris sign</td><td>Mercury: Gemini</td><td>0</td><td>1</td><td>0</td><td>0</td></tr></tbody></table></div></section>
+<section id="motivation"><h2>7. Primary motivation — factors</h2><div class="factor-grid"><article class="factor-card"><h3>Ascendant sign</h3><div class="tag">fire</div><p><b>power through energetic exchange and interaction with others</b></p><p>Sagittarius (power, success, independence and freedom)</p><p class="muted">—</p></article><article class="factor-card"><h3>Ascendant ruler</h3><div class="tag">earth</div><p><b>accumulation and preservation of material values</b></p><p>Jupiter in Taurus, House 6</p><p class="muted">no major dignity/debility, in sect, swift, maltreated, bonified, in aversion to Ascendant sign</p></article><article class="factor-card"><h3>Aspect to Ascendant</h3><div class="tag">fire</div><p><b>initiative, ambition, conquest, freedom and independence</b></p><p>Moon trine, orb 0.71° from Aries</p><p class="muted">no major dignity/debility, out of sect, halb, swift, maltreated, bonified</p></article><article class="factor-card"><h3>Aspect to Ascendant</h3><div class="tag">water</div><p><b>adaptation and release of emotional contents</b></p><p>Mars square, orb 3.06° from Pisces</p><p class="muted">no major dignity/debility, out of sect, hayz, swift, maltreated, bonified</p></article></div><p><b>Elemental count:</b> fire 2 · air 0 · water 1 · earth 1</p><p class="muted">Factors only; final primary-motivation synthesis belongs to the astrologer.</p></section>
+<section id="behaviour"><h2>8. Ruler of behaviour</h2><div class="table-wrap"><table class=""><thead><tr><th>Field</th><th>Result</th></tr></thead><tbody><tr><td>Primary</td><td>Venus</td></tr><tr><td>Candidates</td><td>Venus</td></tr><tr><td>Secondary / Asc ruler</td><td>Jupiter</td></tr><tr><td>Rule applied</td><td>no planet in House I; use planet conjunct Mercury or Moon</td></tr></tbody></table></div><ul><li>Venus conjunct Mercury, orb 0.09°</li><li>Venus condition: no major dignity/debility, out of sect, retrograde, slow, maltreated</li><li>temperament filter: Choleric, Sanguine, Phlegmatic</li></ul></section>
+<section id="geniture"><h2>9. Ruler of geniture — evidence only</h2><div class="table-wrap"><table class=""><thead><tr><th>Planet</th><th>H</th><th>Mundane</th><th>Essential</th><th>Accidental</th></tr></thead><tbody><tr><td>Mars</td><td>4</td><td>angular</td><td>no major dignity/debility</td><td>out of sect, hayz, swift, maltreated, bonified</td></tr><tr><td>Sun</td><td>7</td><td>angular</td><td>no major dignity/debility</td><td>in sect, hayz, slow, maltreated, bonified</td></tr><tr><td>Mercury</td><td>7</td><td>angular</td><td>domicile</td><td>out of sect, retrograde, slow, maltreated, bonified</td></tr><tr><td>Venus</td><td>7</td><td>angular</td><td>no major dignity/debility</td><td>out of sect, retrograde, slow, maltreated</td></tr><tr><td>Saturn</td><td>2</td><td>succedent</td><td>domicile</td><td>in sect, retrograde, swift, maltreated, bonified</td></tr><tr><td>Moon</td><td>5</td><td>succedent</td><td>no major dignity/debility</td><td>out of sect, halb, swift, maltreated, bonified</td></tr><tr><td>Jupiter</td><td>6</td><td>cadent</td><td>no major dignity/debility</td><td>in sect, swift, maltreated, bonified</td></tr></tbody></table></div><p class="muted">Lilly-style geniture requires qualitative comparison of mundane and essential strength; no mechanical winner is selected.</p></section>
+<section id="mind"><h2>10. Quality of mind — technical factors</h2><div class="factor-grid"><article class="factor-card"><h3>Mercury — rational mind</h3><ul><li>Gemini, House 7</li><li>element: air — quick, curious, versatile and scattered</li><li>modality: mutable</li><li>ascension: short-ascending</li><li>above horizon: easier expression and communication</li><li>occidental: more reflective, closed and conservative</li><li>combust: dispersion; mind can get lost in irrelevant details</li><li>slow: slower, hesitant, fewer ideas</li><li>retrograde: indecisive, changeable, rebellious</li><li>condition: domicile</li><li>condition: out of sect</li><li>condition: retrograde</li><li>condition: slow</li><li>condition: maltreated</li><li>condition: bonified</li><li>dispositor: Mercury in Gemini, House 7</li><li>dispositor condition: domicile</li><li>dispositor condition: out of sect</li><li>dispositor condition: retrograde</li><li>dispositor condition: slow</li><li>dispositor condition: maltreated</li><li>dispositor condition: bonified</li></ul></article><article class="factor-card"><h3>Moon — sensory / irrational mind</h3><ul><li>Aries, House 5</li><li>element: fire</li><li>modality: cardinal</li><li>ascension: short-ascending</li><li>dispositor: Mars in Pisces, House 4</li><li>condition: no major dignity/debility</li><li>condition: out of sect</li><li>condition: halb</li><li>condition: swift</li><li>condition: maltreated</li><li>condition: bonified</li><li>dispositor condition: no major dignity/debility</li><li>dispositor condition: out of sect</li><li>dispositor condition: hayz</li><li>dispositor condition: swift</li><li>dispositor condition: maltreated</li><li>dispositor condition: bonified</li><li>phase: Waning crescent</li></ul></article></div><h3>Almutens</h3><div class="table-wrap"><table class=""><thead><tr><th>Point</th><th>Almuten</th><th>Score</th></tr></thead><tbody><tr><td>Mercury degree</td><td>Mercury</td><td>8</td></tr><tr><td>Moon degree</td><td>Sun</td><td>7</td></tr><tr><td>Composite Almuten of Mind</td><td>Saturn, Sun, Mercury</td><td>8</td></tr></tbody></table></div><h3>Secondary contacts</h3><ul><li>Mercury conjunction Sun, orb 6.63°</li><li>Mercury conjunction Venus, orb 0.09°</li><li>candidate close aspect: Moon sextile Sun, orb 11.02° — source gives no numeric cutoff</li><li>candidate close aspect: Moon square Saturn, orb 6.98° — source gives no numeric cutoff</li></ul><h3>Mercury–Moon relationship</h3><ul><li>Mercury and Moon: no major degree contact</li><li>Composite Almuten of Mind: Saturn, Sun, Mercury (8)</li></ul><p class="muted">Formal factors/descriptors only. The composite Almuten is the summed dignity score of Mercury and Moon positions; its interpretive dominance still depends on condition and contact with the significators. Non-conjunction Mercury/Moon contacts are shown as candidates because the course gives no numerical cutoff for what counts as a close aspect.</p></section>
+<section id="duads"><h2>11. Duads / dodekatemoria</h2><p class="muted">A fixed 5° orb is used only when a planetary duad is tested against the Ascendant for temperament/behaviour testimony.</p><div class="table-wrap"><table class=""><thead><tr><th>Body / point</th><th>Natal position</th><th>Duad</th></tr></thead><tbody><tr><td>Sun</td><td>18°06&#x27;33&quot; Gemini</td><td>07°18&#x27;40&quot; Capricorn</td></tr><tr><td>Moon</td><td>07°05&#x27;12&quot; Aries</td><td>25°02&#x27;27&quot; Gemini</td></tr><tr><td>Mercury</td><td>24°44&#x27;20&quot; Gemini</td><td>26°51&#x27;58&quot; Pisces</td></tr><tr><td>Venus</td><td>24°49&#x27;59&quot; Gemini</td><td>27°59&#x27;50&quot; Pisces</td></tr><tr><td>Mars</td><td>10°51&#x27;33&quot; Pisces</td><td>10°18&#x27;30&quot; Cancer</td></tr><tr><td>Jupiter</td><td>21°16&#x27;23&quot; Taurus</td><td>15°16&#x27;36&quot; Capricorn</td></tr><tr><td>Saturn</td><td>00°06&#x27;28&quot; Capricorn</td><td>01°17&#x27;42&quot; Capricorn</td></tr><tr><td>Ascendant</td><td>07°47&#x27;48&quot; Sagittarius</td><td>03°33&#x27;31&quot; Pisces</td></tr><tr><td>MC</td><td>27°46&#x27;06&quot; Virgo</td><td>03°13&#x27;17&quot; Leo</td></tr><tr><td>Lot: Fortune</td><td>26°46&#x27;26&quot; Virgo</td><td>21°17&#x27;18&quot; Cancer</td></tr><tr><td>Lot: Spirit</td><td>18°49&#x27;09&quot; Aquarius</td><td>15°49&#x27;43&quot; Virgo</td></tr><tr><td>Lot: Enemy</td><td>04°27&#x27;46&quot; Virgo</td><td>23°33&#x27;07&quot; Libra</td></tr><tr><td>Lot: Victory</td><td>10°15&#x27;02&quot; Pisces</td><td>03°00&#x27;24&quot; Cancer</td></tr><tr><td>Lot: Courage</td><td>23°42&#x27;42&quot; Gemini</td><td>14°32&#x27;18&quot; Pisces</td></tr><tr><td>Lot: Eros (Hermetic)</td><td>13°48&#x27;38&quot; Aries</td><td>15°43&#x27;37&quot; Virgo</td></tr><tr><td>Lot: Necessity</td><td>09°49&#x27;54&quot; Pisces</td><td>27°58&#x27;51&quot; Gemini</td></tr><tr><td>Lot: Siblings</td><td>28°57&#x27;42&quot; Aries</td><td>17°32&#x27;25&quot; Pisces</td></tr><tr><td>Lot: Number of siblings</td><td>13°09&#x27;56&quot; Gemini</td><td>07°59&#x27;15&quot; Scorpio</td></tr><tr><td>Lot: Father</td><td>19°47&#x27;43&quot; Gemini</td><td>27°32&#x27;32&quot; Capricorn</td></tr><tr><td>Lot: Mother</td><td>20°03&#x27;01&quot; Virgo</td><td>00°36&#x27;08&quot; Taurus</td></tr><tr><td>Lot: Friends</td><td>25°26&#x27;55&quot; Aquarius</td><td>05°23&#x27;01&quot; Sagittarius</td></tr><tr><td>Lot: Travel</td><td>19°41&#x27;14&quot; Capricorn</td><td>26°14&#x27;50&quot; Leo</td></tr><tr><td>Lot: Knowledge</td><td>15°54&#x27;14&quot; Scorpio</td><td>10°50&#x27;52&quot; Taurus</td></tr><tr><td>Lot: Faith</td><td>25°26&#x27;55&quot; Aquarius</td><td>05°23&#x27;01&quot; Sagittarius</td></tr><tr><td>Lot: Children</td><td>16°37&#x27;53&quot; Cancer</td><td>19°34&#x27;36&quot; Capricorn</td></tr><tr><td>Lot: Daughters</td><td>11°21&#x27;24&quot; Capricorn</td><td>16°16&#x27;44&quot; Taurus</td></tr><tr><td>Lot: Sons</td><td>11°15&#x27;44&quot; Capricorn</td><td>15°08&#x27;52&quot; Taurus</td></tr><tr><td>Lot: Marriage (Hermes — male)</td><td>02°31&#x27;18&quot; Gemini</td><td>00°15&#x27;39&quot; Cancer</td></tr><tr><td>Lot: Divorce</td><td>11°21&#x27;24&quot; Capricorn</td><td>16°16&#x27;44&quot; Taurus</td></tr><tr><td>Lot: Eros (relationship-course variant)</td><td>05°51&#x27;20&quot; Virgo</td><td>10°16&#x27;03&quot; Scorpio</td></tr><tr><td>Lot: Profession</td><td>14°46&#x27;31&quot; Pisces</td><td>27°18&#x27;16&quot; Leo</td></tr></tbody></table></div></section>
+<section id="almuten"><h2>12. Almuten Figuris</h2><p><b>Mercury</b> · score <b>44</b></p><div class="table-wrap"><table class=""><thead><tr><th>Planet</th><th>Essential</th><th>Accidental</th><th>Grand total</th></tr></thead><tbody><tr><td>Saturn</td><td>12</td><td>6</td><td>18</td></tr><tr><td>Jupiter</td><td>21</td><td>2</td><td>23</td></tr><tr><td>Mars</td><td>15</td><td>17</td><td>32</td></tr><tr><td>Sun</td><td>10</td><td>10</td><td>20</td></tr><tr><td>Venus</td><td>5</td><td>10</td><td>15</td></tr><tr><td>Mercury</td><td>27</td><td>17</td><td>44</td></tr><tr><td>Moon</td><td>3</td><td>7</td><td>10</td></tr></tbody></table></div></section>
+<section id="details"><h2>13. Full detailed calculation tables</h2><details><summary>Expand legacy planetary / relationship output</summary><pre class="legacy">```
+Chart: Jovan
+Local: 1988-06-08 19:15:00 (UTC+02:00)
+UTC:   1988-06-08 17:15:00 (UTC)
+Location: 43.3167° N, 21.9000° E
+House system: Whole sign | Zodiac: Tropical
+
+                                                        Planetary State         
+╭─────────┬───────────────────┬───────┬───────────────┬──────────────┬──────────
+│ Planet  │          Position │ House │ Dignity       │ Sect         │          
+├─────────┼───────────────────┼───────┼───────────────┼──────────────┼──────────
+│ Sun     │     18°07&#x27; Gemini │   7   │ ruler Mercury │ day chart    │          
+│         │                   │       │ exalt -       │ day planet   │          
+│         │                   │       │ trip Saturn   │ IN SECT      │       0.9
+│         │                   │       │ term Mars     │ HAYZ         │      0.97
+│         │                   │       │ face Mars     │ HALB         │ latitude 
+│         │                   │       │ no debility   │              │          
+│         │                   │       │               │              │          
+│ Moon    │      07°05&#x27; Aries │   5   │ ruler Mars    │ day chart    │          
+│         │                   │       │ exalt Sun     │ night planet │          
+│         │                   │       │ trip Sun      │ out of sect  │      13.9
+│         │                   │       │ term Venus    │ no hayz      │      1.06
+│         │                   │       │ face Mars     │ HALB         │ latitude 
+│         │                   │       │ no debility   │ oriental     │          
+│         │                   │       │               │              │          
+│ Mercury │     24°44&#x27; Gemini │   7   │ RULER MERCURY │ day chart    │      retr
+│         │                   │       │ exalt -       │ night planet │          
+│         │                   │       │ trip Saturn   │ out of sect  │       0.4
+│         │                   │       │ term Saturn   │ no hayz      │      0.30
+│         │                   │       │ face Sun      │ no halb      │ latitude 
+│         │                   │       │ no debility   │ occidental   │          
+│         │                   │       │               │              │          
+│ Venus   │     24°50&#x27; Gemini │   7   │ ruler Mercury │ day chart    │      retr
+│         │                   │       │ exalt -       │ night planet │          
+│         │                   │       │ trip Saturn   │ out of sect  │       0.5
+│         │                   │       │ term Saturn   │ no hayz      │      0.50
+│         │                   │       │ face Sun      │ no halb      │ latitude 
+│         │                   │       │ no debility   │ occidental   │          
+│         │                   │       │               │              │          
+│ Mars    │     10°52&#x27; Pisces │   4   │ ruler Jupiter │ day chart    │          
+│         │                   │       │ exalt Venus   │ night planet │          
+│         │                   │       │ trip Venus    │ out of sect  │       0.6
+│         │                   │       │ term Venus    │ HAYZ         │      1.16
+│         │                   │       │ face Jupiter  │ HALB         │ latitude 
+│         │                   │       │ no debility   │ oriental     │          
+│         │                   │       │               │              │          
+│ Jupiter │     21°16&#x27; Taurus │   6   │ ruler Venus   │ day chart    │          
+│         │                   │       │ exalt Moon    │ day planet   │          
+│         │                   │       │ trip Venus    │ IN SECT      │       0.2
+│         │                   │       │ term Jupiter  │ no hayz      │      2.70
+│         │                   │       │ face Saturn   │ no halb      │ latitude 
+│         │                   │       │ no debility   │ oriental     │          
+│         │                   │       │               │              │          
+│ Saturn  │  00°06&#x27; Capricorn │   2   │ RULER SATURN  │ day chart    │      retr
+│         │                   │       │ exalt Mars    │ day planet   │          
+│         │                   │       │ trip Venus    │ IN SECT      │       0.0
+│         │                   │       │ term Mercury  │ no hayz      │      2.13
+│         │                   │       │ face Jupiter  │ no halb      │ latitude 
+│         │                   │       │ no debility   │ oriental     │          
+╰─────────┴───────────────────┴───────┴───────────────┴──────────────┴──────────
+
+                                               Aspects (by orb)                 
+                                                                                
+  Pair                                 Aspect                    Orb   Status   
+ ───────────────────────────────────────────────────────────────────────────────
+  Mercury - Venus                    Conjunction               0.09°   applying 
+  Sun - Mercury                      Conjunction               6.63°   applying 
+  Sun - Venus                        Conjunction               6.72°   applying 
+  Moon - Saturn                        Square                  6.98°   separatin
+  Sun - Mars                           Square                  7.25°   separatin
+  Sun - Moon                           Sextile                11.02°   applying 
+                                                                                
+
+                                          Antiscia / Contra-antiscia            
+                                                                                
+  From              Type              Target                 Contact            
+ ───────────────────────────────────────────────────────────────────────────────
+  —                 —                 —                      —                  
+                                                                                
+
+                                          Domicile Sight / Aversion             
+            ╷                ╷                      ╷                           
+  Planet    │ Domicile       │ Status               │ Details                   
+ ═══════════╪════════════════╪══════════════════════╪═══════════════════════════
+  Sun       │ Leo            │ witnesses            │ —                         
+  Moon      │ Cancer         │ witnesses            │ —                         
+  Mercury   │ Gemini         │ witnesses            │ occupants: Sun, Mercury, V
+            │ Virgo          │ witnesses            │ —                         
+  Venus     │ Taurus         │ in aversion          │ occupants: Jupiter        
+            │ Libra          │ witnesses            │ —                         
+  Mars      │ Aries          │ aversion avoided     │ occupants: Moon; contra-an
+            │ Scorpio        │ witnesses            │ —                         
+  Jupiter   │ Sagittarius    │ in aversion          │ —                         
+            │ Pisces         │ witnesses            │ occupants: Mars           
+  Saturn    │ Capricorn      │ witnesses            │ occupants: Saturn         
+            │ Aquarius       │ aversion avoided     │ co-domicile (in own sign) 
+            ╵                ╵                      ╵                           
+
++ benefic / help    x malefic / harm    # domination / enclosure    o feral or 
+special
+
+                                              Bonification / Maltreatment       
+          ╷                        ╷                        ╷                   
+  Planet  │ Benefic rays           │ Malefic rays           │ Benefic dom/enclos
+ ═════════╪════════════════════════╪════════════════════════╪═══════════════════
+  Sun     │ + conjunction ray from │ x square ray from Mars │ —                 
+          │ Venus (applying)       │                        │                   
+  Moon    │ + from benefics        │ x square ray from      │ # enclosed by bene
+          │                        │ Saturn                 │ (sign)            
+          │                        │ x from Mars            │                   
+          │                        │ x from malefics        │                   
+          │                        │                        │                   
+          │                        │                        │                   
+  Mercury │ + conjunction ray from │ x from Mars            │ —                 
+          │ Venus                  │                        │                   
+  Venus   │ —                      │ x from Mars            │ —                 
+          │                        │                        │                   
+  Mars    │ + from Jupiter         │ x from Saturn          │ # Jupiter as sign 
+          │ + from benefics        │                        │ ruler (dispositor)
+          │                        │                        │ # enclosed by bene
+          │                        │                        │ (sign)            
+  Jupiter │ + from Venus           │ x from Mars            │ # Venus as sign ru
+          │                        │ x from Saturn          │ (dispositor)      
+          │                        │ x from malefics        │                   
+          │                        │                        │                   
+          │                        │                        │                   
+          │                        │                        │                   
+  Saturn  │ + from benefics        │ x from Saturn          │ # enclosed by bene
+          │                        │                        │ (sign)            
+          ╵                        ╵                        ╵                   
+                         Who is helping or harming each planet (rays vs dominati
+
+                                          Domination / Counter-rays             
+                      ╷                     ╷                                   
+  Dominator           │ Dominated           │ Aspect of domination              
+╶─────────────────────┼─────────────────────┼───────────────────────────────────
+  Moon                │ Sun                 │ sextile (decimation)              
+  Mars                │ Sun                 │ square (decimation)               
+  Saturn              │ Moon                │ square (decimation)               
+  Moon                │ Mercury             │ sextile (decimation)              
+  Mars                │ Mercury             │ square (decimation)               
+  Moon                │ Venus               │ sextile (decimation)              
+  Mars                │ Venus               │ square (decimation)               
+  Saturn              │ Mars                │ sextile (decimation)              
+  Mars                │ Jupiter             │ sextile (decimation)              
+  Saturn              │ Jupiter             │ trine (decimation)                
+                      ╵                     ╵                                   
+                   Who has the upper hand by sign distance; counter-ray shows th
+
+                                             Translation of Light               
+                                                                                
+  Translator     Connecting (From → To)       Action                            
+ ───────────────────────────────────────────────────────────────────────────────
+  Sun            Mars → Mercury               moves from square with Mars to con
+                                              (translates light) (fast now, not 
+  Moon           Saturn → Sun                 moves from square with Saturn to s
+                                              light)                            
+                                                                                
+                      A faster planet carries a relationship from one planet to 
+
+                                             Collection of Light                
+                                                                                
+  Collector     Planets being collected       Action                            
+ ───────────────────────────────────────────────────────────────────────────────
+  Mercury       Sun &amp; Venus                   receives conjunction from Sun and 
+                                              Mercury slower → collects their li
+                                              currently slower; naturally fastes
+                                                                                
+                    A slower hub receives two applying aspects and gathers their
+
+                                          Receptions / Generosities             
+               ╷              ╷                  ╷                              
+  Host         │ Guest        │ Type             │ Dignities                    
+╶──────────────┼──────────────┼──────────────────┼──────────────────────────────
+  Sun          │ Moon         │ reception        │ exaltation/triplicity        
+  Moon         │ Jupiter      │ generosity       │ exaltation                   
+  Mercury      │ Sun          │ reception        │ domicile                     
+  Mercury      │ Venus        │ reception        │ domicile                     
+  Venus        │ Mars         │ generosity       │ exaltation/triplicity/term   
+  Venus        │ Jupiter      │ generosity       │ domicile/triplicity          
+  Mars         │ Sun          │ reception        │ term/face                    
+  Mars         │ Moon         │ generosity       │ domicile/face                
+  Mars         │ Saturn       │ generosity       │ exaltation                   
+  Jupiter      │ Mars         │ generosity       │ domicile/face                
+  Saturn       │ Mercury      │ generosity       │ triplicity/term              
+  Saturn       │ Venus        │ generosity       │ triplicity/term              
+               ╵              ╵                  ╵                              
+
+        Houses (Whole sign)         
+             ╷                      
+    House    │ Sign                 
+ ════════════╪═════════════════════ 
+      01     │ Sagittarius          
+      02     │ Capricorn            
+      03     │ Aquarius             
+      04     │ Pisces               
+      05     │ Aries                
+      06     │ Taurus               
+      07     │ Gemini               
+      08     │ Cancer               
+      09     │ Leo                  
+      10     │ Virgo                
+      11     │ Libra                
+      12     │ Scorpio              
+             ╵                      
+               Angles               
+          ╷                         
+   Point  │ Position                
+╶─────────┼────────────────────────╴
+    Asc   │ 07°48&#x27; Sagittarius      
+    MC    │ 27°46&#x27; Virgo            
+          ╵                         
+
+Almuten Figuris – Essential and Accidental Scores
+Row highs in green; grand winner highlighted in the combined totals below.
+                     Essential dignity shares (sign, exaltation, triplicity, ter
+            ╷                       ╷         ╷          ╷       ╷      ╷       
+  Point     │ Degree                │ Saturn  │ Jupiter  │ Mars  │ Sun  │ Venus 
+ ═══════════╪═══════════════════════╪═════════╪══════════╪═══════╪══════╪═══════
+  Sun       │ 18°07&#x27; Gemini         │    3    │    3     │  2+1  │      │       
+  Moon      │ 07°05&#x27; Aries          │    3    │    3     │  5+1  │ 4+3  │   2   
+  Asc       │ 07°48&#x27; Sagittarius    │    3    │  5+3+2   │       │  3   │       
+  Fortune   │ 26°46&#x27; Virgo          │         │          │  3+2  │      │   3   
+  Syzygy    │ 10°12&#x27; Gemini         │    3    │   3+2    │   1   │      │       
+            ╵                       ╵         ╵          ╵       ╵      ╵       
+                                  Essential dignity totals (shares + scores)    
+                                                                                
+  Total Shares              Saturn        Jupiter        Mars      Sun       Ven
+ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Shares                       4             7            7         3          2
+  Scores                      12             21           15        10         5
+                                                                                
+                             Accidental strength (House, phase, day/hour bonuses
+                                                                                
+  Component              Saturn         Jupiter        Mars      Sun       Venus
+ ───────────────────────────────────────────────────────────────────────────────
+  House                     6              1            9         10         10 
+  Phase                     0              1            2         0          0  
+  Day bonus                 0              0            0         0          0  
+  Hour bonus                0              0            6         0          0  
+                                                                                
+                                       Combined Essential + Accidental          
+╔════════════════════╤═════════════╤═══════════════╤══════════╤════════╤════════
+║ Type               │   Saturn    │    Jupiter    │   Mars   │  Sun   │   Venus
+╟────────────────────┼─────────────┼───────────────┼──────────┼────────┼────────
+║ Essential          │     12      │      21       │    15    │   10   │     5  
+║ Accidental         │      6      │       2       │    17    │   10   │     10 
+║ Grand              │     18      │      23       │    32    │   20   │     15 
+╚════════════════════╧═════════════╧═══════════════╧══════════╧════════╧════════
+Almuten Figuris: Mercury (44) — highest combined score.
+Mercury (essential 27 + accidental 17)
+```</pre></details></section>
+</main></div></body></html>
