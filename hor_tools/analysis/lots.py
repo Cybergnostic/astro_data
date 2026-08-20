@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from ..models import Houses, PlanetPosition
+from ..synodic import CAZIMI_ORB_DEG, COMBUST_ORB_DEG, UNDER_BEAMS_ORB_DEG
 from .aspects import ASPECTS, PLANET_ORBS, _aspect_angle_for_contact, _distance_to_aspect
 from .dignity import SIGNS, SIGN_RULERS, sign_index_from_longitude
 
@@ -64,6 +65,23 @@ def _sees_by_sign(source_longitude: float, target_longitude: float) -> bool:
     target_sign = sign_index_from_longitude(target_longitude)
     distance = (target_sign - source_sign) % 12
     return distance in {0, 2, 3, 4, 6, 8, 9, 10}
+
+
+def _father_uses_jupiter(saturn_longitude: float, sun_longitude: float) -> bool:
+    """Return whether the course replaces Saturn with Jupiter in the Father Lot.
+
+    Saturn is replaced when combust, or when under the beams while entering
+    combustion. For a superior planet the latter is the occidental return side
+    before conjunction. Cazimi is deliberately excluded from combustion.
+    """
+    delta = (sun_longitude - saturn_longitude) % 360.0
+    elongation = min(delta, 360.0 - delta)
+    combust = CAZIMI_ORB_DEG < elongation <= COMBUST_ORB_DEG
+    entering_combustion_under_beams = (
+        COMBUST_ORB_DEG < elongation <= UNDER_BEAMS_ORB_DEG
+        and 180.0 < delta < 360.0
+    )
+    return combust or entering_combustion_under_beams
 
 
 def _planetary_aspects_to_lot(
@@ -210,8 +228,16 @@ def build_lots(
             "Asc + Saturn - Mercury",
         )
     )
-    father, note = sect_formula(pos["Saturn"], sun)
-    topical_raw.append(("Father", father, note + ": Asc + Saturn - Sun / reversed"))
+
+    father_planet = (
+        "Jupiter" if _father_uses_jupiter(pos["Saturn"], sun) else "Saturn"
+    )
+    father, note = sect_formula(pos[father_planet], sun)
+    father_formula = note + f": Asc + {father_planet} - Sun / reversed"
+    if father_planet == "Jupiter":
+        father_formula += " (Jupiter substituted for combust/approaching-combust Saturn)"
+    topical_raw.append(("Father", father, father_formula))
+
     mother, note = sect_formula(moon, pos["Venus"])
     topical_raw.append(("Mother", mother, note + ": Asc + Moon - Venus / reversed"))
     topical_raw.append(
