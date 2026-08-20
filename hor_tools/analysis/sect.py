@@ -5,7 +5,6 @@ import swisseph as swe
 from ..astro_engine import julian_day_from_chart
 from ..models import ChartInput, PlanetPosition
 from .dignity import sign_index_from_longitude
-from .solar import solar_frame_for_chart
 
 DAY_PLANETS = {"Sun", "Jupiter", "Saturn"}
 NIGHT_PLANETS = {"Moon", "Venus", "Mars"}
@@ -32,15 +31,8 @@ def is_above_horizon(chart: ChartInput, planet: PlanetPosition) -> bool:
 
 
 def chart_sect(chart: ChartInput, sun: PlanetPosition) -> str:
-    """Return sect from apparent local sunrise to apparent local sunset.
-
-    The ``sun`` argument remains for API compatibility; sect itself is based on
-    the shared apparent-rise/set frame so that the solar limb can already be
-    visibly above the horizon while the geometrical centre is still slightly
-    below 0°.
-    """
-    del sun
-    return "day" if solar_frame_for_chart(chart).is_day else "night"
+    """Return day/night sect from the Sun's actual position relative to the horizon."""
+    return "day" if is_above_horizon(chart, sun) else "night"
 
 
 def is_oriental(planet_long: float, sun_long: float) -> bool:
