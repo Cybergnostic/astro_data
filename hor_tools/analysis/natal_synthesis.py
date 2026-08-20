@@ -20,6 +20,7 @@ from .sect import is_above_horizon
 
 PRIMARY_CONTACT_ORB = 5.0
 BEHAVIOUR_DUAD_ORB = 5.0
+BEHAVIOUR_TIE_EPSILON = 1e-9
 
 ELEMENT_BY_SIGN = {
     0: "fire", 1: "earth", 2: "air", 3: "water",
@@ -79,6 +80,7 @@ class BehaviourRulerReport:
     secondary: str | None
     rule: str
     evidence: list[str]
+    candidates: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -173,11 +175,22 @@ def _condition(report: PlanetReport) -> list[str]:
 
 def _asc_ruler_condition(report: PlanetReport, asc_sign_name: str) -> list[str]:
     result = _condition(report)
-    if any(
-        item.domicile_sign == asc_sign_name and item.avoided
-        for item in report.domicile_aversions
-    ):
-        result.append("in aversion to Ascendant sign")
+    status = next(
+        (
+            item
+            for item in report.domicile_aversions
+            if item.domicile_sign == asc_sign_name
+        ),
+        None,
+    )
+    if status is not None and not status.sees:
+        if status.avoided:
+            result.append(
+                "aversion to Ascendant sign avoided by "
+                + (", ".join(status.avoided_by) or "course avoidance rule")
+            )
+        else:
+            result.append("in aversion to Ascendant sign")
     return result
 
 
@@ -257,6 +270,20 @@ def build_primary_motivation(
     return PrimaryMotivationReport(factors=factors, elemental_counts=counts)
 
 
+def _behaviour_duad_evidence(
+    reports: list[PlanetReport], houses: Houses
+) -> list[str]:
+    evidence: list[str] = []
+    for candidate in reports:
+        duad = dodekatemorion_longitude(candidate.planet.longitude)
+        diff = abs((duad - houses.asc + 180.0) % 360.0 - 180.0)
+        if diff <= BEHAVIOUR_DUAD_ORB:
+            evidence.append(
+                f"supplementary: {candidate.planet.name} duad on ASC, orb {diff:.2f}°"
+            )
+    return evidence
+
+
 def _behaviour_evidence(
     primary: str,
     base_evidence: list[str],
@@ -270,21 +297,42 @@ def _behaviour_evidence(
     evidence.append(f"{primary} condition: {', '.join(_condition(report))}")
     for star in report.fixed_stars:
         evidence.append(f"{primary} fixed-star contact: {star}")
+    evidence.extend(_behaviour_duad_evidence(reports, houses))
+    return evidence
 
-    for candidate in reports:
-        duad = dodekatemorion_longitude(candidate.planet.longitude)
-        diff = abs((duad - houses.asc + 180.0) % 360.0 - 180.0)
-        if diff <= BEHAVIOUR_DUAD_ORB:
+
+def _ambiguous_behaviour_evidence(
+    candidates: list[tuple[float, str, str, str]],
+    reports: list[PlanetReport],
+    houses: Houses,
+    reason: str,
+) -> list[str]:
+    by_name = {report.planet.name: report for report in reports}
+    evidence = [reason]
+    seen_candidates: set[str] = set()
+    seen_targets: set[str] = set()
+    for orb, candidate, target, kind in sorted(candidates):
+        evidence.append(f"candidate: {candidate} {kind} {target}, orb {orb:.2f}°")
+        if candidate not in seen_candidates:
             evidence.append(
-                f"supplementary: {candidate.planet.name} duad on ASC, orb {diff:.2f}°"
+                f"{candidate} condition: {', '.join(_condition(by_name[candidate]))}"
             )
+            for star in by_name[candidate].fixed_stars:
+                evidence.append(f"{candidate} fixed-star contact: {star}")
+            seen_candidates.add(candidate)
+        seen_targets.add(target)
+    for target in sorted(seen_targets):
+        evidence.append(
+            f"{target} significator condition: {', '.join(_condition(by_name[target]))}"
+        )
+    evidence.extend(_behaviour_duad_evidence(reports, houses))
     return evidence
 
 
 def build_behaviour_ruler(
     planets: list[PlanetPosition], houses: Houses, reports: list[PlanetReport]
 ) -> BehaviourRulerReport:
-    """Apply the course's ruler-of-behaviour hierarchy without replacing duad supplements."""
+    """Apply the course hierarchy, leaving source-explicit strength ties to judgment."""
     asc_ruler = SIGN_RULERS[sign_index_from_longitude(houses.asc)]
     by_name = {report.planet.name: report for report in reports}
     house_one = [planet for planet in planets if planet.house == 1]
@@ -308,16 +356,37 @@ def build_behaviour_ruler(
                 reports,
                 houses,
             ),
+            candidates=[winner.name],
         )
 
-    conjunction_candidates: list[tuple[float, str, str]] = []
+    conjunction_candidates: list[tuple[float, str, str, str]] = []
     for target in ("Mercury", "Moon"):
         target_report = by_name[target]
         for aspect in target_report.aspects:
             if aspect.kind == "conjunction":
-                conjunction_candidates.append((aspect.orb, aspect.other, target))
+                conjunction_candidates.append(
+                    (aspect.orb, aspect.other, target, aspect.kind)
+                )
     if conjunction_candidates:
-        orb, winner, target = min(conjunction_candidates)
+        targets = {item[2] for item in conjunction_candidates}
+        winners = {item[1] for item in conjunction_candidates}
+        if len(targets) > 1 and len(winners) > 1:
+            return BehaviourRulerReport(
+                primary=None,
+                secondary=asc_ruler,
+                rule=(
+                    "competing Mercury/Moon conjunctions require qualitative comparison "
+                    "of the two significators' strength"
+                ),
+                evidence=_ambiguous_behaviour_evidence(
+                    conjunction_candidates,
+                    reports,
+                    houses,
+                    "manual judgment required: different planets are conjunct Mercury and Moon",
+                ),
+                candidates=sorted(winners),
+            )
+        orb, winner, target, _kind = min(conjunction_candidates)
         return BehaviourRulerReport(
             primary=winner,
             secondary=asc_ruler if asc_ruler != winner else None,
@@ -328,6 +397,7 @@ def build_behaviour_ruler(
                 reports,
                 houses,
             ),
+            candidates=[winner],
         )
 
     aspect_candidates: list[tuple[float, str, str, str]] = []
@@ -338,6 +408,26 @@ def build_behaviour_ruler(
                 (aspect.orb, aspect.other, target, aspect.kind)
             )
     if aspect_candidates:
+        best_orb = min(item[0] for item in aspect_candidates)
+        tied = [
+            item
+            for item in aspect_candidates
+            if abs(item[0] - best_orb) <= BEHAVIOUR_TIE_EPSILON
+        ]
+        tied_winners = {item[1] for item in tied}
+        if len(tied_winners) > 1:
+            return BehaviourRulerReport(
+                primary=None,
+                secondary=asc_ruler,
+                rule="closest Mercury/Moon aspect is tied; qualitative strength comparison required",
+                evidence=_ambiguous_behaviour_evidence(
+                    tied,
+                    reports,
+                    houses,
+                    "manual judgment required: closest behaviour aspects are exactly tied",
+                ),
+                candidates=sorted(tied_winners),
+            )
         orb, winner, target, kind = min(aspect_candidates)
         return BehaviourRulerReport(
             primary=winner,
@@ -351,6 +441,7 @@ def build_behaviour_ruler(
                 reports,
                 houses,
             ),
+            candidates=[winner],
         )
 
     return BehaviourRulerReport(
@@ -363,6 +454,7 @@ def build_behaviour_ruler(
             reports,
             houses,
         ),
+        candidates=[asc_ruler],
     )
 
 
