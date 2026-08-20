@@ -22,14 +22,16 @@ from .relationships import aggregate_relationships
 def build_reports(
     chart: ChartInput, planets: List[PlanetPosition], houses: Houses
 ) -> Tuple[List[PlanetReport], ChartRelationships]:
-    """Build the complete traditional report for every planet."""
+    """Build the complete traditional report for every supplied planet."""
     sun = next(p for p in planets if p.name == "Sun")
-    moon = next(p for p in planets if p.name == "Moon")
+    moon = next((p for p in planets if p.name == "Moon"), None)
     sect_chart = chart_sect(chart, sun)
     sun_long = sun.longitude
 
-    # Lunar VOC requires future ephemeris positions; calculate once per chart.
-    moon_voc = moon_void_of_course(chart, moon)
+    # Lunar VOC requires future ephemeris positions; calculate it once when the
+    # Moon is part of the supplied planet set. Partial/synthetic reports remain
+    # valid and simply have no VOC testimony.
+    moon_voc = moon_void_of_course(chart, moon) if moon is not None else False
 
     reports: List[PlanetReport] = []
     for p in planets:
