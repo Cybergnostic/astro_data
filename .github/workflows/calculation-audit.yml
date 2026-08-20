@@ -22,8 +22,8 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install dependencies
-        run: pip install -r requirements.txt
+      - name: Install project
+        run: pip install -e .
 
       - name: Run tests and record result
         shell: bash
