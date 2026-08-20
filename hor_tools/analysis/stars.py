@@ -24,8 +24,6 @@ BRIGHT_STARS = [
 
 def _star_orb_from_magnitude(magnitude: float) -> float:
     """Course working orbs: ~1°30' for first magnitude, 1° otherwise."""
-    # Classical magnitude classes are centred on integer magnitudes; values
-    # brighter than 1.5 belong to the first-magnitude class.
     return 1.5 if magnitude < 1.5 else 1.0
 
 
@@ -47,8 +45,9 @@ def stars_near_longitude(
     for name in BRIGHT_STARS:
         try:
             result = swe.fixstar_ut(name, jd_ut)
-            magnitude = float(swe.fixstar_mag(name))
-        except swe.Error:
+            magnitude_result = swe.fixstar_mag(name)
+            magnitude = float(magnitude_result[0])
+        except (swe.Error, TypeError, ValueError, IndexError):
             # Missing sefstars.txt or another fixed-star data problem.
             return []
 
