@@ -50,7 +50,8 @@ TRIPLICITIES: Dict[str, Tuple[str, str, str]] = {
     "water": ("Venus", "Mars", "Moon"),
 }
 
-# Egyptian terms (end degree within sign, planet)
+# Egyptian terms. Each number is the EXCLUSIVE end of the preceding term:
+# e.g. Aries Jupiter covers 0°00'00" <= x < 6°00'00", Venus starts at 6°.
 TERMS: Dict[int, list[Tuple[float, str]]] = {
     0: [(6, "Jupiter"), (12, "Venus"), (20, "Mercury"), (25, "Mars"), (30, "Saturn")],  # Aries
     1: [(8, "Venus"), (14, "Mercury"), (22, "Jupiter"), (27, "Saturn"), (30, "Mars")],  # Taurus
@@ -124,19 +125,20 @@ def essential_dignity(planet_name: str, longitude: float, is_day_chart: bool) ->
 
 def classify_speed(planet_name: str, speed_long: float) -> tuple[float, str]:
     """
-    Returns (ratio, class) where class is:
-    - "slow" if ratio < 0.8
-    - "swift" if ratio > 1.2
-    - "average" otherwise
+    Return ``(ratio_to_mean, class)`` using the course rule directly:
+    faster than the planet's mean daily motion is swift, slower is slow.
+    A value effectively equal to the mean is labelled average.
+
+    Retrogradation is a separate condition, so speed is compared by magnitude.
     """
 
     mean = MEAN_SPEED.get(planet_name)
     if not mean or mean == 0:
         return 0.0, "average"
     ratio = abs(speed_long) / mean
-    if ratio < 0.8:
+    if ratio < 1.0 - 1e-9:
         cls = "slow"
-    elif ratio > 1.2:
+    elif ratio > 1.0 + 1e-9:
         cls = "swift"
     else:
         cls = "average"
@@ -163,7 +165,7 @@ def _element_for_sign(sign_idx: int) -> str:
 
 def _term_lord(sign_idx: int, degree: float) -> str | None:
     for end_degree, lord in TERMS.get(sign_idx, []):
-        if degree <= end_degree:
+        if degree < end_degree:
             return lord
     return None
 
