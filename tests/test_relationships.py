@@ -83,13 +83,17 @@ class RelationshipDetectionTest(unittest.TestCase):
         jupiter_rep = next(r for r in reports if r.planet.name == "Jupiter")
         self.assertTrue(jupiter_rep.malefic_enclosure_by_sign)
 
-    def test_collection_requires_faster_planet_closer(self) -> None:
+    def test_collection_requires_collector_slower_than_both_feeders(self) -> None:
         collector = _make_pos("Saturn", 0.0, 0.05)
         fast = _make_pos("Mars", 58.0, 0.5)
         slow = _make_pos("Venus", 61.0, 0.2)
         planets = [_make_pos("Sun", 120.0, 1.0, house=10), collector, fast, slow]
         _reports, relationships = build_reports(_dummy_chart(), planets, _dummy_houses())
-        self.assertFalse(relationships.collections)
+
+        # This scenario is about Saturn's attempted collection. Other planets in
+        # the synthetic chart may independently satisfy collection with another
+        # pair, which should not invalidate this assertion.
+        self.assertFalse(any(c.collector == "Saturn" for c in relationships.collections))
 
     def test_fast_planet_cannot_collect(self) -> None:
         collector = _make_pos("Mercury", 0.0, 1.0)
@@ -97,17 +101,14 @@ class RelationshipDetectionTest(unittest.TestCase):
         mar = _make_pos("Mars", 120.0, 0.6)
         planets = [_make_pos("Sun", 180.0, 1.0, house=10), collector, ven, mar]
         _reports, relationships = build_reports(_dummy_chart(), planets, _dummy_houses())
-        self.assertFalse(relationships.collections)
+        self.assertFalse(any(c.collector == "Mercury" for c in relationships.collections))
 
-    def test_feral_detection(self) -> None:
+    def test_feral_detection_on_partial_planet_set(self) -> None:
         planets = [
             _make_pos("Sun", 0.0, 1.0, house=10),
             _make_pos("Venus", 30.0, 0.6),
             _make_pos("Mars", 330.0, -0.5),
             _make_pos("Saturn", 150.0, 0.05),
-            # build_reports expects a Moon for chart conditions; keep it far
-            # enough not to change the Sun's whole-sign feral test.
-            _make_pos("Moon", 210.0, 13.0),
         ]
         reports, _relationships = build_reports(_dummy_chart(), planets, _dummy_houses())
         sun_rep = next(r for r in reports if r.planet.name == "Sun")
