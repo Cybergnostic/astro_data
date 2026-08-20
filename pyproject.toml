@@ -42,4 +42,7 @@ target-version = "py311"
 line-length = 100
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B"]
+# Start with correctness-oriented lint rules. Formatting and type-modernization
+# are deliberately separate from this gate so domain code is not churned merely
+# to satisfy stylistic preferences.
+select = ["E4", "E7", "E9", "F", "B"]
