@@ -48,7 +48,7 @@ def build_reports(
         hayz, halb = compute_hayz_and_halb(p, chart, sect_chart, sect_plan)
 
         ratio, speed_class = classify_speed(p.name, p.speed_long)
-        star_hits = stars_near_longitude(chart, p.longitude)
+        star_hits = stars_near_longitude(chart, p.longitude, p.latitude)
         aspect_list = aspects_for_planet(p, planets)
         antiscia_target = antiscia_longitude(p.longitude)
         contra_target = contra_antiscia_longitude(p.longitude)
