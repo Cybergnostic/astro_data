@@ -1,7 +1,9 @@
 hor-tools
 =========
 
-Read Morinus `.hor` files, normalize chart data, and compute placements with Swiss Ephemeris (pyswisseph). Uses Whole sign houses by default and is built to be extended with Lots and export formats later.
+`hor-tools` reads classic Morinus `.hor` files, normalizes the chart data, calculates traditional astrology with Swiss Ephemeris, and renders a technical report in the terminal, HTML, or Markdown.
+
+The project uses the traditional planets Sun through Saturn, Tropical zodiac, and Whole Sign houses for house placement. Ascendant and MC are astronomical angles calculated by Swiss Ephemeris.
 
 Preview
 -------
@@ -10,120 +12,169 @@ Preview
 Requirements
 ------------
 - Python 3.11+
-- uv (https://github.com/astral-sh/uv) installed and on PATH
-- Swiss Ephemeris data files (see below)
+- `uv`
+- Swiss Ephemeris data files
 
 Setup
 -----
 ```bash
-# From repo root (astro_data)
-uv sync
+cd astro_data
+uv sync --all-groups
 ```
 
-Ephemeris data
---------------
-Swiss Ephemeris data files are required (planet/moon `.se1` files and `sefstars.txt` for fixed stars); they are not bundled. Download the ephemeris from the official source (e.g. https://www.astro.com/ftp/swisseph/ephe/) and point the tool at the folder either via `SWISSEPH_EPHE` or `--ephe`. No machine-specific default is assumed.
+Swiss Ephemeris
+---------------
+Ephemeris files are not bundled. Point the program at your Swiss Ephemeris directory either with `SWISSEPH_EPHE` or `--ephe`.
+
 ```bash
-export SWISSEPH_EPHE=/path/to/ephemeris
-# or per-run
-uv run hor-reader --ephe /path/to/ephemeris sample_chart.hor
-```
-Place the directory anywhere (e.g., `~/.local/share/swisseph` on Linux) and set the variable before running. If the path is missing, the CLI will raise a clear error telling you to set it.
+export SWISSEPH_EPHE=~/.local/share/swisseph
 
-Usage
------
-```bash
-# From repo root (astro_data)
-uv run hor-reader sample_chart.hor
-
-# Point at any Morinus .hor file
-uv run hor-reader path/to/file.hor
-
-# Use a specific ephemeris directory (overrides SWISSEPH_EPHE)
-uv run hor-reader --ephe ~/projects/MorinusWin/SWEP/Ephem sample_chart.hor
-
-# HTML/Markdown exports now go to ./outputs/ by default when relative paths are used
-uv run hor-reader path/to/file.hor --html report.html --md report.md
-# writes outputs/report.html and outputs/report.md
+# or per command
+uv run hor-reader --ephe ~/.local/share/swisseph chart.hor
 ```
 
-What you get
+The configured path must exist. Fixed-star reports additionally depend on the Swiss fixed-star catalogue available to pyswisseph (normally `sefstars.txt` in the ephemeris directory).
+
+Main command
 ------------
-- Chart header at the top of every report (console/HTML/Markdown): name, local time (with UTC offset), UTC time, location, house system, zodiac.
-- Parsed chart input (UTC datetime, decimal lat/lon, tz offset stored).
-- Planet positions (Sun through Saturn) via Swiss Ephemeris, mapped to Whole sign houses.
-- Derived Whole sign house cusps plus Ascendant/MC.
-- Traditional analysis bundle per planet: dignities, sect/hayz/halb, motion class, synodic phase, fixed stars, and aspect flags (applying/separating, dexter/sinister, mutual application/separation, counter-rays).
-- Antiscia + contra-antiscia reflection points with detected planet contacts (degree-sum rule, no orbs).
-- Domicile sight / aversion: whether a planet “witnesses” its own domiciles by sign; aversion can be avoided via translation of light to a planet in its domicile or by being in an antiscia/contra-antiscia sign to that domicile.
-- Relationship layers: domination/decimation (with aktinobolia), bonification/maltreatment sources, benefic/malefic enclosures, receptions/generosities, translations/collections of light (with natural-speed notes), feral planet marker.
-- Rich console tables with dark HTML/markdown export; Almuten tables included.
-- CLI/text, HTML, and Markdown share the same renderer; when you change the console layout in code, it automatically carries through to HTML/MD.
-
-Project layout
---------------
-- Repo root (now `astro_data/`):
-  - `pyproject.toml`, `uv.lock`
-  - `hor_tools/` (package)
-  - `docs/img/` (screenshots for the README)
-  - `tests/`
-  - `context.md` (architecture overview)
-  - Personal `.hor` files (git-ignored) can sit alongside.
-- Entry point: `hor_tools/cli.py` (`hor-reader`).
-- Core modules: `models.py`, `hor_parser.py`, `astro_engine.py`, `analysis/*`, `output.py`.
-- Helpers:
-  - `scan_events.py`: list ingresses and exact aspects in a date range (see below).
-  - `asc_window_scan.py`: generate reports for each Ascendant change in a window.
-
-Extending
----------
-- Configure ephemeris path in `astro_engine.py` (`EPHE_PATH` constant).
-- Add Lots, aspects, dignities, or additional bodies in `astro_engine.py`.
-- Relationship logic lives in `analysis/relationships.py`; aspect helpers in `analysis/aspects.py`.
-- Implement exports in `output.py` (XLSX via `openpyxl`, DOCX/ODT via `python-docx` or `odfpy`).
-
-For maintainers: publish & install elsewhere
---------------------------------------------
-1) Publish to GitHub (once):
 ```bash
-git init
-git add .
-git commit -m "Initial import of hor-tools"
-gh repo create yourname/hor-tools --source=. --public --push  # or create on GitHub and git remote add origin ...
-git push -u origin main
+uv run hor-reader --help
+uv run hor-reader chart.hor
+uv run hor-reader --ephe /path/to/ephe chart.hor
+uv run hor-reader chart.hor --html report.html --md report.md
 ```
 
-2) Install and run on another Linux/Mac machine (with uv installed):
+Simple relative export names are written under `outputs/`, so the last command creates:
+
+```text
+outputs/report.html
+outputs/report.md
+```
+
+`hor-reader` uses normal `argparse` validation. Unknown options, missing option values, multiple input files, malformed `.hor` files, and invalid ephemeris paths fail explicitly instead of being silently guessed. Use `--debug` when you want a Python traceback.
+
+Morinus `.hor` support
+----------------------
+The parser targets the classic Morinus protocol-0 natal/radix header used by the project. It validates the serialized fields rather than scanning arbitrary integers.
+
+Currently supported time forms:
+- Gregorian calendar
+- zone/civil time with east/west UTC offset and Morinus DST flag
+- Greenwich time
+- local mean time
+
+Currently rejected explicitly rather than approximated:
+- BC charts
+- Julian-calendar `.hor` dates
+- local apparent time
+
+The parser preserves the chart name, place name, longitude, latitude, altitude, local UTC offset, and normalized UTC datetime. Invalid or incomplete coordinate data raises an error; it never falls back to `0°N, 0°E`.
+
+What the report calculates
+--------------------------
+- Sun through Saturn positions and speeds
+- Whole Sign houses, Ascendant, and MC
+- essential dignities: domicile, exaltation, Dorothean triplicity, Egyptian terms, Chaldean faces
+- detriment and fall
+- chart sect, planetary sect, Hayz, Halb, oriental/occidental condition
+- direct/retrograde motion, station state, and speed relative to mean motion
+- solar/synodic phases, ordinary cazimi, and true longitude+latitude cazimi
+- magnitude-sensitive course fixed-star conjunctions
+- major aspects with the project/teacher planetary orbs
+- applying/separating geometry, dexter/sinister, mutual application/separation, counter-rays
+- antiscia and contra-antiscia
+- planetary joys, latitude testimony, Via Combusta, lunar void-of-course
+- domicile sight / aversion
+- domination/decimation and aktinobolia
+- bonification/maltreatment and benefic/malefic enclosure
+- receptions and generosities
+- translation and collection of light
+- feral planets
+- Almuten Figuris using the teacher-configured Morinus scoring, including all three triplicity rulers, day/hour bonuses, house scores, and Morinus superior-planet phase bands
+
+Installed helper commands
+-------------------------
+The scanners are package commands, so after installation they do not depend on being launched from the repository root.
+
+### Ingresses and exact aspects
+
 ```bash
-git clone https://github.com/yourname/hor-tools.git
-cd hor-tools
-uv sync
-export SWISSEPH_EPHE=/path/to/ephemeris  # set to your Swiss Ephemeris folder
-uv run hor-reader path/to/file.hor --html report.html --md report.md
-```
-
-Helper scripts
---------------
-**Ingresses + aspects (scan_events.py)**
-```
-uv run scan_events.py \
+uv run hor-scan-events \
   --start "2028-01-01T00:00:00Z" \
   --end "2028-02-01T00:00:00Z" \
   --lat 40.7 --lon -74.0 \
   --step-min 60 --tol-min 0.1 \
-  --aspect 0=conj --aspect 60=sextile --aspect 90=square --aspect 120=trine --aspect 180=opp
+  --aspect 0=conj \
+  --aspect 60=sextile \
+  --aspect 90=square \
+  --aspect 120=trine \
+  --aspect 180=opp
 ```
-Lists every sign ingress and exact aspect hit (Sun–Saturn). Accepts custom aspects and an optional `--ephe` path.
 
-**Ascendant window scan (asc_window_scan.py)**
-```
-uv run asc_window_scan.py \
+The event scanner uses a lightweight longitude-only ephemeris path internally; it does not recalculate houses, stations, or synodic state during every refinement step. `--step-min` and `--tol-min` must be positive.
+
+### Ascendant-window scanner
+
+```bash
+uv run hor-scan-asc \
   --primer path/to/template.hor \
-  --start-date 2028-04-20 --end-date 2028-05-05 \
-  --window-start 12:00 --window-end 18:00 \
-  --step-min 10 --tol-min 0.2
+  --start-date 2028-04-20 \
+  --end-date 2028-05-05 \
+  --window-start 12:00 \
+  --window-end 18:00 \
+  --step-min 10 \
+  --tol-min 0.2 \
+  --tz Europe/Belgrade
 ```
-- Uses the primer `.hor` for location/tz/house/zodiac; iterates through the date window and daily time window to find every Ascendant sign change.
-- Writes a consolidated Markdown report to `outputs/asc_scan_<start>_<end>.md` by default and prints the file path.
-- Default output is lightweight (no Almuten tables); add `--verbose` to include full reports with Almuten.
-- Set `--out myfile.md` to control the output path (relative paths go under `outputs/`).
+
+- The primer supplies the chart location and other metadata.
+- Prefer an IANA timezone with `--tz` when the date range can cross a DST transition.
+- Without `--tz`, the fixed civil offset stored in the `.hor` file is used and a warning is printed.
+- Overnight daily windows are not currently supported; `window-end` must be later than `window-start`.
+- Output defaults to `outputs/asc_scan_<start>_<end>.md`.
+- Add `--verbose` to include Almuten tables in every generated report.
+
+The old repository-root commands `uv run scan_events.py ...` and `uv run asc_window_scan.py ...` remain as compatibility wrappers.
+
+Project layout
+--------------
+```text
+hor_tools/
+    cli.py                 main hor-reader command
+    hor_parser.py          validated Morinus parser
+    astro_engine.py        Swiss Ephemeris / raw astronomy
+    models.py              normalized chart/report dataclasses
+    almuten.py             Almuten calculations
+    almuten_types.py       typed Almuten result objects
+    synodic.py             synodic/solar phase logic
+    analysis/              astrological analysis modules
+    commands/              installed scanner commands
+    output.py              report rendering/export
+
+tests/
+    fixtures/              representative input fixtures
+
+.github/workflows/ci.yml  tests + build + clean-wheel smoke test
+```
+
+Development
+-----------
+Run the full suite with:
+
+```bash
+uv sync --all-groups
+uv run pytest -q
+uv run ruff check hor_tools tests scan_events.py asc_window_scan.py
+```
+
+Build the package with:
+
+```bash
+uv build
+```
+
+CI builds a real wheel, installs that wheel into a clean virtual environment, imports the `analysis` and `commands` subpackages, and smoke-tests all three console commands. This guards against packaging problems that an editable checkout can hide.
+
+Architecture notes
+------------------
+`context.md` contains the maintainer-oriented architecture overview and domain boundaries. Calculation rules should live in calculation/analysis modules; CLI and renderer refactors should not silently change astrological doctrine.
