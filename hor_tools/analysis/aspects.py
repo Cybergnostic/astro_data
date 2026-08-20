@@ -25,6 +25,21 @@ ASPECTS = {
 }
 ASPECT_ANGLES = list(ASPECTS.keys())
 
+# In the course, configurations are sign relationships first and degree contacts
+# second. A configuration/conjunction may continue across a sign boundary only
+# very tightly; the deterministic project rule uses the stated 3° maximum.
+OUT_OF_SIGN_MAX_ORB = 3.0
+SIGN_ASPECT_ANGLES = {
+    0: 0.0,
+    2: 60.0,
+    3: 90.0,
+    4: 120.0,
+    6: 180.0,
+    8: 120.0,
+    9: 90.0,
+    10: 60.0,
+}
+
 
 def _shortest_distance(a: float, b: float) -> float:
     diff = abs(a - b) % 360.0
@@ -37,26 +52,61 @@ def _distance_to_aspect(lon1: float, lon2: float, aspect_angle: float) -> float:
     return abs(separation - aspect_angle)
 
 
+def _sign_aspect_angle(lon1: float, lon2: float) -> float | None:
+    """Return the major aspect implied by the planets' current signs."""
+    sign1 = int((lon1 % 360.0) // 30.0)
+    sign2 = int((lon2 % 360.0) // 30.0)
+    return SIGN_ASPECT_ANGLES.get((sign2 - sign1) % 12)
+
+
+def _aspect_angle_for_contact(
+    lon1: float,
+    lon2: float,
+    max_orb: float,
+) -> float | None:
+    """Choose the source-valid aspect for a planetary contact.
+
+    The current whole-sign relationship determines the normal configuration.
+    That configuration becomes an actual degree contact only when the planets
+    enter the larger planetary orb. If the degree geometry still belongs to the
+    immediately preceding/following configuration after a sign boundary, retain
+    that out-of-sign contact only within 3° of exactness.
+    """
+    sign_angle = _sign_aspect_angle(lon1, lon2)
+    if sign_angle is not None:
+        sign_orb = _distance_to_aspect(lon1, lon2, sign_angle)
+        if sign_orb <= max_orb:
+            return sign_angle
+
+    distance = _shortest_distance(lon1, lon2)
+    geometric_angle = min(ASPECT_ANGLES, key=lambda ang: abs(distance - ang))
+    geometric_orb = abs(distance - geometric_angle)
+
+    # A different degree-aspect than the current sign configuration can only be
+    # a carried contact across a sign boundary, and the course limits it to 3°.
+    if geometric_angle != sign_angle and geometric_orb <= OUT_OF_SIGN_MAX_ORB:
+        return geometric_angle
+
+    return None
+
+
 def aspects_for_planet(planet: PlanetPosition, all_planets: List[PlanetPosition]) -> List[AspectInfo]:
     infos: List[AspectInfo] = []
     for other in all_planets:
         if other.name == planet.name:
             continue
 
-        distance = _shortest_distance(planet.longitude, other.longitude)
-
-        # choose closest aspect angle
-        best_angle = min(ASPECT_ANGLES, key=lambda ang: abs(distance - ang))
-        kind = ASPECTS[best_angle]
         max_orb = max(PLANET_ORBS.get(planet.name, 0.0), PLANET_ORBS.get(other.name, 0.0))
-        orb = abs(distance - best_angle)
-        if orb > max_orb:
-            continue  # no aspect
+        aspect_angle = _aspect_angle_for_contact(planet.longitude, other.longitude, max_orb)
+        if aspect_angle is None:
+            continue
 
-        applying = _is_applying(planet, other, best_angle)
-        dexter = _is_dexter(planet.longitude, other.longitude, best_angle)
-        self_applying = _is_self_applying(planet, other, best_angle)
-        other_applying = _is_self_applying(other, planet, best_angle)
+        kind = ASPECTS[aspect_angle]
+        orb = _distance_to_aspect(planet.longitude, other.longitude, aspect_angle)
+        applying = _is_applying(planet, other, aspect_angle)
+        dexter = _is_dexter(planet.longitude, other.longitude, aspect_angle)
+        self_applying = _is_self_applying(planet, other, aspect_angle)
+        other_applying = _is_self_applying(other, planet, aspect_angle)
         mutual_application = self_applying and other_applying
         mutual_separation = (not self_applying) and (not other_applying)
 
