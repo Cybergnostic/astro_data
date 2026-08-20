@@ -1,7 +1,7 @@
 """Course temperament worksheet calculation.
 
 The course scores four humoral outcomes (K/S/M/F) from a fixed set of
-witnesses.  Some planetary phase entries state only one primal quality (for
+witnesses. Some planetary phase entries state only one primal quality (for
 example 'dry'); those testimonies therefore contribute to both temperaments
 that contain that quality instead of silently inventing a second quality.
 """
@@ -19,8 +19,9 @@ from .dignity import SIGNS, SIGN_RULERS, sign_index_from_longitude
 from .duads import dodekatemorion_longitude
 from .stars import COURSE_STARS, _resolve_star
 
-ASC_CONTACT_ORB = 5.0  # user's working interpretation of the course's 4-5° range
-MOON_CONTACT_ORB = 6.0  # user's working interpretation of the course's 5-6° range
+ASC_CONTACT_ORB = 5.0
+DUAD_CONTACT_ORB = 5.0
+MOON_CONTACT_ORB = 6.0
 
 TEMPERAMENTS = ("K", "S", "M", "F")
 TEMPERAMENT_LABELS = {
@@ -61,7 +62,6 @@ class TemperamentReport:
 
 def _qualities_to_scores(qualities: set[str]) -> dict[str, int]:
     """Map complete or partial primal qualities to compatible temperaments."""
-
     if not qualities:
         return {key: 0 for key in TEMPERAMENTS}
     compatible = [
@@ -77,7 +77,6 @@ def _score_sign(longitude: float) -> dict[str, int]:
 
 def _planet_qualities(report: PlanetReport) -> set[str]:
     """Return the course table's phase-sensitive planetary qualities."""
-
     name = report.planet.name
     if name == "Sun":
         return {"hot", "dry"}
@@ -113,7 +112,9 @@ def _add_planet_nature(row: TemperamentRow, report: PlanetReport, label: str) ->
     qualities = _planet_qualities(report)
     _merge_scores(row.scores, _qualities_to_scores(qualities))
     phase = "oriental" if report.oriental else "occidental"
-    row.evidence.append(f"{label}: {report.planet.name} ({phase}; {', '.join(sorted(qualities))})")
+    row.evidence.append(
+        f"{label}: {report.planet.name} ({phase}; {', '.join(sorted(qualities))})"
+    )
 
 
 def _contact(
@@ -122,7 +123,9 @@ def _contact(
     angle = _aspect_angle_for_contact(source_longitude, target_longitude, max_orb)
     if angle is None:
         return None
-    return ASPECTS[angle], _distance_to_aspect(source_longitude, target_longitude, angle)
+    return ASPECTS[angle], _distance_to_aspect(
+        source_longitude, target_longitude, angle
+    )
 
 
 def _score_aspect_witness(
@@ -136,12 +139,20 @@ def _score_aspect_witness(
         return
     kind, orb = contact
     if kind == "conjunction":
-        _add_planet_nature(row, source, f"{source.planet.name} conjunction {orb:.2f}°")
+        _add_planet_nature(
+            row, source, f"{source.planet.name} conjunction {orb:.2f}°"
+        )
     else:
-        _add_sign(row, source.planet.longitude, f"{source.planet.name} {kind} {orb:.2f}°")
+        _add_sign(
+            row,
+            source.planet.longitude,
+            f"{source.planet.name} {kind} {orb:.2f}°",
+        )
 
 
-def _lunar_phase_score(sun_longitude: float, moon_longitude: float) -> tuple[str, dict[str, int]]:
+def _lunar_phase_score(
+    sun_longitude: float, moon_longitude: float
+) -> tuple[str, dict[str, int]]:
     arc = (moon_longitude - sun_longitude) % 360.0
     if arc < 90.0:
         key, label = "S", "New to First Quarter"
@@ -187,7 +198,9 @@ def _first_magnitude_stars_on_asc(chart: ChartInput, asc: float) -> list[str]:
             continue
         diff = abs((float(pos[0]) - asc + 180.0) % 360.0 - 180.0)
         if diff <= 1.5:
-            hits.append(f"{display} (mag {magnitude:.2f}, orb {diff:.2f}°)")
+            hits.append(
+                f"{display} (mag {magnitude:.2f}, orb {diff:.2f}°)"
+            )
     return hits
 
 
@@ -199,13 +212,11 @@ def build_temperament(
     almuten_name: str | None,
 ) -> TemperamentReport:
     """Build the complete auditable K/S/M/F worksheet."""
-
     by_name = {report.planet.name: report for report in reports}
     pos = {planet.name: planet for planet in planets}
     asc_ruler = SIGN_RULERS[sign_index_from_longitude(houses.asc)]
     asc_ruler_report = by_name[asc_ruler]
     moon = pos["Moon"]
-    moon_report = by_name["Moon"]
     sun = pos["Sun"]
 
     rows: list[TemperamentRow] = []
@@ -226,7 +237,9 @@ def build_temperament(
     for report in reports:
         if report.planet.name == asc_ruler:
             continue
-        _score_aspect_witness(row, report, asc_ruler_report.planet.longitude, ASC_CONTACT_ORB)
+        _score_aspect_witness(
+            row, report, asc_ruler_report.planet.longitude, ASC_CONTACT_ORB
+        )
     rows.append(row)
 
     row = TemperamentRow("Planets and nodes in House I")
@@ -247,14 +260,19 @@ def build_temperament(
     for report in reports:
         duad = dodekatemorion_longitude(report.planet.longitude)
         diff = abs((duad - houses.asc + 180.0) % 360.0 - 180.0)
-        if diff <= ASC_CONTACT_ORB:
-            _add_planet_nature(row, report, f"{report.planet.name} duad on ASC ({diff:.2f}°)")
+        if diff <= DUAD_CONTACT_ORB:
+            _add_planet_nature(
+                row,
+                report,
+                f"{report.planet.name} duad on ASC ({diff:.2f}°)",
+            )
     stars = _first_magnitude_stars_on_asc(chart, houses.asc)
     if stars:
         row.evidence.extend(stars)
         row.note = (
-            "First-magnitude star contacts are listed but not scored because the current "
-            "machine catalogue does not yet encode each star's primary planetary nature."
+            "First-magnitude star contacts are listed but not scored because "
+            "the current machine catalogue does not yet encode each star's "
+            "primary planetary nature."
         )
     rows.append(row)
 
@@ -305,7 +323,13 @@ def build_temperament(
         row.note = "No unique Almuten Figuris available."
     rows.append(row)
 
-    totals = {key: sum(row.scores[key] for row in rows) for key in TEMPERAMENTS}
+    totals = {
+        key: sum(row.scores[key] for row in rows) for key in TEMPERAMENTS
+    }
     maximum = max(totals.values(), default=0)
-    dominant = [TEMPERAMENT_LABELS[key] for key, value in totals.items() if value == maximum]
+    dominant = [
+        TEMPERAMENT_LABELS[key]
+        for key, value in totals.items()
+        if value == maximum
+    ]
     return TemperamentReport(rows=rows, totals=totals, dominant=dominant)
