@@ -7,11 +7,10 @@ CAZIMI_ORB_DEG = 17.0 / 60.0
 COMBUST_ORB_DEG = 7.5
 UNDER_BEAMS_ORB_DEG = 15.0
 
-# A station is a reversal point, not a universal absolute daily-speed band.
-# With a single ephemeris sample we only call a body stationary when its
-# longitudinal speed is effectively zero. Near-station judgments need a
-# time-series check around the chart moment.
-STATION_EPSILON = 1e-6
+# Kept only as a backwards-compatible exact-zero fallback for manually-created
+# PlanetPosition objects. Real chart calculations set PlanetPosition.station by
+# comparing signed motion on adjacent ephemeris days.
+EXACT_STATION_EPSILON = 1e-9
 
 
 def _minimal_separation(a: float, b: float) -> float:
@@ -42,13 +41,7 @@ def is_true_cazimi(
 
 
 def compute_elongation_and_orientation(planet_long: float, sun_long: float) -> tuple[float, bool, bool]:
-    """
-    Returns (elongation_deg, is_oriental, is_occidental).
-
-    - elongation_deg: minimal angular distance from Sun, 0 - 180°
-    - is_oriental: True if planet is behind the Sun in zodiacal order (rises before Sun)
-    - is_occidental: True if planet is ahead of the Sun in zodiacal order (sets after Sun)
-    """
+    """Return (elongation, oriental, occidental) relative to the Sun."""
     delta = (sun_long - planet_long) % 360.0
     if delta == 0.0:
         return 0.0, False, False
@@ -58,10 +51,18 @@ def compute_elongation_and_orientation(planet_long: float, sun_long: float) -> t
     return elong, is_oriental, is_occidental
 
 
-def motion_flags(speed_long: float) -> tuple[bool, bool, bool]:
-    is_station = abs(speed_long) <= STATION_EPSILON
-    is_direct = speed_long > STATION_EPSILON
-    is_retro = speed_long < -STATION_EPSILON
+def motion_flags(
+    speed_long: float, station_phase: str | None = None
+) -> tuple[bool, bool, bool]:
+    """Return direct/retrograde/station flags.
+
+    Real ephemeris positions supply ``station_phase`` from an adjacent-day
+    reversal check. Exact zero remains a narrow fallback for synthetic callers
+    and tests; it is not used as a practical station threshold.
+    """
+    is_station = station_phase in {"first", "second"} or abs(speed_long) <= EXACT_STATION_EPSILON
+    is_direct = not is_station and speed_long > 0.0
+    is_retro = not is_station and speed_long < 0.0
     return is_direct, is_retro, is_station
 
 
@@ -72,7 +73,7 @@ def _phase(group: str, code: str, index: int, label: str) -> SynodicPhaseInfo:
 def compute_superior_synodic_phase(planet: PlanetPosition, sun_long: float) -> SynodicPhaseInfo:
     """Classify Saturn, Jupiter or Mars into a traditional synodic phase bucket."""
     elong, is_oriental, _ = compute_elongation_and_orientation(planet.longitude, sun_long)
-    is_direct, is_retro, is_station = motion_flags(planet.speed_long)
+    is_direct, is_retro, is_station = motion_flags(planet.speed_long, planet.station)
 
     if elong <= CAZIMI_ORB_DEG:
         return _phase("superior", "cazimi", 1, "Cazimi")
@@ -83,7 +84,10 @@ def compute_superior_synodic_phase(planet: PlanetPosition, sun_long: float) -> S
         if elong <= UNDER_BEAMS_ORB_DEG:
             return _phase("superior", "under_beams_east", 3, "Under beams (east)")
         if is_station:
-            return _phase("superior", "first_station", 7, "First station (east)")
+            label = "First station (east)" if planet.station != "second" else "Second station (east)"
+            code = "first_station" if planet.station != "second" else "second_station"
+            index = 7 if planet.station != "second" else 11
+            return _phase("superior", code, index, label)
         if is_retro:
             ahead_from_sun = (planet.longitude - sun_long) % 360.0
             if elong >= 168.0:
@@ -112,13 +116,15 @@ def compute_superior_synodic_phase(planet: PlanetPosition, sun_long: float) -> S
             return _phase("superior", "oriental_far_before_station", 6, "Oriental far before station")
         return _phase("superior", "oriental_weak", 5, "Oriental weak")
 
-    # Occidental side
     if elong <= COMBUST_ORB_DEG:
         return _phase("superior", "combust_west", 17, "Combust (west)")
     if elong <= UNDER_BEAMS_ORB_DEG:
         return _phase("superior", "under_beams_west", 16, "Under beams (west)")
     if is_station:
-        return _phase("superior", "second_station", 11, "Second station (west)")
+        label = "Second station (west)" if planet.station != "first" else "First station (west)"
+        code = "second_station" if planet.station != "first" else "first_station"
+        index = 11 if planet.station != "first" else 7
+        return _phase("superior", code, index, label)
     if is_retro:
         if elong >= 168.0:
             return _phase("superior", "around_opposition", 9, "Around opposition")
@@ -129,8 +135,6 @@ def compute_superior_synodic_phase(planet: PlanetPosition, sun_long: float) -> S
             "Retrograde receding / pre-second station",
         )
 
-    # Direct, occidental. These later phase labels are retained; the solar-ray
-    # condition above now follows the common 15°/7°30'/17' course thresholds.
     setting_threshold = 22.0 if planet.name in {"Saturn", "Jupiter"} else 18.0
     if elong < setting_threshold:
         return _phase("superior", "occidental_setting_degrees", 15, "Occidental setting degrees")
@@ -144,7 +148,7 @@ def compute_superior_synodic_phase(planet: PlanetPosition, sun_long: float) -> S
 def compute_inferior_synodic_phase(planet: PlanetPosition, sun_long: float) -> SynodicPhaseInfo:
     """Classify Venus or Mercury into a synodic phase bucket."""
     elong, is_oriental, _ = compute_elongation_and_orientation(planet.longitude, sun_long)
-    is_direct, is_retro, is_station = motion_flags(planet.speed_long)
+    is_direct, is_retro, is_station = motion_flags(planet.speed_long, planet.station)
 
     if elong <= CAZIMI_ORB_DEG:
         return _phase("inferior", "cazimi", 1, "Cazimi")
@@ -161,6 +165,9 @@ def compute_inferior_synodic_phase(planet: PlanetPosition, sun_long: float) -> S
             label = "Under beams (east, return)" if is_retro else "Under beams (east)"
             return _phase("inferior", code, index, label)
         if is_station:
+            station = planet.station or "second"
+            if station == "first":
+                return _phase("inferior", "first_station_east", 13, "First station (east)")
             return _phase("inferior", "second_station_east", 5, "Second station (east)")
         if is_retro:
             return _phase("inferior", "direct_east_closing", 6, "Retrograde east closing")
@@ -171,7 +178,6 @@ def compute_inferior_synodic_phase(planet: PlanetPosition, sun_long: float) -> S
             "Oriental strong (before station)",
         )
 
-    # Occidental side
     if elong <= COMBUST_ORB_DEG:
         code = "combust_west" if is_direct else "combust_west_return"
         index = 10 if is_direct else 16
@@ -183,6 +189,9 @@ def compute_inferior_synodic_phase(planet: PlanetPosition, sun_long: float) -> S
         label = "Under beams (west)" if is_direct else "Under beams (west, return)"
         return _phase("inferior", code, index, label)
     if is_station:
+        station = planet.station or "first"
+        if station == "second":
+            return _phase("inferior", "second_station_west", 5, "Second station (west)")
         return _phase("inferior", "first_station_west", 13, "First station (west)")
     if is_retro:
         return _phase("inferior", "retrograde_west_towards_sun", 14, "Retrograde west towards Sun")
