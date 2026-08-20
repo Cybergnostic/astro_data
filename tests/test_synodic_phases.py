@@ -10,7 +10,13 @@ from hor_tools.synodic import (
 )
 
 
-def _planet(name: str, longitude: float, speed_long: float, latitude: float = 0.0) -> PlanetPosition:
+def _planet(
+    name: str,
+    longitude: float,
+    speed_long: float,
+    latitude: float = 0.0,
+    station: str | None = None,
+) -> PlanetPosition:
     return PlanetPosition(
         name=name,
         longitude=longitude,
@@ -19,38 +25,57 @@ def _planet(name: str, longitude: float, speed_long: float, latitude: float = 0.
         speed_lat=0.0,
         house=1,
         retrograde=speed_long < 0,
+        station=station,
     )
 
 
 class SynodicPhasesTest(unittest.TestCase):
-    def test_superior_synodic_phases(self) -> None:
+    def test_superior_oriental_sequence(self) -> None:
         sun_long = 0.0
-        self.assertEqual(compute_superior_synodic_phase(_planet("Mars", 50.0, 0.5), sun_long).code, "occidental_visible_direct_early")
-        self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 80.0, 0.5), sun_long).code, "occidental_leaning")
-        self.assertEqual(compute_superior_synodic_phase(_planet("Saturn", 120.0, 0.5), sun_long).code, "occidental_strong")
-        self.assertEqual(compute_superior_synodic_phase(_planet("Mars", 210.0, -0.2), sun_long).code, "retrograde_receding_or_pre_second_station")
-        self.assertEqual(compute_superior_synodic_phase(_planet("Mars", 185.0, -0.2), sun_long).code, "around_opposition")
-        self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 330.0, -0.2), sun_long).code, "retrograde_approaching_opposition")
-        self.assertEqual(compute_superior_synodic_phase(_planet("Saturn", 340.0, 0.0), sun_long).code, "first_station")
-        self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 300.0, 0.3), sun_long).code, "oriental_far_before_station")
-        self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 280.0, 0.3), sun_long).code, "oriental_weak")
+        self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 310.0, 0.3), sun_long).index, 4)
+        self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 285.0, 0.3), sun_long).index, 5)
+        self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 250.0, 0.3), sun_long).index, 6)
+        self.assertEqual(compute_superior_synodic_phase(_planet("Saturn", 250.0, 0.01, station="first"), sun_long).index, 7)
+        self.assertEqual(compute_superior_synodic_phase(_planet("Mars", 210.0, -0.2), sun_long).index, 8)
+        self.assertEqual(compute_superior_synodic_phase(_planet("Mars", 180.0, -0.2), sun_long).index, 9)
 
-    def test_inferior_synodic_phases(self) -> None:
+    def test_superior_occidental_return_sequence(self) -> None:
         sun_long = 0.0
-        self.assertEqual(compute_inferior_synodic_phase(_planet("Venus", 5.0, 0.4), sun_long).code, "combust_west")
-        self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 9.0, 0.4), sun_long).code, "under_beams_west")
-        self.assertEqual(compute_inferior_synodic_phase(_planet("Venus", 30.0, 0.4), sun_long).code, "occidental_visible_direct")
-        self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 20.0, 0.0), sun_long).code, "first_station_west")
-        self.assertEqual(compute_inferior_synodic_phase(_planet("Venus", 30.0, -0.1), sun_long).code, "retrograde_west_towards_sun")
-        self.assertEqual(compute_inferior_synodic_phase(_planet("Venus", 355.0, 0.4), sun_long).code, "combust_east")
-        self.assertEqual(compute_inferior_synodic_phase(_planet("Venus", 345.0, 0.4), sun_long).code, "under_beams_east")
-        self.assertEqual(compute_inferior_synodic_phase(_planet("Venus", 330.0, 0.4), sun_long).code, "oriental_strong_before_second_station")
-        self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 330.0, 0.0), sun_long).code, "second_station_east")
-        self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 330.0, -0.1), sun_long).code, "direct_east_closing")
-        self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 345.0, -0.1), sun_long).code, "under_beams_east_return")
-        self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 355.0, -0.1), sun_long).code, "combust_east_return")
+        self.assertEqual(compute_superior_synodic_phase(_planet("Mars", 150.0, -0.2), sun_long).index, 10)
+        self.assertEqual(compute_superior_synodic_phase(_planet("Saturn", 120.0, -0.01, station="second"), sun_long).index, 11)
+        self.assertEqual(compute_superior_synodic_phase(_planet("Saturn", 120.0, 0.2), sun_long).index, 12)
+        self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 80.0, 0.2), sun_long).index, 13)
+        self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 50.0, 0.2), sun_long).index, 14)
+        self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 20.0, 0.2), sun_long).index, 15)
 
-    def test_course_solar_ray_boundaries(self) -> None:
+    def test_superior_strong_easternization_runs_to_sixty_degrees(self) -> None:
+        sun_long = 0.0
+        self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 300.0, 0.3), sun_long).code, "oriental_strong")
+        self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 299.9, 0.3), sun_long).code, "oriental_weak")
+        self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 270.0, 0.3), sun_long).code, "oriental_weak")
+        self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 269.9, 0.3), sun_long).code, "oriental_far_before_station")
+
+    def test_inferior_occidental_sequence(self) -> None:
+        sun_long = 0.0
+        self.assertEqual(compute_inferior_synodic_phase(_planet("Venus", 5.0, 0.4), sun_long).index, 10)
+        self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 9.0, 0.4), sun_long).index, 11)
+        self.assertEqual(compute_inferior_synodic_phase(_planet("Venus", 30.0, 0.4), sun_long).index, 12)
+        self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 30.0, 0.02, station="first"), sun_long).index, 13)
+        self.assertEqual(compute_inferior_synodic_phase(_planet("Venus", 30.0, -0.1), sun_long).index, 14)
+        self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 9.0, -0.1), sun_long).index, 15)
+        self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 5.0, -0.1), sun_long).index, 16)
+
+    def test_inferior_oriental_sequence_uses_retrograde_before_second_station(self) -> None:
+        sun_long = 0.0
+        self.assertEqual(compute_inferior_synodic_phase(_planet("Venus", 355.0, -0.1), sun_long).index, 2)
+        self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 345.0, -0.1), sun_long).index, 3)
+        self.assertEqual(compute_inferior_synodic_phase(_planet("Venus", 330.0, -0.1), sun_long).index, 4)
+        self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 330.0, -0.01, station="second"), sun_long).index, 5)
+        self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 330.0, 0.4), sun_long).index, 6)
+        self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 345.0, 0.4), sun_long).index, 7)
+        self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 355.0, 0.4), sun_long).index, 8)
+
+    def test_course_project_solar_ray_boundaries(self) -> None:
         sun_long = 0.0
         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 7.49, 0.4), sun_long).code, "combust_west")
         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 7.51, 0.4), sun_long).code, "under_beams_west")
@@ -58,22 +83,28 @@ class SynodicPhasesTest(unittest.TestCase):
         self.assertEqual(compute_superior_synodic_phase(_planet("Mars", 7.49, 0.4), sun_long).code, "combust_west")
         self.assertEqual(compute_superior_synodic_phase(_planet("Mars", 7.51, 0.4), sun_long).code, "under_beams_west")
 
-    def test_lunar_synodic_phases(self) -> None:
+    def test_lunar_waxing_sequence(self) -> None:
         sun_long = 0.0
         moon = "Moon"
-        self.assertEqual(compute_lunar_synodic_phase(_planet(moon, 0.1, 0.5), sun_long).code, "cazimi")
-        self.assertEqual(compute_lunar_synodic_phase(_planet(moon, 4.0, 0.5), sun_long).code, "combust")
-        self.assertEqual(compute_lunar_synodic_phase(_planet(moon, 8.0, 0.5), sun_long).code, "under_beams")
-        self.assertEqual(compute_lunar_synodic_phase(_planet(moon, 30.0, 0.5), sun_long).code, "waxing_crescent")
-        self.assertEqual(compute_lunar_synodic_phase(_planet(moon, 70.0, 0.5), sun_long).code, "waxing_quarter")
-        self.assertEqual(compute_lunar_synodic_phase(_planet(moon, 120.0, 0.5), sun_long).code, "waxing_gibbous")
-        self.assertEqual(compute_lunar_synodic_phase(_planet(moon, 150.0, 0.5), sun_long).code, "waxing_near_full")
-        self.assertEqual(compute_lunar_synodic_phase(_planet(moon, 175.0, 0.5), sun_long).code, "full")
-        self.assertEqual(compute_lunar_synodic_phase(_planet(moon, 210.0, 0.5), sun_long).code, "waning_near_full")
-        self.assertEqual(compute_lunar_synodic_phase(_planet(moon, 240.0, 0.5), sun_long).code, "waning_gibbous")
-        self.assertEqual(compute_lunar_synodic_phase(_planet(moon, 270.0, 0.5), sun_long).code, "waning_quarter")
-        self.assertEqual(compute_lunar_synodic_phase(_planet(moon, 330.0, 0.5), sun_long).code, "waning_crescent")
-        self.assertEqual(compute_lunar_synodic_phase(_planet(moon, 355.0, 0.5), sun_long).code, "combust_west")
+        self.assertEqual(compute_lunar_synodic_phase(_planet(moon, 0.1, 0.5), sun_long).index, 1)
+        self.assertEqual(compute_lunar_synodic_phase(_planet(moon, 4.0, 0.5), sun_long).index, 2)
+        self.assertEqual(compute_lunar_synodic_phase(_planet(moon, 8.0, 0.5), sun_long).index, 3)
+        self.assertEqual(compute_lunar_synodic_phase(_planet(moon, 30.0, 0.5), sun_long).index, 4)
+        self.assertEqual(compute_lunar_synodic_phase(_planet(moon, 70.0, 0.5), sun_long).index, 5)
+        self.assertEqual(compute_lunar_synodic_phase(_planet(moon, 120.0, 0.5), sun_long).index, 6)
+        self.assertEqual(compute_lunar_synodic_phase(_planet(moon, 150.0, 0.5), sun_long).index, 7)
+        self.assertEqual(compute_lunar_synodic_phase(_planet(moon, 175.0, 0.5), sun_long).index, 8)
+        self.assertEqual(compute_lunar_synodic_phase(_planet(moon, 180.0, 0.5), sun_long).index, 9)
+
+    def test_lunar_waning_return_sequence(self) -> None:
+        sun_long = 0.0
+        moon = "Moon"
+        self.assertEqual(compute_lunar_synodic_phase(_planet(moon, 185.0, 0.5), sun_long).index, 10)
+        self.assertEqual(compute_lunar_synodic_phase(_planet(moon, 210.0, 0.5), sun_long).index, 11)
+        self.assertEqual(compute_lunar_synodic_phase(_planet(moon, 240.0, 0.5), sun_long).index, 12)
+        self.assertEqual(compute_lunar_synodic_phase(_planet(moon, 300.0, 0.5), sun_long).index, 14)
+        self.assertEqual(compute_lunar_synodic_phase(_planet(moon, 345.0, 0.5), sun_long).index, 15)
+        self.assertEqual(compute_lunar_synodic_phase(_planet(moon, 355.0, 0.5), sun_long).index, 16)
 
     def test_true_cazimi_requires_latitude_too(self) -> None:
         sun = _planet("Sun", 100.0, 1.0, latitude=0.0)
