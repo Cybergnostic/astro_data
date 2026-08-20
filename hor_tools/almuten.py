@@ -19,6 +19,12 @@ ALMUTEN_PLANETS = CHALDEAN_ORDER
 HOUSE_STRENGTH_ORDER = [1, 10, 7, 4, 11, 5, 2, 8, 9, 3, 12, 6]
 HOUSE_STRENGTH_SCORES = {house: score for house, score in zip(HOUSE_STRENGTH_ORDER, range(12, 0, -1))}
 
+# Project/Morinus Almuten Figuris convention already established for this
+# calculator. The course transcript confirms day/hour ruler points are added;
+# these exact weights are the working values used by the project examples.
+DAY_RULER_BONUS = 7
+HOUR_RULER_BONUS = 6
+
 DAY_RULERS = {
     0: "Moon",
     1: "Mars",
@@ -324,20 +330,26 @@ def planetary_day_hour_rulers(chart: ChartInput) -> Tuple[str, str]:
 
 
 def phase_score(planet: PlanetPosition, sun_longitude: float) -> int:
-    """Ezra-style phase scoring for direct superior planets.
+    """Ibn Ezra's extra solar-phase points for superior Almuten candidates.
 
-    The historical/course bands are stated at integer degrees (15-60, 61-90,
-    91+). Astronomical longitudes are continuous, so the implementation has no
-    artificial one-degree gaps: 60°<elong<=90° receives 2, and elong>90° gets 1.
+    This bonus belongs only to the oriental half in which the Sun is separating
+    from a direct superior planet: 15-60° = 3, >60-90° = 2, and >90° until
+    the first station = 1.  The old implementation used absolute elongation and
+    therefore incorrectly awarded the same points on the occidental return half.
     """
     if planet.name not in {"Saturn", "Jupiter", "Mars"}:
         return 0
-    if planet.speed_long <= 0:
+    if planet.speed_long <= 0 or planet.station in {"first", "second"}:
         return 0
 
-    diff = (planet.longitude - sun_longitude) % 360.0
-    elong = diff if diff <= 180.0 else 360.0 - diff
+    # Superior planet behind the Sun in zodiacal order: the Sun is moving away
+    # from it from conjunction toward opposition. This is the oriental/right-hand
+    # half described by the course.
+    sun_ahead = (sun_longitude - planet.longitude) % 360.0
+    if not (0.0 < sun_ahead < 180.0):
+        return 0
 
+    elong = sun_ahead
     if 15.0 <= elong <= 60.0:
         return 3
     if 60.0 < elong <= 90.0:
@@ -350,8 +362,8 @@ def phase_score(planet: PlanetPosition, sun_longitude: float) -> int:
 def compute_accidental_scores(chart: ChartInput, planets: List[PlanetPosition]) -> Dict[str, Dict[str, int | str]]:
     house_scores = {p.name: HOUSE_STRENGTH_SCORES.get(p.house, 0) for p in planets}
     day_ruler, hour_ruler = planetary_day_hour_rulers(chart)
-    day_bonus = {planet: 7 if planet == day_ruler else 0 for planet in ALMUTEN_PLANETS}
-    hour_bonus = {planet: 6 if planet == hour_ruler else 0 for planet in ALMUTEN_PLANETS}
+    day_bonus = {planet: DAY_RULER_BONUS if planet == day_ruler else 0 for planet in ALMUTEN_PLANETS}
+    hour_bonus = {planet: HOUR_RULER_BONUS if planet == hour_ruler else 0 for planet in ALMUTEN_PLANETS}
     sun = next(p for p in planets if p.name == "Sun")
     phase_scores = {p.name: phase_score(p, sun.longitude) for p in planets}
 
