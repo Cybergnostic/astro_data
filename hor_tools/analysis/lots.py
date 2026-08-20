@@ -119,7 +119,10 @@ def _make_result(
 
 
 def build_lots(
-    planets: list[PlanetPosition], houses: Houses, is_day_chart: bool
+    planets: list[PlanetPosition],
+    houses: Houses,
+    is_day_chart: bool,
+    native_male: bool | None = None,
 ) -> LotsReport:
     """Calculate the seven Hermetic Lots plus supported topical course Lots.
 
@@ -129,9 +132,9 @@ def build_lots(
     labelled rather than silently conflated.
 
     Sensitive disease/death Lots are deliberately not calculated in the default
-    technical report. The Hermes marriage Lot is also not guessed because its
-    course formula is sex-specific and Morinus ``.hor`` input does not encode
-    the native's sex.
+    technical report. The Hermes marriage Lot is calculated when the native's
+    sex is available, because its formula is sex-specific but does not reverse
+    by sect.
     """
 
     pos = {planet.name: planet.longitude for planet in planets}
@@ -245,6 +248,24 @@ def build_lots(
     )
     sons, note = sect_formula(pos["Mercury"], pos["Jupiter"])
     topical_raw.append(("Sons", sons, note + ": Asc + Mercury - Jupiter / reversed"))
+
+    if native_male is True:
+        topical_raw.append(
+            (
+                "Marriage (Hermes — male)",
+                _lot(asc, pos["Venus"], pos["Saturn"]),
+                "Asc + Venus - Saturn (fixed; not reversed by sect)",
+            )
+        )
+    elif native_male is False:
+        topical_raw.append(
+            (
+                "Marriage (Hermes — female)",
+                _lot(asc, pos["Saturn"], pos["Venus"]),
+                "Asc + Saturn - Venus (fixed; not reversed by sect)",
+            )
+        )
+
     divorce, note = sect_formula(pos["Venus"], pos["Jupiter"])
     topical_raw.append(
         ("Divorce", divorce, note + ": Asc + Venus - Jupiter / reversed")
@@ -266,18 +287,24 @@ def build_lots(
         _make_result(name, lon, planets, houses, group="topical", formula=formula)
         for name, lon, formula in topical_raw
     ]
-    unsupported = [
-        UnsupportedLot(
-            "Marriage (Hermes)",
-            "Course formula is sex-specific; .hor input does not encode the native's sex.",
-        ),
-        UnsupportedLot(
-            "Death (Paul)",
-            "Sensitive formula omitted from the default technical report.",
-        ),
-        UnsupportedLot(
-            "Hermes disease",
-            "Sensitive/variant formula omitted from the default technical report.",
-        ),
-    ]
+    unsupported = []
+    if native_male is None:
+        unsupported.append(
+            UnsupportedLot(
+                "Marriage (Hermes)",
+                "Course formula is sex-specific and no native-sex value was supplied.",
+            )
+        )
+    unsupported.extend(
+        [
+            UnsupportedLot(
+                "Death (Paul)",
+                "Sensitive formula omitted from the default technical report.",
+            ),
+            UnsupportedLot(
+                "Hermes disease",
+                "Sensitive/variant formula omitted from the default technical report.",
+            ),
+        ]
+    )
     return LotsReport(hermetic=hermetic, topical=topical, unsupported=unsupported)
