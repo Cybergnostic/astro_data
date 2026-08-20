@@ -15,9 +15,11 @@ from ..models import Houses, PlanetPosition, PlanetReport
 from ..synodic import COMBUST_ORB_DEG, UNDER_BEAMS_ORB_DEG
 from .aspects import ASPECTS, _aspect_angle_for_contact, _distance_to_aspect
 from .dignity import SIGNS, SIGN_RULERS, sign_index_from_longitude
+from .duads import dodekatemorion_longitude
 from .sect import is_above_horizon
 
 PRIMARY_CONTACT_ORB = 5.0
+BEHAVIOUR_DUAD_ORB = 5.0
 
 ELEMENT_BY_SIGN = {
     0: "fire", 1: "earth", 2: "air", 3: "water",
@@ -255,10 +257,34 @@ def build_primary_motivation(
     return PrimaryMotivationReport(factors=factors, elemental_counts=counts)
 
 
+def _behaviour_evidence(
+    primary: str,
+    base_evidence: list[str],
+    reports: list[PlanetReport],
+    houses: Houses,
+) -> list[str]:
+    """Add course-required condition and supplementary behaviour factors."""
+    by_name = {report.planet.name: report for report in reports}
+    evidence = list(base_evidence)
+    report = by_name[primary]
+    evidence.append(f"{primary} condition: {', '.join(_condition(report))}")
+    for star in report.fixed_stars:
+        evidence.append(f"{primary} fixed-star contact: {star}")
+
+    for candidate in reports:
+        duad = dodekatemorion_longitude(candidate.planet.longitude)
+        diff = abs((duad - houses.asc + 180.0) % 360.0 - 180.0)
+        if diff <= BEHAVIOUR_DUAD_ORB:
+            evidence.append(
+                f"supplementary: {candidate.planet.name} duad on ASC, orb {diff:.2f}°"
+            )
+    return evidence
+
+
 def build_behaviour_ruler(
     planets: list[PlanetPosition], houses: Houses, reports: list[PlanetReport]
 ) -> BehaviourRulerReport:
-    """Apply the course's explicit ruler-of-behaviour priority sequence."""
+    """Apply the course's ruler-of-behaviour hierarchy without replacing duad supplements."""
     asc_ruler = SIGN_RULERS[sign_index_from_longitude(houses.asc)]
     by_name = {report.planet.name: report for report in reports}
     house_one = [planet for planet in planets if planet.house == 1]
@@ -276,7 +302,12 @@ def build_behaviour_ruler(
             primary=winner.name,
             secondary=asc_ruler if asc_ruler != winner.name else None,
             rule="planet in House I; nearest Ascendant has priority",
-            evidence=[f"{winner.name} in House I, {distance:.2f}° from ASC"],
+            evidence=_behaviour_evidence(
+                winner.name,
+                [f"{winner.name} in House I, {distance:.2f}° from ASC"],
+                reports,
+                houses,
+            ),
         )
 
     conjunction_candidates: list[tuple[float, str, str]] = []
@@ -289,9 +320,14 @@ def build_behaviour_ruler(
         orb, winner, target = min(conjunction_candidates)
         return BehaviourRulerReport(
             primary=winner,
-            secondary=None,
+            secondary=asc_ruler if asc_ruler != winner else None,
             rule="no planet in House I; use planet conjunct Mercury or Moon",
-            evidence=[f"{winner} conjunct {target}, orb {orb:.2f}°"],
+            evidence=_behaviour_evidence(
+                winner,
+                [f"{winner} conjunct {target}, orb {orb:.2f}°"],
+                reports,
+                houses,
+            ),
         )
 
     aspect_candidates: list[tuple[float, str, str, str]] = []
@@ -305,18 +341,28 @@ def build_behaviour_ruler(
         orb, winner, target, kind = min(aspect_candidates)
         return BehaviourRulerReport(
             primary=winner,
-            secondary=None,
+            secondary=asc_ruler if asc_ruler != winner else None,
             rule=(
                 "no House-I planet or conjunction; use closest aspect to Mercury or Moon"
             ),
-            evidence=[f"{winner} {kind} {target}, orb {orb:.2f}°"],
+            evidence=_behaviour_evidence(
+                winner,
+                [f"{winner} {kind} {target}, orb {orb:.2f}°"],
+                reports,
+                houses,
+            ),
         )
 
     return BehaviourRulerReport(
-        primary=None,
+        primary=asc_ruler,
         secondary=None,
-        rule="no qualifying ruler found from the stated hierarchy",
-        evidence=[],
+        rule="no additional qualifying planet; Ascendant ruler remains the behaviour ruler",
+        evidence=_behaviour_evidence(
+            asc_ruler,
+            ["Ascendant ruler remains when no House-I/Mercury/Moon candidate qualifies"],
+            reports,
+            houses,
+        ),
     )
 
 
