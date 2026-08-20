@@ -4,8 +4,9 @@ from typing import List
 
 from ..models import PlanetPosition, AspectInfo
 
-# These are the teacher-specific planetary orbs used by this project.
-# Do not replace them with the public/course handout table.
+# Project-specific working orbs explicitly supplied for this calculator.
+# The distilled course handout table differs for Jupiter/Mars/Venus
+# (9/8/7), but this project deliberately uses 10/7/7.5 for those planets.
 PLANET_ORBS = {
     "Saturn": 9.0,
     "Jupiter": 10.0,
