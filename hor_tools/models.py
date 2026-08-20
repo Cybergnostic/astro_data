@@ -212,3 +212,5 @@ class PlanetReport:
     generosities_given: List[ReceptionInfo]
     generosities_received: List[ReceptionInfo]
     is_feral: bool
+    # Stricter two-dimensional cazimi: close in longitude AND latitude.
+    is_true_cazimi: bool = False
