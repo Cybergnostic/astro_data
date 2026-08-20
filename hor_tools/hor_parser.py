@@ -1,4 +1,4 @@
-"""Parsing utilities for Morinus .hor files."""
+"""Parsing utilities for Morinus ``.hor`` horoscope files."""
 
 from __future__ import annotations
 
@@ -9,159 +9,210 @@ from pathlib import Path
 from .models import ChartInput
 
 
+class HorParseError(ValueError):
+    """Raised when a Morinus horoscope file cannot be parsed safely."""
+
+
+# Morinus ``chart.Time`` constants used by the file serialization.
+_TIME_ZONE = 0
+_TIME_GREENWICH = 1
+_TIME_LOCAL_MEAN = 2
+_TIME_LOCAL_APPARENT = 3
+_CAL_GREGORIAN = 0
+_CAL_JULIAN = 1
+
+# The classic Morinus natal/radix .hor header contains 24 integer values before
+# any optional trailing payload.  The order is the same one used by Morinus'
+# chart.Time and chart.Place constructors:
+#
+#   male, chart_type, bc,
+#   year, month, day, hour, minute, second,
+#   calendar, time_type, zone_plus, zone_hour, zone_minute, daylight_saving,
+#   lon_deg, lon_min, lon_sec, east,
+#   lat_deg, lat_min, lat_sec, north, altitude
+_MIN_HEADER_INTS = 24
+
+_UNICODE_ESCAPE_RE = re.compile(r"\\u([0-9a-fA-F]{4})")
+
+
+def _decode_morinus_text(value: str) -> str:
+    """Decode the ``\\uXXXX`` escapes used in Morinus protocol-0 strings."""
+
+    return _UNICODE_ESCAPE_RE.sub(lambda m: chr(int(m.group(1), 16)), value)
+
+
+def _extract_strings(raw_text: str) -> tuple[str | None, str | None]:
+    """Return ``(chart_name, place_name)`` from protocol-0 V/.V strings."""
+
+    name: str | None = None
+    place: str | None = None
+    for raw_line in raw_text.splitlines():
+        line = raw_line.strip()
+        if name is None and line.startswith("V") and not line.startswith(".V"):
+            candidate = line[1:].strip()
+            if candidate:
+                name = _decode_morinus_text(candidate)
+        elif place is None and line.startswith(".V"):
+            candidate = line[2:].strip()
+            if candidate:
+                place = _decode_morinus_text(candidate)
+    return name, place
+
+
+def _extract_header_ints(raw_text: str) -> list[int]:
+    values = [int(m.group(1)) for m in re.finditer(r"\.I(-?\d+)", raw_text)]
+    if len(values) < _MIN_HEADER_INTS:
+        raise HorParseError(
+            f"Morinus header is incomplete: expected at least {_MIN_HEADER_INTS} integer "
+            f"fields, found {len(values)}."
+        )
+    return values
+
+
+def _validate_flag(name: str, value: int) -> bool:
+    if value not in (0, 1):
+        raise HorParseError(f"Invalid Morinus {name} flag: {value!r}; expected 0 or 1.")
+    return bool(value)
+
+
+def _validate_range(name: str, value: int, minimum: int, maximum: int) -> int:
+    if not minimum <= value <= maximum:
+        raise HorParseError(
+            f"Invalid Morinus {name}: {value!r}; expected {minimum}..{maximum}."
+        )
+    return value
+
+
+def _parse_datetime_and_offset(values: list[int], longitude: float) -> tuple[datetime, float]:
+    """Parse Morinus civil time and return ``(UTC datetime, civil UTC offset)``."""
+
+    bc = _validate_flag("BC", values[2])
+    if bc:
+        raise HorParseError("BC charts are not supported by hor-tools yet.")
+
+    year, month, day, hour, minute, second = values[3:9]
+    _validate_range("year", year, 1, 9999)
+    _validate_range("month", month, 1, 12)
+    _validate_range("hour", hour, 0, 23)
+    _validate_range("minute", minute, 0, 59)
+    _validate_range("second", second, 0, 59)
+    try:
+        dt_local = datetime(year, month, day, hour, minute, second)
+    except ValueError as exc:
+        raise HorParseError(f"Invalid Morinus calendar date/time: {exc}") from exc
+
+    calendar = values[9]
+    if calendar == _CAL_JULIAN:
+        # ChartInput currently stores a Python datetime and the astronomical
+        # engine assumes Gregorian civil-date semantics.  Failing explicitly is
+        # safer than silently shifting a historical Julian date.
+        raise HorParseError("Julian-calendar .hor files are not supported yet.")
+    if calendar != _CAL_GREGORIAN:
+        raise HorParseError(f"Unknown Morinus calendar code: {calendar!r}.")
+
+    time_type = values[10]
+    if time_type not in {
+        _TIME_ZONE,
+        _TIME_GREENWICH,
+        _TIME_LOCAL_MEAN,
+        _TIME_LOCAL_APPARENT,
+    }:
+        raise HorParseError(f"Unknown Morinus time-type code: {time_type!r}.")
+
+    plus = _validate_flag("zone direction", values[11])
+    zone_hour = _validate_range("zone hour", values[12], 0, 12)
+    zone_minute = _validate_range("zone minute", values[13], 0, 59)
+    daylight = _validate_flag("daylight-saving", values[14])
+
+    if time_type == _TIME_ZONE:
+        base_offset = zone_hour + zone_minute / 60.0
+        if not plus:
+            base_offset *= -1.0
+    elif time_type == _TIME_GREENWICH:
+        base_offset = 0.0
+    elif time_type == _TIME_LOCAL_MEAN:
+        # Local mean time differs from Greenwich by 4 minutes per longitude
+        # degree, i.e. longitude / 15 hours. Longitude is already signed E/W.
+        base_offset = longitude / 15.0
+    else:
+        # Morinus' LOCALAPPARENT path additionally applies the equation of time.
+        # The old parser treated it as zone time, which could silently produce a
+        # wrong chart. Reject it until that conversion is implemented explicitly.
+        raise HorParseError("Local-apparent-time .hor files are not supported yet.")
+
+    tz_offset_hours = base_offset + (1.0 if daylight else 0.0)
+    dt_utc = (dt_local - timedelta(hours=tz_offset_hours)).replace(tzinfo=timezone.utc)
+    return dt_utc, tz_offset_hours
+
+
+def _parse_place(values: list[int]) -> tuple[float, float, float]:
+    """Return ``(latitude, longitude, altitude_m)`` from the Morinus header."""
+
+    (
+        lon_deg,
+        lon_min,
+        lon_sec,
+        east_raw,
+        lat_deg,
+        lat_min,
+        lat_sec,
+        north_raw,
+        altitude,
+    ) = values[15:24]
+
+    _validate_range("longitude degrees", lon_deg, 0, 180)
+    _validate_range("longitude minutes", lon_min, 0, 59)
+    _validate_range("longitude seconds", lon_sec, 0, 59)
+    _validate_range("latitude degrees", lat_deg, 0, 90)
+    _validate_range("latitude minutes", lat_min, 0, 59)
+    _validate_range("latitude seconds", lat_sec, 0, 59)
+    _validate_range("altitude", altitude, 0, 10000)
+    east = _validate_flag("east/west", east_raw)
+    north = _validate_flag("north/south", north_raw)
+
+    longitude = lon_deg + lon_min / 60.0 + lon_sec / 3600.0
+    latitude = lat_deg + lat_min / 60.0 + lat_sec / 3600.0
+    if not east:
+        longitude *= -1.0
+    if not north:
+        latitude *= -1.0
+
+    if not -180.0 <= longitude <= 180.0:
+        raise HorParseError(f"Longitude out of range after decoding: {longitude}.")
+    if not -90.0 <= latitude <= 90.0:
+        raise HorParseError(f"Latitude out of range after decoding: {latitude}.")
+
+    return latitude, longitude, float(altitude)
+
+
 def load_hor(path: str | Path) -> ChartInput:
-    """Parse a Morinus .hor file into a normalized ChartInput."""
-    file_path = Path(path)
-    if not file_path.exists():
+    """Parse a supported Morinus ``.hor`` file into a validated ``ChartInput``."""
+
+    file_path = Path(path).expanduser()
+    if not file_path.is_file():
         raise FileNotFoundError(f".hor file not found: {file_path}")
 
-    raw_text = file_path.read_text(encoding="ascii", errors="replace")
-    lines = [line.strip() for line in raw_text.splitlines() if line.strip()]
+    # Morinus' classic protocol-0 files are ASCII and escape non-ASCII text as
+    # ``\\uXXXX``. ``errors='strict'`` prevents a corrupt/binary file from being
+    # silently altered during parsing.
+    try:
+        raw_text = file_path.read_text(encoding="ascii", errors="strict")
+    except UnicodeDecodeError as exc:
+        raise HorParseError("The .hor file is not valid Morinus ASCII protocol-0 data.") from exc
 
-    # Name: first line starting with 'V' but not '.V'
-    name_line = next((ln for ln in lines if ln.startswith("V") and not ln.startswith(".V")), None)
-    if name_line:
-        name = name_line[1:].strip()
-    else:
-        # Fallback for "Here and now" or other Morinus exports that omit a V-name line.
-        # Try to grab the first quoted string (S'...') from the pickle text, else use the filename stem.
-        quoted_match = re.search(r"S'([^']*)'", raw_text)
-        if quoted_match:
-            name = quoted_match.group(1) or file_path.stem
-        else:
-            name = file_path.stem
-
-    # Collect all integer fields in order
-    ints: list[int] = [int(m.group(1)) for m in re.finditer(r"\.I(-?\d+)", raw_text)]
-    if not ints:
-        # Fallback: try any bare integers in the file if .I tags are missing.
-        ints = [int(m.group(1)) for m in re.finditer(r"\b(-?\d+)\b", raw_text)]
-    if not ints:
-        raise ValueError("No numeric entries found in .hor file.")
-
-    # 1) Get date/time and coordinates (they do not depend on timezone)
-    year, month, day, hour, minute, second = _extract_datetime(ints)
-    latitude, longitude = _parse_coordinates(ints)
-
-    # 2) Read timezone + DST exactly as stored in the .hor file
-    zone_hours, zone_minutes, dst_flag = _extract_timezone_fields(ints)
-    tz_offset_hours = _tz_offset_hours(zone_hours, zone_minutes, dst_flag)
-
-    # Morinus stores local civil time. Convert explicitly to true UTC.
-    dt_local = datetime(year=year, month=month, day=day, hour=hour, minute=minute, second=second)
-    dt_utc = (dt_local - timedelta(hours=tz_offset_hours)).replace(tzinfo=timezone.utc)
+    values = _extract_header_ints(raw_text)
+    name, location_name = _extract_strings(raw_text)
+    latitude, longitude, altitude_m = _parse_place(values)
+    dt_utc, tz_offset_hours = _parse_datetime_and_offset(values, longitude)
 
     return ChartInput(
-        name=name,
+        name=name or file_path.stem,
         datetime_utc=dt_utc,
         tz_offset_hours=tz_offset_hours,
         latitude=latitude,
         longitude=longitude,
-        house_system="W",  # Whole sign
-        zodiac="T",  # Tropical
+        house_system="W",
+        zodiac="T",
+        location_name=location_name,
+        altitude_m=altitude_m,
     )
-
-
-def _extract_timezone_fields(values: list[int]) -> tuple[int, int, int]:
-    """
-    Extract timezone and DST flag from the .hor header.
-
-    Morinus natal files store the timezone block near the middle of the int
-    stream, immediately before the coordinate block:
-        [..., tz_sign, tz_hours, tz_minutes, dst_flag, lon_deg, ...]
-
-    - tz_sign is 1 for east of Greenwich, 0/-1 for west (we default 0 -> east)
-    - tz_hours / tz_minutes are absolute values
-    - dst_flag is 1 if the user checked the “DST” box in Morinus
-
-    Fall back to the legacy assumption (first 3 ints) if the block is missing.
-    """
-    if len(values) >= 15:
-        tz_sign_raw = values[11]
-        tz_sign = 1 if tz_sign_raw >= 0 else -1
-        zone_hours = tz_sign * abs(values[12])
-        zone_minutes = tz_sign * abs(values[13])
-        dst_flag = values[14]
-        # If everything is zero, fall back to the legacy block below.
-        if zone_hours or zone_minutes or dst_flag:
-            return zone_hours, zone_minutes, dst_flag
-
-    # Legacy fallback: first three ints (older heuristic)
-    zone_hours = values[0] if len(values) >= 1 else 0
-    zone_minutes = values[1] if len(values) >= 2 else 0
-    dst_flag = values[2] if len(values) >= 3 else 0
-    return zone_hours, zone_minutes, dst_flag
-
-
-def _tz_offset_hours(zone_hours: int, zone_minutes: int, dst_flag: int) -> float:
-    """
-    Combine base zone and DST flag into a single offset in hours.
-
-    Morinus lets the user tick DST manually, so:
-      base_offset = zone_hours + zone_minutes / 60
-      offset = base_offset + (1 if dst_flag else 0)
-    """
-    base_offset = zone_hours + zone_minutes / 60.0
-    return float(base_offset + (1 if dst_flag else 0))
-
-
-def _extract_datetime(values: list[int]) -> tuple[int, int, int, int, int, int]:
-    """
-    Find the date/time block.
-
-    We search for the first 4-digit year and assume:
-        [year, month, day, hour, minute, second?]
-    """
-    for idx, value in enumerate(values):
-        if value >= 1000:  # very likely the year
-            if len(values) < idx + 5:
-                break
-            year = value
-            month = values[idx + 1]
-            day = values[idx + 2]
-            hour = values[idx + 3]
-            minute = values[idx + 4]
-            second = values[idx + 5] if len(values) > idx + 5 else 0
-            return year, month, day, hour, minute, second
-
-    # Fallback: assume the first 6 numbers are Y/M/D/H/M/S
-    if len(values) >= 5:
-        year, month, day, hour, minute = values[:5]
-        second = values[5] if len(values) >= 6 else 0
-        return year, month, day, hour, minute, second
-
-    raise ValueError("Year not found in .hor integer stream.")
-
-
-def _parse_coordinates(values: list[int]) -> tuple[float, float]:
-    """
-    Coordinates heuristic.
-
-    In Morinus natal .hor files the last 9 ints are typically:
-        [lon_deg, lon_min, lon_sec, east_flag,
-         lat_deg, lat_min, lat_sec, north_flag,
-         altitude]
-
-    We ignore altitude and use the first 8.
-
-    Returns:
-        (latitude, longitude) in decimal degrees.
-    """
-    if len(values) < 8:
-        return 0.0, 0.0
-
-    coord_block = values[-9:-1] if len(values) >= 9 else values[-8:]
-    if len(coord_block) < 8:
-        coord_block = values[-8:] if len(values) >= 8 else values
-    if len(coord_block) < 8:
-        return 0.0, 0.0
-
-    # NOTE: longitude comes first in Morinus .hor, then latitude
-    lon_deg, lon_min, lon_sec, east_flag, lat_deg, lat_min, lat_sec, north_flag = coord_block[:8]
-
-    lat_sign = 1 if north_flag >= 1 else -1
-    lon_sign = 1 if east_flag >= 1 else -1
-
-    latitude = lat_sign * (abs(lat_deg) + lat_min / 60.0 + lat_sec / 3600.0)
-    longitude = lon_sign * (abs(lon_deg) + lon_min / 60.0 + lon_sec / 3600.0)
-    return latitude, longitude
