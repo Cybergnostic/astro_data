@@ -28,6 +28,7 @@ class ChartInput:
     zodiac: str
     location_name: str | None = None
     altitude_m: float | None = None
+    male: bool | None = None
 
 
 @dataclass
@@ -124,6 +125,16 @@ class ReceptionInfo:
 
 
 @dataclass
+class RepulsionInfo:
+    """Directional odbojnost: the guest occupies the host's detriment or fall."""
+
+    host: str
+    guest: str
+    debilities: list[str]
+    aspect_kind: str | None = None
+
+
+@dataclass
 class TranslationOfLight:
     """Translation of light chain via a fast planet."""
 
@@ -214,6 +225,8 @@ class PlanetReport:
     receptions_received: List[ReceptionInfo]
     generosities_given: List[ReceptionInfo]
     generosities_received: List[ReceptionInfo]
+    repulsions_given: List[RepulsionInfo]
+    repulsions_received: List[RepulsionInfo]
     is_feral: bool
 
     # Additional source-backed accidental conditions. These remain separate

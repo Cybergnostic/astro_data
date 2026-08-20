@@ -17,6 +17,7 @@ from .conditions import (
 )
 from ..synodic import compute_elongation_and_orientation, CAZIMI_ORB_DEG, is_true_cazimi
 from .relationships import aggregate_relationships
+from .repulsion import compute_repulsions
 
 
 def build_reports(
@@ -28,9 +29,6 @@ def build_reports(
     sect_chart = chart_sect(chart, sun)
     sun_long = sun.longitude
 
-    # Lunar VOC requires future ephemeris positions; calculate it once when the
-    # Moon is part of the supplied planet set. Partial/synthetic reports remain
-    # valid and simply have no VOC testimony.
     moon_voc = moon_void_of_course(chart, moon) if moon is not None else False
 
     reports: List[PlanetReport] = []
@@ -98,6 +96,8 @@ def build_reports(
                 receptions_received=[],
                 generosities_given=[],
                 generosities_received=[],
+                repulsions_given=[],
+                repulsions_received=[],
                 is_feral=False,
                 is_true_cazimi=strict_cazimi,
                 is_in_planetary_joy=is_in_planetary_joy(p),
@@ -108,5 +108,6 @@ def build_reports(
         )
 
     relationships = aggregate_relationships(reports, planets, sect_chart == "day")
+    compute_repulsions(reports, planets)
     compute_domicile_aversion(reports, planets, relationships.translations)
     return reports, relationships

@@ -8,7 +8,7 @@ from ..models import ChartInput
 from ..astro_engine import julian_day_from_chart, ensure_ephe_path
 
 # Working catalogue from the course's fixed-star handout/table, plus named stars
-# discussed individually in the same lesson.  Each entry keeps a display name
+# discussed individually in the same lesson. Each entry keeps a display name
 # and one or more Swiss-Ephemeris lookup aliases; unresolved aliases are skipped
 # individually rather than causing the entire fixed-star calculation to fail.
 COURSE_STARS: list[tuple[str, tuple[str, ...]]] = [
@@ -133,6 +133,32 @@ COURSE_STARS: list[tuple[str, tuple[str, ...]]] = [
     ("Alderamin", ("Alderamin",)),
 ]
 
+# The handout explicitly marks these as first-magnitude stars. The value is the
+# first (primary) planet in the handout's planetary-nature code. The temperament
+# lecture says to use this first planet when a star has a double nature.
+COURSE_FIRST_MAGNITUDE_PRIMARY_NATURE: dict[str, str] = {
+    "Aldebaran": "Mars",
+    "Rigel": "Jupiter",
+    "Capella": "Mars",
+    "Betelgeuse": "Mars",
+    "Sirius": "Jupiter",
+    "Canopus": "Saturn",
+    "Pollux": "Mars",
+    "Procyon": "Mercury",
+    "Regulus": "Mars",
+    "Spica": "Venus",
+    "Arcturus": "Jupiter",
+    "Acrux": "Jupiter",
+    "Agena": "Venus",
+    "Rigil Kentaurus": "Venus",
+    "Antares": "Mars",
+    "Vega": "Venus",
+    "Altair": "Mars",
+    "Fomalhaut": "Venus",
+    "Deneb Adige": "Venus",
+    "Achernar": "Jupiter",
+}
+
 # Backward-compatible public name for callers that imported the old constant.
 BRIGHT_STARS = [display for display, _aliases in COURSE_STARS]
 
@@ -170,10 +196,10 @@ def stars_near_longitude(
 ) -> List[str]:
     """Return course-catalogue fixed stars conjunct a body in longitude.
 
-    Positions are queried for the chart epoch, so precession is dynamic.  The
-    teacher's working orb is magnitude-sensitive.  Latitude is *not* used as a
+    Positions are queried for the chart epoch, so precession is dynamic. The
+    teacher's working orb is magnitude-sensitive. Latitude is *not* used as a
     universal hard cutoff: the course treats real spatial/latitudinal nearness
-    as a qualifier of how strongly a star contact manifests.  When a body's
+    as a qualifier of how strongly a star contact manifests. When a body's
     latitude is supplied, the report therefore includes the absolute latitude
     separation for judgement.
     """

@@ -2,9 +2,6 @@ name: CI
 
 on:
   push:
-    branches:
-      - main
-      - engineering-hardening
   pull_request:
 
 jobs:
@@ -46,10 +43,17 @@ jobs:
           /tmp/hor-tools-wheel/bin/python - <<'PY'
           import hor_tools
           import hor_tools.analysis
+          import hor_tools.analysis.duads
+          import hor_tools.analysis.lots
+          import hor_tools.analysis.natal_synthesis
+          import hor_tools.analysis.solar
+          import hor_tools.analysis.technical
+          import hor_tools.analysis.temperament
           import hor_tools.commands.scan_events
           import hor_tools.commands.asc_window
           import hor_tools.rendering.almuten
           import hor_tools.rendering.relationships
+          import hor_tools.rendering.technical
           print("clean wheel imports: ok")
           PY
           /tmp/hor-tools-wheel/bin/hor-reader --help >/dev/null

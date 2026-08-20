@@ -17,7 +17,7 @@ def domiciles_for_planet(planet_name: str) -> list[int]:
 def _signs_in_aspect(a_idx: int, b_idx: int) -> bool:
     """Whole-sign aspect check: conjunction, sextile, square, trine, opposition."""
     dist = (b_idx - a_idx) % 12
-    return dist in {0, 2, 3, 4, 6}
+    return dist in {0, 2, 3, 4, 6, 8, 9, 10}
 
 
 def _antiscia_pair(sign_idx: int) -> int:

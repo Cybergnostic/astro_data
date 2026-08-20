@@ -13,7 +13,7 @@ NIGHT_PLANETS = {"Moon", "Venus", "Mars"}
 def true_altitude(chart: ChartInput, planet: PlanetPosition) -> float:
     """Return the body's true geometric altitude above the local horizon."""
     jd_ut = julian_day_from_chart(chart)
-    geopos = (chart.longitude, chart.latitude, 0.0)
+    geopos = (chart.longitude, chart.latitude, chart.altitude_m or 0.0)
     _azimuth, altitude, _apparent_altitude = swe.azalt(
         jd_ut,
         swe.ECL2HOR,
@@ -31,7 +31,7 @@ def is_above_horizon(chart: ChartInput, planet: PlanetPosition) -> bool:
 
 
 def chart_sect(chart: ChartInput, sun: PlanetPosition) -> str:
-    """Return 'day' when the Sun is physically above the horizon, else 'night'."""
+    """Return day/night sect from the Sun's actual position relative to the horizon."""
     return "day" if is_above_horizon(chart, sun) else "night"
 
 
@@ -83,7 +83,7 @@ def compute_hayz_and_halb(
     hayz = False
     if halb:
         sign_idx = sign_index_from_longitude(planet.longitude)
-        masculine = (sign_idx % 2) == 0  # Aries, Gemini, Leo, Libra, Sagittarius, Aquarius
+        masculine = (sign_idx % 2) == 0
         if sect_planet == "day" and masculine:
             hayz = True
         if sect_planet == "night" and not masculine:

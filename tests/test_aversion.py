@@ -63,6 +63,8 @@ def empty_report_for(p: PlanetPosition) -> PlanetReport:
         receptions_received=[],
         generosities_given=[],
         generosities_received=[],
+        repulsions_given=[],
+        repulsions_received=[],
         is_feral=False,
     )
 
@@ -79,8 +81,8 @@ def test_sees_domicile_when_in_whole_sign_aspect():
 
 
 def test_aversion_avoided_via_translation_with_planet_in_domicile():
-    mercury = make_planet("Mercury", 270.0)  # Capricorn, aversion to Virgo/Gemini
-    mars = make_planet("Mars", 170.0)  # 20° Virgo (Mercury domicile)
+    mercury = make_planet("Mercury", 270.0)  # Capricorn: trine Virgo, aversion to Gemini
+    mars = make_planet("Mars", 80.0)  # 20° Gemini (Mercury domicile)
     sun = make_planet("Sun", 200.0)
 
     reports = [empty_report_for(mercury), empty_report_for(mars), empty_report_for(sun)]
@@ -96,13 +98,13 @@ def test_aversion_avoided_via_translation_with_planet_in_domicile():
     compute_domicile_aversion(reports, [mercury, mars, sun], translations=[translation])
 
     virgo_status = next(av for av in reports[0].domicile_aversions if av.domicile_sign == "Virgo")
-    assert virgo_status.sees is False
-    assert virgo_status.avoided is True
-    assert any("translation" in reason for reason in virgo_status.avoided_by)
+    assert virgo_status.sees is True
+    assert virgo_status.avoided is False
 
     gemini_status = next(av for av in reports[0].domicile_aversions if av.domicile_sign == "Gemini")
     assert gemini_status.sees is False
     assert gemini_status.avoided is True
+    assert any("translation" in reason for reason in gemini_status.avoided_by)
 
 
 def test_aversion_avoided_by_sign_level_antiscia_or_contra():
