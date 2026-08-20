@@ -1,17 +1,17 @@
 == uv sync ==
-Using CPython 3.11.15 interpreter at: /opt/hostedtoolcache/Python/3.11.15/x64/bin/python3.11
+Using CPython 3.11.16 interpreter at: /opt/hostedtoolcache/Python/3.11.16/x64/bin/python3.11
 Creating virtual environment at: .venv
-Resolved 21 packages in 0.53ms
+Resolved 21 packages in 0.62ms
    Building hor-tools @ file:///home/runner/work/astro_data/astro_data
-Downloading ruff (10.5MiB)
 Downloading pygments (1.2MiB)
+Downloading ruff (10.5MiB)
 Downloading pyswisseph (1.7MiB)
  Downloaded pyswisseph
  Downloaded ruff
  Downloaded pygments
       Built hor-tools @ file:///home/runner/work/astro_data/astro_data
-Prepared 13 packages in 1.02s
-Installed 13 packages in 16ms
+Prepared 13 packages in 994ms
+Installed 13 packages in 6ms
  + build==1.5.0
  + hor-tools==0.1.0 (from file:///home/runner/work/astro_data/astro_data)
  + iniconfig==2.3.0
@@ -27,327 +27,15 @@ Installed 13 packages in 16ms
  + ruff==0.16.3
 exit_code=0
 
-== pytest ==
-........................................................................ [ 87%]
-..........                                                               [100%]
-82 passed in 0.27s
+== ruff ==
+All checks passed!
 exit_code=0
 
-== ruff ==
-F401 [*] `.analysis.dignity.SIGNS` imported but unused
-  --> hor_tools/almuten.py:10:31
-   |
- 8 | import swisseph as swe
- 9 |
-10 | from .analysis.dignity import SIGNS, TRIPLICITIES, essential_dignity, degree_in_sign, sign_index_from_longitude
-   |                               ^^^^^
-11 | from .analysis.sect import chart_sect
-12 | from .astro_engine import ensure_ephe_path, julian_day_from_chart
-   |
-help: Remove unused import
-   |
-9  |
-   - from .analysis.dignity import SIGNS, TRIPLICITIES, essential_dignity, degree_in_sign, sign_index_from_longitude
-10 + from .analysis.dignity import TRIPLICITIES, essential_dignity, sign_index_from_longitude
-11 | from .analysis.sect import chart_sect
-   |
-
-F401 [*] `.analysis.dignity.degree_in_sign` imported but unused
-  --> hor_tools/almuten.py:10:71
-   |
- 8 | import swisseph as swe
- 9 |
-10 | from .analysis.dignity import SIGNS, TRIPLICITIES, essential_dignity, degree_in_sign, sign_index_from_longitude
-   |                                                                       ^^^^^^^^^^^^^^
-11 | from .analysis.sect import chart_sect
-12 | from .astro_engine import ensure_ephe_path, julian_day_from_chart
-   |
-help: Remove unused import
-   |
-9  |
-   - from .analysis.dignity import SIGNS, TRIPLICITIES, essential_dignity, degree_in_sign, sign_index_from_longitude
-10 + from .analysis.dignity import TRIPLICITIES, essential_dignity, sign_index_from_longitude
-11 | from .analysis.sect import chart_sect
-   |
-
-F401 `.dignity.SIGNS` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
- --> hor_tools/analysis/__init__.py:6:57
-  |
-5 | from ..models import ChartInput, PlanetPosition, Houses, PlanetReport, ChartRelationships
-6 | from .dignity import essential_dignity, classify_speed, SIGNS
-  |                                                         ^^^^^
-7 | from .sect import chart_sect, planet_sect, compute_hayz_and_halb
-8 | from .stars import stars_near_longitude
-  |
-help: Use an explicit re-export: `SIGNS as SIGNS`
-
-E402 Module level import not at top of file
-  --> hor_tools/analysis/conditions.py:10:1
-   |
- 8 | """
- 9 |
-10 | import swisseph as swe
-   | ^^^^^^^^^^^^^^^^^^^^^^
-11 |
-12 | from ..astro_engine import ensure_ephe_path, julian_day_from_chart
-   |
-help: Move module level imports to top of file
-
-E402 Module level import not at top of file
-  --> hor_tools/analysis/conditions.py:12:1
-   |
-10 | import swisseph as swe
-11 |
-12 | from ..astro_engine import ensure_ephe_path, julian_day_from_chart
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-13 | from ..models import ChartInput, PlanetPosition
-   |
-help: Move module level imports to top of file
-
-E402 Module level import not at top of file
-  --> hor_tools/analysis/conditions.py:13:1
-   |
-12 | from ..astro_engine import ensure_ephe_path, julian_day_from_chart
-13 | from ..models import ChartInput, PlanetPosition
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-14 |
-15 | PLANETARY_JOYS = {
-   |
-help: Move module level imports to top of file
-
-E402 Module level import not at top of file
-  --> hor_tools/analysis/ray_geometry.py:11:1
-   |
- 9 | """
-10 |
-11 | from math import inf
-   | ^^^^^^^^^^^^^^^^^^^^
-12 | from typing import Iterable
-   |
-help: Move module level imports to top of file
-
-E402 Module level import not at top of file
-  --> hor_tools/analysis/ray_geometry.py:12:1
-   |
-11 | from math import inf
-12 | from typing import Iterable
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-13 |
-14 | from ..models import PlanetPosition
-   |
-help: Move module level imports to top of file
-
-E402 Module level import not at top of file
-  --> hor_tools/analysis/ray_geometry.py:14:1
-   |
-12 | from typing import Iterable
-13 |
-14 | from ..models import PlanetPosition
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-15 |
-16 | ASPECT_ANGLE_BY_KIND = {
-   |
-help: Move module level imports to top of file
-
-B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
-  --> hor_tools/cli.py:81:13
-   |
-79 |         output.print_full_report(chart, reports, houses, relationships)
-80 |         if html_path is not None:
-81 |             raise RuntimeError("HTML export requires the 'rich' package.")
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-82 |     else:
-83 |         output.print_rich_report(chart, reports, houses, relationships)
-   |
-
-F821 Undefined name `InfluenceSource`
-   --> hor_tools/output.py:897:43
-    |
-895 |     feral_icon = "o" if use_narrow_icons else "🕳"
-896 |
-897 |     def _format_ray_entries(sources: list[InfluenceSource], icon: str) -> list[str]:
-    |                                           ^^^^^^^^^^^^^^^
-898 |         grouped: dict[str, set[str]] = {}
-899 |         for src in sources:
-    |
-
-F821 Undefined name `InfluenceSource`
-   --> hor_tools/output.py:924:23
-    |
-923 |     def _format_domination_entries(
-924 |         sources: list[InfluenceSource], enclosure_flags: list[str], icon: str
-    |                       ^^^^^^^^^^^^^^^
-925 |     ) -> list[str]:
-926 |         entries: list[str] = []
-    |
-
-F401 [*] `hor_tools.models.DomicileAversion` imported but unused
- --> tests/test_aversion.py:4:5
-  |
-2 | from hor_tools.models import (
-3 |     AspectInfo,
-4 |     DomicileAversion,
-  |     ^^^^^^^^^^^^^^^^
-5 |     PlanetPosition,
-6 |     PlanetReport,
-  |
-help: Remove unused import
-  |
-3 |     AspectInfo,
-  -     DomicileAversion,
-4 |     PlanetPosition,
-5 |     PlanetReport,
-  -     ReflectionHit,
-6 |     TranslationOfLight,
-  |
-
-F401 [*] `hor_tools.models.ReflectionHit` imported but unused
- --> tests/test_aversion.py:7:5
-  |
-5 |     PlanetPosition,
-6 |     PlanetReport,
-7 |     ReflectionHit,
-  |     ^^^^^^^^^^^^^
-8 |     TranslationOfLight,
-9 | )
-  |
-help: Remove unused import
-  |
-3 |     AspectInfo,
-  -     DomicileAversion,
-4 |     PlanetPosition,
-5 |     PlanetReport,
-  -     ReflectionHit,
-6 |     TranslationOfLight,
-  |
-
-E402 Module level import not at top of file
-  --> tests/test_calculation_regressions.py:17:1
-   |
-15 |     sys.path.insert(0, str(ROOT))
-16 |
-17 | from asc_window_scan import offset_hours_at, resolve_zone
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-18 | from hor_tools.analysis.aspects import PLANET_ORBS, _is_applying
-19 | from hor_tools.analysis.conditions import (
-   |
-help: Move module level imports to top of file
-
-E402 Module level import not at top of file
-  --> tests/test_calculation_regressions.py:18:1
-   |
-17 | from asc_window_scan import offset_hours_at, resolve_zone
-18 | from hor_tools.analysis.aspects import PLANET_ORBS, _is_applying
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-19 | from hor_tools.analysis.conditions import (
-20 |     _crosses_major_aspect,
-   |
-help: Move module level imports to top of file
-
-E402 Module level import not at top of file
-  --> tests/test_calculation_regressions.py:19:1
-   |
-17 |   from asc_window_scan import offset_hours_at, resolve_zone
-18 |   from hor_tools.analysis.aspects import PLANET_ORBS, _is_applying
-19 | / from hor_tools.analysis.conditions import (
-20 | |     _crosses_major_aspect,
-21 | |     is_in_planetary_joy,
-22 | |     is_in_via_combusta,
-23 | |     latitude_condition,
-24 | | )
-   | |_^
-25 |   from hor_tools.analysis.dignity import MEAN_SPEED, _term_lord, classify_speed
-26 |   from hor_tools.analysis.relationship_rules import (
-   |
-help: Move module level imports to top of file
-
-E402 Module level import not at top of file
-  --> tests/test_calculation_regressions.py:25:1
-   |
-23 |     latitude_condition,
-24 | )
-25 | from hor_tools.analysis.dignity import MEAN_SPEED, _term_lord, classify_speed
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-26 | from hor_tools.analysis.relationship_rules import (
-27 |     _qualifies_for_reception,
-   |
-help: Move module level imports to top of file
-
-E402 Module level import not at top of file
-  --> tests/test_calculation_regressions.py:26:1
-   |
-24 |   )
-25 |   from hor_tools.analysis.dignity import MEAN_SPEED, _term_lord, classify_speed
-26 | / from hor_tools.analysis.relationship_rules import (
-27 | |     _qualifies_for_reception,
-28 | |     compute_collection_of_light,
-29 | |     compute_domination,
-30 | | )
-   | |_^
-31 |   from hor_tools.analysis.sect import chart_sect, compute_hayz_and_halb
-32 |   from hor_tools.analysis.stars import _star_orb_from_magnitude
-   |
-help: Move module level imports to top of file
-
-E402 Module level import not at top of file
-  --> tests/test_calculation_regressions.py:31:1
-   |
-29 |     compute_domination,
-30 | )
-31 | from hor_tools.analysis.sect import chart_sect, compute_hayz_and_halb
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-32 | from hor_tools.analysis.stars import _star_orb_from_magnitude
-33 | from hor_tools.astro_engine import julian_day_from_chart
-   |
-help: Move module level imports to top of file
-
-E402 Module level import not at top of file
-  --> tests/test_calculation_regressions.py:32:1
-   |
-30 | )
-31 | from hor_tools.analysis.sect import chart_sect, compute_hayz_and_halb
-32 | from hor_tools.analysis.stars import _star_orb_from_magnitude
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-33 | from hor_tools.astro_engine import julian_day_from_chart
-34 | from hor_tools.models import AspectInfo, ChartInput, PlanetPosition
-   |
-help: Move module level imports to top of file
-
-E402 Module level import not at top of file
-  --> tests/test_calculation_regressions.py:33:1
-   |
-31 | from hor_tools.analysis.sect import chart_sect, compute_hayz_and_halb
-32 | from hor_tools.analysis.stars import _star_orb_from_magnitude
-33 | from hor_tools.astro_engine import julian_day_from_chart
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-34 | from hor_tools.models import AspectInfo, ChartInput, PlanetPosition
-35 | from scan_events import _crossed_aspect_target
-   |
-help: Move module level imports to top of file
-
-E402 Module level import not at top of file
-  --> tests/test_calculation_regressions.py:34:1
-   |
-32 | from hor_tools.analysis.stars import _star_orb_from_magnitude
-33 | from hor_tools.astro_engine import julian_day_from_chart
-34 | from hor_tools.models import AspectInfo, ChartInput, PlanetPosition
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-35 | from scan_events import _crossed_aspect_target
-   |
-help: Move module level imports to top of file
-
-E402 Module level import not at top of file
-  --> tests/test_calculation_regressions.py:35:1
-   |
-33 | from hor_tools.astro_engine import julian_day_from_chart
-34 | from hor_tools.models import AspectInfo, ChartInput, PlanetPosition
-35 | from scan_events import _crossed_aspect_target
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-help: Move module level imports to top of file
-
-Found 24 errors.
-[*] 4 fixable with the `--fix` option.
-exit_code=1
+== pytest ==
+........................................................................ [ 81%]
+................                                                         [100%]
+88 passed in 0.76s
+exit_code=0
 
 == build ==
 Building source distribution...
@@ -374,12 +62,14 @@ creating hor_tools-0.1.0/hor_tools
 creating hor_tools-0.1.0/hor_tools.egg-info
 creating hor_tools-0.1.0/hor_tools/analysis
 creating hor_tools-0.1.0/hor_tools/commands
+creating hor_tools-0.1.0/hor_tools/rendering
 creating hor_tools-0.1.0/tests
 copying files to hor_tools-0.1.0...
 copying README.md -> hor_tools-0.1.0
 copying pyproject.toml -> hor_tools-0.1.0
 copying hor_tools/__init__.py -> hor_tools-0.1.0/hor_tools
 copying hor_tools/almuten.py -> hor_tools-0.1.0/hor_tools
+copying hor_tools/almuten_types.py -> hor_tools-0.1.0/hor_tools
 copying hor_tools/astro_engine.py -> hor_tools-0.1.0/hor_tools
 copying hor_tools/cli.py -> hor_tools-0.1.0/hor_tools
 copying hor_tools/hor_parser.py -> hor_tools-0.1.0/hor_tools
@@ -406,14 +96,20 @@ copying hor_tools/analysis/stars.py -> hor_tools-0.1.0/hor_tools/analysis
 copying hor_tools/commands/__init__.py -> hor_tools-0.1.0/hor_tools/commands
 copying hor_tools/commands/asc_window.py -> hor_tools-0.1.0/hor_tools/commands
 copying hor_tools/commands/scan_events.py -> hor_tools-0.1.0/hor_tools/commands
+copying hor_tools/rendering/__init__.py -> hor_tools-0.1.0/hor_tools/rendering
+copying hor_tools/rendering/almuten.py -> hor_tools-0.1.0/hor_tools/rendering
+copying hor_tools/rendering/relationships.py -> hor_tools-0.1.0/hor_tools/rendering
+copying tests/test_almuten_types.py -> hor_tools-0.1.0/tests
 copying tests/test_antiscia.py -> hor_tools-0.1.0/tests
 copying tests/test_aspect_sign_boundaries.py -> hor_tools-0.1.0/tests
 copying tests/test_aversion.py -> hor_tools-0.1.0/tests
 copying tests/test_calculation_regressions.py -> hor_tools-0.1.0/tests
 copying tests/test_cli.py -> hor_tools-0.1.0/tests
 copying tests/test_condition_output.py -> hor_tools-0.1.0/tests
+copying tests/test_engine_config.py -> hor_tools-0.1.0/tests
 copying tests/test_fixed_stars.py -> hor_tools-0.1.0/tests
 copying tests/test_hor_parser.py -> hor_tools-0.1.0/tests
+copying tests/test_morinus_integration.py -> hor_tools-0.1.0/tests
 copying tests/test_phase_scoring.py -> hor_tools-0.1.0/tests
 copying tests/test_planetary_hours.py -> hor_tools-0.1.0/tests
 copying tests/test_relationship_ray_order.py -> hor_tools-0.1.0/tests
@@ -439,6 +135,7 @@ running build_py
 creating build/lib/hor_tools
 copying hor_tools/__init__.py -> build/lib/hor_tools
 copying hor_tools/hor_parser.py -> build/lib/hor_tools
+copying hor_tools/almuten_types.py -> build/lib/hor_tools
 copying hor_tools/models.py -> build/lib/hor_tools
 copying hor_tools/astro_engine.py -> build/lib/hor_tools
 copying hor_tools/almuten.py -> build/lib/hor_tools
@@ -457,6 +154,10 @@ copying hor_tools/analysis/aspects.py -> build/lib/hor_tools/analysis
 copying hor_tools/analysis/stars.py -> build/lib/hor_tools/analysis
 copying hor_tools/analysis/ray_geometry.py -> build/lib/hor_tools/analysis
 copying hor_tools/analysis/aversion.py -> build/lib/hor_tools/analysis
+creating build/lib/hor_tools/rendering
+copying hor_tools/rendering/__init__.py -> build/lib/hor_tools/rendering
+copying hor_tools/rendering/almuten.py -> build/lib/hor_tools/rendering
+copying hor_tools/rendering/relationships.py -> build/lib/hor_tools/rendering
 creating build/lib/hor_tools/commands
 copying hor_tools/commands/__init__.py -> build/lib/hor_tools/commands
 copying hor_tools/commands/scan_events.py -> build/lib/hor_tools/commands
@@ -476,6 +177,7 @@ creating build/bdist.linux-x86_64/wheel
 creating build/bdist.linux-x86_64/wheel/hor_tools
 copying build/lib/hor_tools/__init__.py -> build/bdist.linux-x86_64/wheel/./hor_tools
 copying build/lib/hor_tools/hor_parser.py -> build/bdist.linux-x86_64/wheel/./hor_tools
+copying build/lib/hor_tools/almuten_types.py -> build/bdist.linux-x86_64/wheel/./hor_tools
 copying build/lib/hor_tools/models.py -> build/bdist.linux-x86_64/wheel/./hor_tools
 creating build/bdist.linux-x86_64/wheel/hor_tools/analysis
 copying build/lib/hor_tools/analysis/__init__.py -> build/bdist.linux-x86_64/wheel/./hor_tools/analysis
@@ -493,6 +195,10 @@ copying build/lib/hor_tools/astro_engine.py -> build/bdist.linux-x86_64/wheel/./
 copying build/lib/hor_tools/almuten.py -> build/bdist.linux-x86_64/wheel/./hor_tools
 copying build/lib/hor_tools/output.py -> build/bdist.linux-x86_64/wheel/./hor_tools
 copying build/lib/hor_tools/cli.py -> build/bdist.linux-x86_64/wheel/./hor_tools
+creating build/bdist.linux-x86_64/wheel/hor_tools/rendering
+copying build/lib/hor_tools/rendering/__init__.py -> build/bdist.linux-x86_64/wheel/./hor_tools/rendering
+copying build/lib/hor_tools/rendering/almuten.py -> build/bdist.linux-x86_64/wheel/./hor_tools/rendering
+copying build/lib/hor_tools/rendering/relationships.py -> build/bdist.linux-x86_64/wheel/./hor_tools/rendering
 creating build/bdist.linux-x86_64/wheel/hor_tools/commands
 copying build/lib/hor_tools/commands/__init__.py -> build/bdist.linux-x86_64/wheel/./hor_tools/commands
 copying build/lib/hor_tools/commands/scan_events.py -> build/bdist.linux-x86_64/wheel/./hor_tools/commands
@@ -502,9 +208,10 @@ running install_egg_info
 Copying hor_tools.egg-info to build/bdist.linux-x86_64/wheel/./hor_tools-0.1.0-py3.11.egg-info
 running install_scripts
 creating build/bdist.linux-x86_64/wheel/hor_tools-0.1.0.dist-info/WHEEL
-creating '/home/runner/work/astro_data/astro_data/dist/.tmp-mnl5obp9/hor_tools-0.1.0-py3-none-any.whl' and adding 'build/bdist.linux-x86_64/wheel' to it
+creating '/home/runner/work/astro_data/astro_data/dist/.tmp-c_1xso3m/hor_tools-0.1.0-py3-none-any.whl' and adding 'build/bdist.linux-x86_64/wheel' to it
 adding 'hor_tools/__init__.py'
 adding 'hor_tools/almuten.py'
+adding 'hor_tools/almuten_types.py'
 adding 'hor_tools/astro_engine.py'
 adding 'hor_tools/cli.py'
 adding 'hor_tools/hor_parser.py'
@@ -525,6 +232,9 @@ adding 'hor_tools/analysis/stars.py'
 adding 'hor_tools/commands/__init__.py'
 adding 'hor_tools/commands/asc_window.py'
 adding 'hor_tools/commands/scan_events.py'
+adding 'hor_tools/rendering/__init__.py'
+adding 'hor_tools/rendering/almuten.py'
+adding 'hor_tools/rendering/relationships.py'
 adding 'hor_tools-0.1.0.dist-info/METADATA'
 adding 'hor_tools-0.1.0.dist-info/WHEEL'
 adding 'hor_tools-0.1.0.dist-info/entry_points.txt'
@@ -542,5 +252,5 @@ exit_code=0
 clean wheel imports: ok
 exit_code=0
 
-tested_commit=261489e8df796fbfeee84833a0f52cd77b6258a5
-summary sync=0 pytest=0 ruff=1 build=0 wheel=0
+tested_commit=7b5be34ddb985f5224f0e27068efc441df7763f0
+summary sync=0 ruff=0 pytest=0 build=0 wheel=0
