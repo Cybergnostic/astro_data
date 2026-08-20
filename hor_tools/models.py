@@ -17,7 +17,7 @@ class SynodicPhaseInfo:
 
 @dataclass
 class ChartInput:
-    """Normalized birth data derived from a Morinus .hor file."""
+    """Normalized birth data derived from a Morinus ``.hor`` file."""
 
     name: str
     datetime_utc: datetime
@@ -26,6 +26,8 @@ class ChartInput:
     longitude: float
     house_system: str
     zodiac: str
+    location_name: str | None = None
+    altitude_m: float | None = None
 
 
 @dataclass
