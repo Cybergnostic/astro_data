@@ -1,9 +1,14 @@
 from __future__ import annotations
 
 from itertools import combinations
-from typing import Dict, Iterable, List, Tuple
+from typing import Dict, List, Tuple
 
 from .dignity import MEAN_SPEED, dignity_holders_for_position, sign_index_from_longitude
+from .ray_geometry import (
+    casters_with_ray_in_sign,
+    has_intervening_ray,
+    nearest_rays_in_sign,
+)
 from ..models import (
     AspectInfo,
     ChartRelationships,
@@ -54,8 +59,8 @@ def compute_domination(
                 sign_distance=dist,
             )
 
-            # Aktinobolia is not mere geometry: the overcoming planet must be
-            # applying and the counter-ray must be close (within 3°).
+            # Aktinobolia: the planet that overcomes must itself be applying and
+            # be struck by the dominated planet's close counter-ray.
             asp = lookup.get((dominator.name, dominated.name))
             if asp and asp.kind == relationship and asp.self_applying and asp.orb <= 3.0:
                 info.has_counter_ray = True
@@ -70,53 +75,83 @@ def compute_domination(
     return doms
 
 
+def _opposite_category_on_each_side(
+    behind: tuple[float, str, str] | None,
+    ahead: tuple[float, str, str] | None,
+    category: set[str],
+) -> list[str]:
+    if not behind or not ahead:
+        return []
+    behind_name = behind[1]
+    ahead_name = ahead[1]
+    if behind_name == ahead_name:
+        return []
+    if behind_name in category and ahead_name in category:
+        return [behind_name, ahead_name]
+    return []
+
+
+def _category_across_adjacent_signs(
+    previous: set[str], next_: set[str], category: set[str]
+) -> bool:
+    return any(
+        first != second and first in category and second in category
+        for first in previous
+        for second in next_
+    )
+
+
+def _malefic_enclosure_relieved(
+    target_name: str, lookup: Dict[Tuple[str, str], AspectInfo]
+) -> bool:
+    """Sun or a benefic looking within <7° cancels malefic enclosure."""
+    for reliever in {"Sun", "Jupiter", "Venus"} - {target_name}:
+        asp = _get_pair_aspect(target_name, reliever, lookup)
+        if asp and asp.orb < 7.0:
+            return True
+    return False
+
+
 def compute_enclosures(
     planets: list[PlanetPosition], lookup: Dict[Tuple[str, str], AspectInfo]
 ) -> Dict[str, dict[str, object]]:
-    """Compute enclosure by sign and by ray for each planet."""
-    sign_map: dict[int, list[str]] = {}
-    for p in planets:
-        sign_map.setdefault(sign_index_from_longitude(p.longitude), []).append(p.name)
+    """Compute degree/ray and sign enclosure from exact ray landing points.
 
-    by_sign: dict[str, dict[str, bool]] = {}
-    for p in planets:
-        idx = sign_index_from_longitude(p.longitude)
-        prev_planets = sign_map.get((idx - 1) % 12, [])
-        next_planets = sign_map.get((idx + 1) % 12, [])
-        by_sign[p.name] = {
-            "benefic_sign": any(pl in BENEFICS for pl in prev_planets)
-            and any(pl in BENEFICS for pl in next_planets),
-            "malefic_sign": any(pl in MALEFICS for pl in prev_planets)
-            and any(pl in MALEFICS for pl in next_planets),
-        }
+    For enclosure by degree, the nearest body/ray on either side of the target
+    inside its sign must come from the two benefics or the two malefics.  Taking
+    the nearest ray on each side means any intervening third ray automatically
+    breaks the enclosure, exactly as the course examples require.
 
-    positions = {p.name: p.longitude for p in planets}
-    by_ray: dict[str, dict[str, list[str]]] = {
-        p.name: {"benefic_ray": [], "malefic_ray": []} for p in planets
-    }
+    Sign enclosure likewise accepts a planet *or its ray* in the signs before
+    and after the target.  A close (<7°) aspect from the Sun or a benefic cancels
+    either type of malefic enclosure.
+    """
+    result: Dict[str, dict[str, object]] = {}
+
     for target in planets:
-        candidates = _aspecting_planets(target.name, lookup)
-        if not candidates:
-            continue
-        ahead = _nearest_ahead(target.name, candidates, positions)
-        behind = _nearest_behind(target.name, candidates, positions)
-        for other in (ahead, behind):
-            if not other:
-                continue
-            if other in BENEFICS:
-                by_ray[target.name]["benefic_ray"].append(other)
-            if other in MALEFICS:
-                by_ray[target.name]["malefic_ray"].append(other)
+        idx = sign_index_from_longitude(target.longitude)
+        previous_casters = casters_with_ray_in_sign((idx - 1) % 12, planets, target.name)
+        next_casters = casters_with_ray_in_sign((idx + 1) % 12, planets, target.name)
 
-    merged: Dict[str, dict[str, object]] = {}
-    for p in planets:
-        merged[p.name] = {
-            "benefic_sign": by_sign[p.name]["benefic_sign"],
-            "malefic_sign": by_sign[p.name]["malefic_sign"],
-            "benefic_ray": by_ray[p.name]["benefic_ray"],
-            "malefic_ray": by_ray[p.name]["malefic_ray"],
+        benefic_sign = _category_across_adjacent_signs(previous_casters, next_casters, BENEFICS)
+        malefic_sign = _category_across_adjacent_signs(previous_casters, next_casters, MALEFICS)
+
+        behind, ahead = nearest_rays_in_sign(target, planets)
+        benefic_ray = _opposite_category_on_each_side(behind, ahead, BENEFICS)
+        malefic_ray = _opposite_category_on_each_side(behind, ahead, MALEFICS)
+
+        if (malefic_sign or malefic_ray) and _malefic_enclosure_relieved(target.name, lookup):
+            malefic_sign = False
+            malefic_ray = []
+
+        result[target.name] = {
+            "benefic_sign": benefic_sign,
+            "malefic_sign": malefic_sign,
+            "benefic_ray": benefic_ray,
+            "malefic_ray": malefic_ray,
         }
-    return merged
+
+    return result
 
 
 def _qualifies_for_reception(dignities: list[str]) -> bool:
@@ -181,9 +216,15 @@ def compute_receptions_and_generosity(
 def compute_translation_of_light(
     planets: list[PlanetPosition], lookup: Dict[Tuple[str, str], AspectInfo]
 ) -> list[TranslationOfLight]:
-    """Translation: a faster planet separates from one and applies to another."""
+    """Translation: fast planet separates from one and next applies to another.
+
+    A ray/body of a fourth planet reached before the intended applying contact
+    interrupts the translation.  The two principal planets may themselves have
+    an aspect; the course says translation is then less necessary, not invalid.
+    """
     translations: list[TranslationOfLight] = []
     names = [p.name for p in planets]
+    by_name = {p.name: p for p in planets}
     speed_map = {p.name: abs(p.speed_long) for p in planets}
 
     for translator in planets:
@@ -193,6 +234,7 @@ def compute_translation_of_light(
             asp_from = lookup.get((translator.name, from_name))
             if not asp_from or asp_from.self_applying:
                 continue
+
             for to_name in names:
                 if to_name in {translator.name, from_name}:
                     continue
@@ -201,13 +243,16 @@ def compute_translation_of_light(
                     continue
                 if not _is_fastest(translator.name, [from_name, to_name], speed_map):
                     continue
-                # In the course definition translation links two planets that
-                # are not themselves directly connected.
-                if _get_pair_aspect(from_name, to_name, lookup):
+
+                if has_intervening_ray(
+                    translator,
+                    by_name[to_name],
+                    asp_to.kind,
+                    planets,
+                    excluded_names={from_name, to_name},
+                ):
                     continue
-                naturally_fastest = _is_fastest(
-                    translator.name, [from_name, to_name], MEAN_SPEED
-                )
+
                 translations.append(
                     TranslationOfLight(
                         translator=translator.name,
@@ -215,16 +260,19 @@ def compute_translation_of_light(
                         to_planet=to_name,
                         aspect_from=asp_from,
                         aspect_to=asp_to,
-                        naturally_fastest=naturally_fastest,
+                        naturally_fastest=_is_fastest(
+                            translator.name, [from_name, to_name], MEAN_SPEED
+                        ),
                     )
                 )
+
     return translations
 
 
 def compute_collection_of_light(
     planets: list[PlanetPosition], lookup: Dict[Tuple[str, str], AspectInfo]
 ) -> list[CollectionOfLight]:
-    """Allow any third planet slower than both applying feeders to collect light."""
+    """Collection by a slower third planet, provided it is each feeder's next contact."""
     collections: list[CollectionOfLight] = []
     speed_map = {p.name: abs(p.speed_long) for p in planets}
 
@@ -240,6 +288,26 @@ def compute_collection_of_light(
             if speed_map[collector.name] >= speed_map[first.name]:
                 continue
             if speed_map[collector.name] >= speed_map[second.name]:
+                continue
+
+            # The collector must be the next relevant contact for BOTH feeders.
+            # The other feeder is intentionally not excluded: if Moon reaches
+            # Venus before Saturn, for example, the collection is cut.
+            if has_intervening_ray(
+                first,
+                collector,
+                asp_first.kind,
+                planets,
+                excluded_names={collector.name},
+            ):
+                continue
+            if has_intervening_ray(
+                second,
+                collector,
+                asp_second.kind,
+                planets,
+                excluded_names={collector.name},
+            ):
                 continue
 
             collector_mean = MEAN_SPEED.get(collector.name, float("inf"))
@@ -418,24 +486,6 @@ def _aspecting_planets(target: str, lookup: Dict[Tuple[str, str], AspectInfo]) -
         if other == target:
             names.add(src)
     return list(names)
-
-
-def _nearest_ahead(target: str, others: Iterable[str], positions: Dict[str, float]) -> str | None:
-    ahead = sorted(
-        ((positions[o] - positions[target]) % 360.0, o)
-        for o in others
-        if o != target and positions[o] != positions[target]
-    )
-    return ahead[0][1] if ahead else None
-
-
-def _nearest_behind(target: str, others: Iterable[str], positions: Dict[str, float]) -> str | None:
-    behind = sorted(
-        ((positions[target] - positions[o]) % 360.0, o)
-        for o in others
-        if o != target and positions[o] != positions[target]
-    )
-    return behind[0][1] if behind else None
 
 
 def _is_fastest(candidate: str, others: list[str], speed_map: dict[str, float]) -> bool:
