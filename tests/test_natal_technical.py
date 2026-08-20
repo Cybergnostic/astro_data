@@ -153,6 +153,37 @@ def test_reference_chart_preserves_specific_primary_motivation(
     assert "in aversion to Ascendant sign" in asc_ruler.condition
 
 
+def test_reference_chart_composite_almuten_of_mind_sums_both_degrees(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    _chart, _planets, _houses, _reports, technical = _fixture_report(monkeypatch, tmp_path)
+    mind = technical.mind
+    assert mind.composite_almuten.points == ("Mercury", "Moon")
+    for planet, score in mind.composite_almuten.scores.items():
+        assert score == (
+            mind.mercury_almuten.scores[planet] + mind.moon_almuten.scores[planet]
+        )
+    assert mind.composite_almuten.score == max(mind.composite_almuten.scores.values())
+    assert mind.composite_almuten.winners == [
+        planet
+        for planet, score in mind.composite_almuten.scores.items()
+        if score == mind.composite_almuten.score and score > 0
+    ]
+
+
+def test_reference_chart_mind_includes_element_and_dispositor_condition(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    _chart, _planets, _houses, _reports, technical = _fixture_report(monkeypatch, tmp_path)
+    assert any(item.startswith("element: air") for item in technical.mind.mercury)
+    assert any(item.startswith("dispositor:") for item in technical.mind.mercury)
+    assert any(
+        item.startswith("dispositor condition:") for item in technical.mind.mercury
+    )
+    assert any(item.startswith("dispositor:") for item in technical.mind.moon)
+    assert any(item.startswith("dispositor condition:") for item in technical.mind.moon)
+
+
 def test_reference_chart_exposes_human_judgment_sections_without_fake_winners(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -161,6 +192,7 @@ def test_reference_chart_exposes_human_judgment_sections_without_fake_winners(
     assert technical.geniture.candidates
     assert technical.mind.mercury_almuten.winners
     assert technical.mind.moon_almuten.winners
+    assert technical.mind.composite_almuten.winners
     assert not hasattr(technical, "fortune_adversity")
 
 
