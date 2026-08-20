@@ -11,6 +11,7 @@ from hor_tools.analysis.natal_synthesis import (
     MODALITY_BY_SIGN,
     PRIMARY_CONTACT_CORE_ORB,
     PRIMARY_CONTACT_ORB,
+    SIGN_MOTIVATION,
 )
 from hor_tools.analysis.technical import build_natal_technical_report
 from hor_tools.hor_parser import load_hor
@@ -48,6 +49,12 @@ def test_course_sign_modality_and_ascension_classes() -> None:
         "short-ascending",
         "short-ascending",
     ]
+
+
+def test_primary_motivation_air_sign_meanings_match_course_symbols() -> None:
+    assert SIGN_MOTIVATION[2] == "transmission of ideas and information and freedom of movement"
+    assert SIGN_MOTIVATION[6] == "initiating conversation and free exchange of ideas and information"
+    assert SIGN_MOTIVATION[10] == "accumulation of knowledge and free exchange of information"
 
 
 def test_primary_motivation_preserves_course_approximate_five_to_six_degree_limit() -> None:
