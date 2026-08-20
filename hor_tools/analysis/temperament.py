@@ -17,11 +17,16 @@ from ..models import ChartInput, Houses, PlanetPosition, PlanetReport
 from .aspects import ASPECTS, _aspect_angle_for_contact, _distance_to_aspect
 from .dignity import SIGNS, SIGN_RULERS, sign_index_from_longitude
 from .duads import dodekatemorion_longitude
-from .stars import COURSE_STARS, _resolve_star
+from .stars import (
+    COURSE_FIRST_MAGNITUDE_PRIMARY_NATURE,
+    COURSE_STARS,
+    _resolve_star,
+)
 
 ASC_CONTACT_ORB = 5.0
 DUAD_CONTACT_ORB = 5.0
 MOON_CONTACT_ORB = 6.0
+STAR_ASC_ORB = 1.5
 
 TEMPERAMENTS = ("K", "S", "M", "F")
 TEMPERAMENT_LABELS = {
@@ -40,6 +45,15 @@ SIGN_TEMPERAMENT = {
     0: "K", 1: "M", 2: "S", 3: "F",
     4: "K", 5: "M", 6: "S", 7: "F",
     8: "K", 9: "M", 10: "S", 11: "F",
+}
+NATURAL_PLANET_QUALITIES = {
+    "Sun": {"hot", "dry"},
+    "Moon": {"cold", "moist"},
+    "Saturn": {"cold", "dry"},
+    "Jupiter": {"hot", "moist"},
+    "Mars": {"hot", "dry"},
+    "Venus": {"cold", "moist"},
+    "Mercury": {"cold", "dry"},
 }
 
 
@@ -93,6 +107,11 @@ def _planet_qualities(report: PlanetReport) -> set[str]:
     if name == "Mercury":
         return {"hot", "moist"} if report.oriental else {"cold", "dry"}
     return set()
+
+
+def _primary_nature_qualities(planet_name: str) -> set[str]:
+    """Return a planet's natural qualities for a fixed star's primary nature."""
+    return set(NATURAL_PLANET_QUALITIES.get(planet_name, set()))
 
 
 def _merge_scores(target: dict[str, int], addition: dict[str, int]) -> None:
@@ -185,20 +204,24 @@ def _node_longitudes(chart: ChartInput) -> tuple[float, float]:
     return north, (north + 180.0) % 360.0
 
 
-def _first_magnitude_stars_on_asc(chart: ChartInput, asc: float) -> list[str]:
+def _first_magnitude_stars_on_asc(
+    chart: ChartInput, asc: float
+) -> list[tuple[str, str, float, float]]:
+    """Return course-marked first-magnitude stars within 1°30' of the Ascendant."""
     ensure_ephe_path()
     jd = julian_day_from_chart(chart)
-    hits: list[str] = []
+    hits: list[tuple[str, str, float, float]] = []
     for display, aliases in COURSE_STARS:
+        primary_nature = COURSE_FIRST_MAGNITUDE_PRIMARY_NATURE.get(display)
+        if primary_nature is None:
+            continue
         resolved = _resolve_star(aliases, jd)
         if resolved is None:
             continue
         pos, magnitude = resolved
-        if magnitude >= 1.5:
-            continue
         diff = abs((float(pos[0]) - asc + 180.0) % 360.0 - 180.0)
-        if diff <= 1.5:
-            hits.append(f"{display} (mag {magnitude:.2f}, orb {diff:.2f}°)")
+        if diff <= STAR_ASC_ORB:
+            hits.append((display, primary_nature, magnitude, diff))
     return hits
 
 
@@ -264,13 +287,14 @@ def build_temperament(
                 report,
                 f"{report.planet.name} duad on ASC ({diff:.2f}°)",
             )
-    stars = _first_magnitude_stars_on_asc(chart, houses.asc)
-    if stars:
-        row.evidence.extend(stars)
-        row.note = (
-            "First-magnitude star contacts are listed but not scored because "
-            "the current machine catalogue does not yet encode each star's "
-            "primary planetary nature."
+    for display, primary_nature, magnitude, diff in _first_magnitude_stars_on_asc(
+        chart, houses.asc
+    ):
+        qualities = _primary_nature_qualities(primary_nature)
+        _merge_scores(row.scores, _qualities_to_scores(qualities))
+        row.evidence.append(
+            f"{display} on ASC (course 1st magnitude; actual mag {magnitude:.2f}; "
+            f"orb {diff:.2f}°; primary nature {primary_nature})"
         )
     rows.append(row)
 
