@@ -18,7 +18,11 @@ from .dignity import SIGNS, SIGN_RULERS, sign_index_from_longitude
 from .duads import dodekatemorion_longitude
 from .sect import is_above_horizon
 
-PRIMARY_CONTACT_ORB = 5.0
+# The primary-motivation lecture repeatedly gives an approximate 5–6° limit.
+# Keep 5° as the core range and 6° as the inclusive outer edge rather than
+# pretending the source supplies a single exact orb.
+PRIMARY_CONTACT_CORE_ORB = 5.0
+PRIMARY_CONTACT_ORB = 6.0
 BEHAVIOUR_DUAD_ORB = 5.0
 BEHAVIOUR_TIE_EPSILON = 1e-9
 
@@ -26,6 +30,17 @@ ELEMENT_BY_SIGN = {
     0: "fire", 1: "earth", 2: "air", 3: "water",
     4: "fire", 5: "earth", 6: "air", 7: "water",
     8: "fire", 9: "earth", 10: "air", 11: "water",
+}
+MODALITY_BY_SIGN = {
+    0: "cardinal", 1: "fixed", 2: "mutable", 3: "cardinal",
+    4: "fixed", 5: "mutable", 6: "cardinal", 7: "fixed",
+    8: "mutable", 9: "cardinal", 10: "fixed", 11: "mutable",
+}
+ASCENSION_BY_SIGN = {
+    0: "short-ascending", 1: "short-ascending", 2: "short-ascending",
+    3: "long-ascending", 4: "long-ascending", 5: "long-ascending",
+    6: "long-ascending", 7: "long-ascending", 8: "long-ascending",
+    9: "short-ascending", 10: "short-ascending", 11: "short-ascending",
 }
 MOTIVATION_LABELS = {
     "fire": "power, success, independence and freedom",
@@ -251,13 +266,18 @@ def build_primary_motivation(
         source = (
             "Planet on Ascendant" if kind == "conjunction" else "Aspect to Ascendant"
         )
+        edge_note = (
+            " — edge of course's approximate 5–6° range"
+            if orb > PRIMARY_CONTACT_CORE_ORB
+            else ""
+        )
         factors.append(
             PrimaryMotivationFactor(
                 source=source,
                 element=element,
                 motivation=SIGN_MOTIVATION[sign_idx],
                 detail=(
-                    f"{report.planet.name} {kind}, orb {orb:.2f}° from {report.sign}"
+                    f"{report.planet.name} {kind}, orb {orb:.2f}° from {report.sign}{edge_note}"
                 ),
                 planet=report.planet.name,
                 condition=_condition(report),
@@ -549,13 +569,18 @@ def build_mind_factors(
     mercury = by_name["Mercury"]
     moon = by_name["Moon"]
     is_day = mercury.sect_chart == "day"
-    mercury_element = _element(mercury.planet.longitude)
+    mercury_sign_idx = sign_index_from_longitude(mercury.planet.longitude)
+    moon_sign_idx = sign_index_from_longitude(moon.planet.longitude)
+    mercury_element = ELEMENT_BY_SIGN[mercury_sign_idx]
+    moon_element = ELEMENT_BY_SIGN[moon_sign_idx]
     mercury_dispositor = by_name[mercury.ruler]
     moon_dispositor = by_name[moon.ruler]
 
     mercury_items = [
         f"{mercury.sign}, House {mercury.planet.house}",
         f"element: {mercury_element} — {MERCURY_ELEMENT_LABELS[mercury_element]}",
+        f"modality: {MODALITY_BY_SIGN[mercury_sign_idx]}",
+        f"ascension: {ASCENSION_BY_SIGN[mercury_sign_idx]}",
         (
             "above horizon: easier expression and communication"
             if is_above_horizon(chart, mercury.planet)
@@ -601,6 +626,9 @@ def build_mind_factors(
 
     moon_items = [
         f"{moon.sign}, House {moon.planet.house}",
+        f"element: {moon_element}",
+        f"modality: {MODALITY_BY_SIGN[moon_sign_idx]}",
+        f"ascension: {ASCENSION_BY_SIGN[moon_sign_idx]}",
         f"dispositor: {moon_dispositor.planet.name} in {moon_dispositor.sign}, "
         f"House {moon_dispositor.planet.house}",
         *[f"condition: {item}" for item in _condition(moon)],
