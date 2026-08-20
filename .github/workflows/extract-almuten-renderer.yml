@@ -1,4 +1,4 @@
-name: Extract Almuten renderer
+name: Extract relationship renderer
 
 on:
   push:
@@ -27,7 +27,7 @@ jobs:
 
       - uses: astral-sh/setup-uv@v6
 
-      - name: Remove migrated renderer block and re-export public function
+      - name: Remove migrated relationship renderer block
         shell: bash
         run: |
           python - <<'PY'
@@ -36,15 +36,21 @@ jobs:
           path = Path("hor_tools/output.py")
           text = path.read_text()
 
-          old_import = "from .almuten import ALMUTEN_PLANETS, build_almuten_figuris\n"
-          new_import = "from .rendering.almuten import print_almuten_tables\n"
+          old_import = "from .rendering.almuten import print_almuten_tables\n"
+          new_import = (
+              "from .rendering.almuten import print_almuten_tables\n"
+              "from .rendering.relationships import render_relationship_tables as _render_relationship_tables\n"
+          )
           if old_import not in text:
-              raise SystemExit("Expected Almuten import not found in output.py")
+              raise SystemExit("Expected rendering import not found in output.py")
           text = text.replace(old_import, new_import, 1)
 
-          start = text.index("def _format_degree_for_table(")
+          start = text.index("def _format_contrib_cell(")
           end = text.index("def _format_long_with_sign(", start)
           text = text[:start] + text[end:]
+
+          # These annotations moved with the relationship renderer.
+          text = text.replace("InfluenceSource, ", "")
           path.write_text(text)
           PY
 
@@ -62,5 +68,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add hor_tools/output.py
-          git commit -m "Extract Almuten renderer from output module"
+          git commit -m "Extract relationship renderer from output module"
           git push
