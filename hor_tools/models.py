@@ -28,6 +28,7 @@ class ChartInput:
     zodiac: str
     location_name: str | None = None
     altitude_m: float | None = None
+    male: bool | None = None
 
 
 @dataclass
