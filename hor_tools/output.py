@@ -159,8 +159,10 @@ def _build_motion_lines(rep: PlanetReport, markup: bool = False) -> list[str]:
     p = rep.planet
     direction = strong("retrograde", "red") if p.retrograde else pale("direct")
     lines = [direction]
-    if rep.is_cazimi:
-        lines.insert(0, strong("CAZIMI", "magenta"))
+    if rep.is_true_cazimi:
+        lines.insert(0, strong("TRUE CAZIMI (lon+lat)", "magenta"))
+    elif rep.is_cazimi:
+        lines.insert(0, strong("CAZIMI (longitude)", "magenta"))
 
     speed_class = rep.speed_class
     if speed_class.lower() in {"slow", "swift"}:
@@ -174,13 +176,49 @@ def _build_motion_lines(rep: PlanetReport, markup: bool = False) -> list[str]:
     return lines
 
 
+def _build_condition_lines(rep: PlanetReport, markup: bool = False) -> list[str]:
+    """Render source-backed accidental testimonies kept outside aggregate scores."""
+
+    def styled(text: str, color: str) -> str:
+        return f"[bold {color}]{text}[/]" if markup else text
+
+    def pale(text: str) -> str:
+        return f"[dim]{text}[/]" if markup else text
+
+    lines: list[str] = []
+    if rep.is_in_planetary_joy:
+        lines.append(styled("planetary joy", "green"))
+
+    if rep.latitude_condition == "north_strengthening":
+        lines.append(styled("north latitude: strengthening", "green"))
+    elif rep.latitude_condition == "south_weakening":
+        lines.append(styled("south latitude: weakening", "red"))
+    else:
+        lines.append(pale("on ecliptic"))
+
+    if rep.is_in_via_combusta:
+        lines.append(styled("via combusta (19 Libra-3 Scorpio)", "red"))
+    if rep.is_void_of_course:
+        lines.append(styled("VOID OF COURSE", "yellow"))
+
+    return lines
+
+
 def _format_synodic(rep: PlanetReport, markup: bool = False) -> str:
     """Return a short synodic phase string if available."""
     phase = rep.planet.synodic_phase
     if not phase:
         return ""
-    is_cazimi = rep.is_cazimi or ("cazimi" in (phase.code or ""))
-    label = "Cazimi" if is_cazimi else phase.label
+    phase_cazimi = "cazimi" in (phase.code or "")
+    if rep.is_true_cazimi:
+        label = "True cazimi"
+        is_cazimi = True
+    elif rep.is_cazimi or phase_cazimi:
+        label = "Cazimi"
+        is_cazimi = True
+    else:
+        label = phase.label
+        is_cazimi = False
     if markup and is_cazimi:
         label = f"[bold magenta]{label.upper()}[/]"
     elif not markup and is_cazimi:
@@ -382,15 +420,22 @@ def print_full_report(
         print("  Motion:")
         for ln in motion_lines:
             print(f"    {ln}")
+
+        condition_lines = _build_condition_lines(rep)
+        if condition_lines:
+            print("  Conditions:")
+            for ln in condition_lines:
+                print(f"    {ln}")
+
         synodic_str = _format_synodic(rep, markup=False)
         if synodic_str:
             print(f"  Synodic: {synodic_str}")
 
         if rep.fixed_stars:
             stars = ", ".join(rep.fixed_stars)
-            print(f"  Fixed stars <= 3°: {stars}")
+            print(f"  Fixed stars (course orb): {stars}")
         else:
-            print("  Fixed stars <= 3°: none")
+            print("  Fixed stars (course orb): none")
 
         if rep.aspects:
             print("  Aspects:")
@@ -638,13 +683,14 @@ def _render_rich_report(
     console.print()
 
     # Planetary State table
-    planet_table = Table(title="Planetary State", box=box.ROUNDED, expand=False, width=110, padding=(0, 1))
+    planet_table = Table(title="Planetary State", box=box.ROUNDED, expand=False, width=128, padding=(0, 1))
     planet_table.add_column("Planet", style="cyan", no_wrap=True)
     planet_table.add_column("Position", style="magenta", no_wrap=True, justify="right")
     planet_table.add_column("House", justify="center", no_wrap=True)
     planet_table.add_column("Dignity", style="green", overflow="fold", max_width=24)
     planet_table.add_column("Sect", style="yellow", overflow="fold", max_width=22)
     planet_table.add_column("Motion", justify="right", overflow="fold", max_width=22)
+    planet_table.add_column("Conditions", style="white", overflow="fold", max_width=28)
     planet_table.add_column("Synodic", style="cyan", overflow="fold", max_width=20)
 
     for idx, rep in enumerate(reports):
@@ -655,10 +701,12 @@ def _render_rich_report(
         dignity_lines = _build_dignity_lines(rep, markup=True)
         sect_lines = _build_sect_lines(rep, markup=True)
         motion_lines = _build_motion_lines(rep, markup=True)
+        condition_lines = _build_condition_lines(rep, markup=True)
         synodic = _format_synodic(rep, markup=True)
 
         # Highlight retrograde in motion
         motion_text = Text.from_markup("\n".join(motion_lines))
+        conditions_text = Text.from_markup("\n".join(condition_lines))
 
         # Apply markup for dignity/sect
         dignity_text = Text.from_markup("\n".join(dignity_lines))
@@ -671,11 +719,12 @@ def _render_rich_report(
             dignity_text,
             sect_text,
             motion_text,
+            conditions_text,
             synodic,
         )
         # Spacer row between planets for readability
         if idx < len(reports) - 1:
-            planet_table.add_row(*([""] * 7))
+            planet_table.add_row(*([""] * 8))
 
     console.print(planet_table)
     console.print()

@@ -1,5 +1,5 @@
 exit_code=1
-commit=cd190a370fd2fd9edbad66fd9b7cce6427df0e20
+commit=20e5fad0046f4923d6bb718849310561017bd899
 --- pytest ---
 ............................F.........                                   [100%]
 =================================== FAILURES ===================================
@@ -19,4 +19,4 @@ E       AssertionError: [CollectionOfLight(collector='Venus', from_planets=('Sun
 tests/test_relationships.py:92: AssertionError
 =========================== short test summary info ============================
 FAILED tests/test_relationships.py::RelationshipDetectionTest::test_collection_requires_faster_planet_closer - AssertionError: [CollectionOfLight(collector='Venus', from_planets=('Sun', 'Mars'), aspect_from_first=AspectInfo(other='Venus', kind='sextile', orb=1.0, applying=True, dexter=True, self_applying=True, mutual_application=False, mutual_separation=False, counter_ray=False), aspect_from_second=AspectInfo(other='Venus', kind='conjunction', orb=3.0, applying=True, dexter=False, self_applying=True, mutual_application=False, mutual_separation=False, counter_ray=False), collector_naturally_slower=False, naturally_fastest='Sun')] is not false
-1 failed, 37 passed in 0.30s
+1 failed, 37 passed in 0.29s
