@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 """Geometric helpers for traditional planetary rays.
 
 The relationship doctrines in this project are defined by where exact Ptolemaic
@@ -7,6 +5,8 @@ rays land in the zodiac, not by the bodily longitude of the planet casting the
 ray.  Keeping the geometry here lets translation, collection and enclosure use
 one consistent implementation.
 """
+
+from __future__ import annotations
 
 from math import inf
 from typing import Iterable

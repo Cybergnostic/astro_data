@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import List, Tuple
 
 from ..models import ChartInput, PlanetPosition, Houses, PlanetReport, ChartRelationships
-from .dignity import essential_dignity, classify_speed, SIGNS
+from .dignity import essential_dignity, classify_speed
 from .sect import chart_sect, planet_sect, compute_hayz_and_halb
 from .stars import stars_near_longitude
 from .aspects import aspects_for_planet

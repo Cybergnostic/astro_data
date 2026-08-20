@@ -7,8 +7,9 @@ from typing import Dict, List, Tuple
 
 import swisseph as swe
 
-from .analysis.dignity import SIGNS, TRIPLICITIES, essential_dignity, degree_in_sign, sign_index_from_longitude
+from .analysis.dignity import TRIPLICITIES, essential_dignity, sign_index_from_longitude
 from .analysis.sect import chart_sect
+from .almuten_types import AccidentalScores, AlmutenResult
 from .astro_engine import ensure_ephe_path, julian_day_from_chart
 from .models import ChartInput, Houses, PlanetPosition
 
@@ -374,11 +375,19 @@ def phase_score(planet: PlanetPosition, sun_longitude: float) -> int:
     return 0
 
 
-def compute_accidental_scores(chart: ChartInput, planets: List[PlanetPosition]) -> Dict[str, Dict[str, int | str]]:
+def compute_accidental_scores(
+    chart: ChartInput, planets: List[PlanetPosition]
+) -> AccidentalScores:
     house_scores = {p.name: HOUSE_STRENGTH_SCORES.get(p.house, 0) for p in planets}
     day_ruler, hour_ruler = planetary_day_hour_rulers(chart)
-    day_bonus = {planet: DAY_RULER_BONUS if planet == day_ruler else 0 for planet in ALMUTEN_PLANETS}
-    hour_bonus = {planet: HOUR_RULER_BONUS if planet == hour_ruler else 0 for planet in ALMUTEN_PLANETS}
+    day_bonus = {
+        planet: DAY_RULER_BONUS if planet == day_ruler else 0
+        for planet in ALMUTEN_PLANETS
+    }
+    hour_bonus = {
+        planet: HOUR_RULER_BONUS if planet == hour_ruler else 0
+        for planet in ALMUTEN_PLANETS
+    }
     sun = next(p for p in planets if p.name == "Sun")
     phase_scores = {p.name: phase_score(p, sun.longitude) for p in planets}
 
@@ -390,33 +399,38 @@ def compute_accidental_scores(chart: ChartInput, planets: List[PlanetPosition]) 
         for planet in ALMUTEN_PLANETS
     }
 
-    return {
-        "house_scores": house_scores,
-        "day_ruler": day_ruler,
-        "hour_ruler": hour_ruler,
-        "day_bonus": day_bonus,
-        "hour_bonus": hour_bonus,
-        "phase_scores": phase_scores,
-        "accidental_totals": accidental_totals,
-    }
+    return AccidentalScores(
+        house_scores=house_scores,
+        day_ruler=day_ruler,
+        hour_ruler=hour_ruler,
+        day_bonus=day_bonus,
+        hour_bonus=hour_bonus,
+        phase_scores=phase_scores,
+        accidental_totals=accidental_totals,
+    )
 
 
-def build_almuten_figuris(chart: ChartInput, planets: List[PlanetPosition], houses: Houses) -> Dict[str, object]:
+def build_almuten_figuris(
+    chart: ChartInput, planets: List[PlanetPosition], houses: Houses
+) -> AlmutenResult:
     rows, total_shares, total_scores = build_essential_rows(chart, planets, houses)
     accidental = compute_accidental_scores(chart, planets)
 
     essential_totals = total_scores
-    accidental_totals = accidental["accidental_totals"]
-    grand_scores = {p: essential_totals.get(p, 0) + accidental_totals.get(p, 0) for p in ALMUTEN_PLANETS}
-    max_score = max(grand_scores.values()) if grand_scores else 0
-    almuten = [p for p, score in grand_scores.items() if score == max_score]
-
-    return {
-        "rows": rows,
-        "total_shares": total_shares,
-        "essential_totals": essential_totals,
-        "accidental": accidental,
-        "grand_scores": grand_scores,
-        "almuten": almuten,
-        "almuten_score": max_score,
+    grand_scores = {
+        planet: essential_totals.get(planet, 0)
+        + accidental.accidental_totals.get(planet, 0)
+        for planet in ALMUTEN_PLANETS
     }
+    max_score = max(grand_scores.values()) if grand_scores else 0
+    almuten = [planet for planet, score in grand_scores.items() if score == max_score]
+
+    return AlmutenResult(
+        rows=rows,
+        total_shares=total_shares,
+        essential_totals=essential_totals,
+        accidental=accidental,
+        grand_scores=grand_scores,
+        almuten=almuten,
+        almuten_score=max_score,
+    )

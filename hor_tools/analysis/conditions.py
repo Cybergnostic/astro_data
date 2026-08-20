@@ -1,11 +1,11 @@
-from __future__ import annotations
-
 """Additional accidental conditions explicitly used by the course material.
 
 These conditions are kept as separate testimony instead of being collapsed into
 one numerical score: house joy and latitude describe accidental strength, while
 via combusta and void-of-course are separate condition/impediment flags.
 """
+
+from __future__ import annotations
 
 import swisseph as swe
 

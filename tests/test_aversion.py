@@ -1,10 +1,8 @@
 from hor_tools.analysis.aversion import compute_domicile_aversion
 from hor_tools.models import (
     AspectInfo,
-    DomicileAversion,
     PlanetPosition,
     PlanetReport,
-    ReflectionHit,
     TranslationOfLight,
 )
 

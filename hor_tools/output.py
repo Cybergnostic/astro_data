@@ -8,7 +8,7 @@ from io import StringIO
 from pathlib import Path
 
 from .almuten import ALMUTEN_PLANETS, build_almuten_figuris
-from .models import AspectInfo, ChartInput, ChartRelationships, Houses, PlanetPosition, PlanetReport, ReflectionHit
+from .models import AspectInfo, ChartInput, ChartRelationships, Houses, InfluenceSource, PlanetPosition, PlanetReport, ReflectionHit
 from .analysis.dignity import SIGNS, degree_in_sign
 
 # Optional: maps for pretty symbols when rendering with Rich

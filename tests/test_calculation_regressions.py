@@ -1,20 +1,11 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from pathlib import Path
-import sys
 import unittest
 
 import swisseph as swe
 
-# The event/Ascendant scanners are intentionally root-level scripts rather than
-# installed package modules. Add the repository root explicitly so the tests
-# exercise those public helpers under pytest/importlib mode as well.
-ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
-
-from asc_window_scan import offset_hours_at, resolve_zone
+from hor_tools.commands.asc_window import offset_hours_at, resolve_zone
 from hor_tools.analysis.aspects import PLANET_ORBS, _is_applying
 from hor_tools.analysis.conditions import (
     _crosses_major_aspect,
@@ -32,7 +23,7 @@ from hor_tools.analysis.sect import chart_sect, compute_hayz_and_halb
 from hor_tools.analysis.stars import _star_orb_from_magnitude
 from hor_tools.astro_engine import julian_day_from_chart
 from hor_tools.models import AspectInfo, ChartInput, PlanetPosition
-from scan_events import _crossed_aspect_target
+from hor_tools.commands.scan_events import _crossed_aspect_target
 
 
 def _planet(

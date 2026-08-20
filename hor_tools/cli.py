@@ -78,7 +78,7 @@ def _render_report(
     except ModuleNotFoundError:  # pragma: no cover - dependency safety net
         output.print_full_report(chart, reports, houses, relationships)
         if html_path is not None:
-            raise RuntimeError("HTML export requires the 'rich' package.")
+            raise RuntimeError("HTML export requires the 'rich' package.") from None
     else:
         output.print_rich_report(chart, reports, houses, relationships)
         if html_path is not None:
