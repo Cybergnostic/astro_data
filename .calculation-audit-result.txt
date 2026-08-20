@@ -1,28 +1,5 @@
-exit_code=1
-commit=fb57788c4902115eb926f9b1daaccbc98881df5f
+exit_code=0
+commit=7a8f3af08ae22401c6e6f7afd9c5bf67b96d23a5
 --- pytest ---
-..................................................F...........           [100%]
-=================================== FAILURES ===================================
-_ RelationshipDetectionTest.test_translation_collection_and_malefic_enclosure __
-
-self = <test_relationships.RelationshipDetectionTest testMethod=test_translation_collection_and_malefic_enclosure>
-
-    def test_translation_collection_and_malefic_enclosure(self) -> None:
-        planets = [
-            _make_pos("Sun", 120.0, 1.0, house=10),
-            _make_pos("Moon", 5.0, 13.0),
-            _make_pos("Mercury", 350.0, 1.0),
-            _make_pos("Venus", 140.0, 0.6),
-            _make_pos("Mars", 275.0, -0.8),
-            _make_pos("Jupiter", 310.0, 0.2),
-            _make_pos("Saturn", 358.0, 0.05),
-        ]
-        reports, relationships = build_reports(_dummy_chart(), planets, _dummy_houses())
-        self.assertTrue(any(t.translator == "Moon" for t in relationships.translations))
->       self.assertTrue(any(c.collector == "Saturn" for c in relationships.collections))
-E       AssertionError: False is not true
-
-tests/test_relationships.py:81: AssertionError
-=========================== short test summary info ============================
-FAILED tests/test_relationships.py::RelationshipDetectionTest::test_translation_collection_and_malefic_enclosure - AssertionError: False is not true
-1 failed, 61 passed in 0.33s
+..............................................................           [100%]
+62 passed in 0.25s
