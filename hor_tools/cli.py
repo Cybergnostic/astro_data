@@ -1,10 +1,12 @@
-"""Command line entry point for reading Morinus .hor files."""
+"""Command-line entry point for reading Morinus ``.hor`` files."""
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
+import argparse
 from datetime import timezone
+from importlib.metadata import PackageNotFoundError, version
+from pathlib import Path
+from typing import Sequence
 
 from . import astro_engine, hor_parser, output
 from .analysis import build_reports
@@ -13,116 +15,134 @@ from .models import ChartInput
 DEFAULT_OUTPUT_DIR = Path("outputs")
 
 
-def main() -> None:
-    """
-    CLI entry point.
-
-    Usage:
-        hor-reader path/to/file.hor
-    """
-
-    html_path = None
-    md_path = None
-    ephe_path = None
-    positional = []
-    it = iter(sys.argv[1:])
-    for arg in it:
-        if arg == "--html":
-            try:
-                html_path = next(it)
-            except StopIteration:
-                print("Error: --html requires a path argument")
-                sys.exit(1)
-        elif arg.startswith("--html="):
-            html_path = arg.split("=", 1)[1]
-        elif arg == "--md" or arg == "--markdown":
-            try:
-                md_path = next(it)
-            except StopIteration:
-                print("Error: --md/--markdown requires a path argument")
-                sys.exit(1)
-        elif arg.startswith("--md=") or arg.startswith("--markdown="):
-            md_path = arg.split("=", 1)[1]
-        elif arg == "--ephe":
-            try:
-                ephe_path = next(it)
-            except StopIteration:
-                print("Error: --ephe requires a path argument")
-                sys.exit(1)
-        elif arg.startswith("--ephe="):
-            ephe_path = arg.split("=", 1)[1]
-        else:
-            positional.append(arg)
-
-    if len(positional) < 1:
-        print("Usage: hor-reader [--html out.html] [--md out.md] [--ephe ephe_dir] path/to/file.hor")
-        sys.exit(1)
-
-    file_path = Path(positional[0])
-    if not file_path.exists():
-        print(f"Error: file not found -> {file_path}")
-        sys.exit(1)
-
+def _package_version() -> str:
     try:
-        chart: ChartInput = hor_parser.load_hor(file_path)
-    except Exception as exc:  # pragma: no cover - CLI defensive path
-        print(f"Error parsing .hor file: {exc}")
-        raise
+        return version("hor-tools")
+    except PackageNotFoundError:  # pragma: no cover - source-tree fallback
+        return "0.1.0"
 
-    if ephe_path:
-        astro_engine.set_ephe_path(str(Path(ephe_path).expanduser()))
 
-    def resolve_output_path(path_str: str | None) -> Path | None:
-        if not path_str:
-            return None
-        p = Path(path_str)
-        if not p.is_absolute() and p.parent == Path("."):
-            p = DEFAULT_OUTPUT_DIR / p
-        p.parent.mkdir(parents=True, exist_ok=True)
-        return p
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="hor-reader",
+        description="Read a Morinus .hor file and render the traditional astrology report.",
+    )
+    parser.add_argument("hor_file", type=Path, help="Path to a Morinus .hor file.")
+    parser.add_argument("--html", metavar="PATH", help="Export a Rich HTML report.")
+    parser.add_argument(
+        "--md",
+        "--markdown",
+        dest="md",
+        metavar="PATH",
+        help="Export a Markdown report.",
+    )
+    parser.add_argument(
+        "--ephe",
+        metavar="DIR",
+        help="Swiss Ephemeris directory (overrides SWISSEPH_EPHE).",
+    )
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Show a full traceback if report generation fails.",
+    )
+    parser.add_argument("--version", action="version", version=f"%(prog)s {_package_version()}")
+    return parser
 
-    html_path_resolved = resolve_output_path(html_path)
-    md_path_resolved = resolve_output_path(md_path)
 
+def resolve_output_path(path_str: str | None) -> Path | None:
+    """Resolve a requested export path and create its parent directory."""
+    if not path_str:
+        return None
+
+    path = Path(path_str).expanduser()
+    if not path.is_absolute() and path.parent == Path("."):
+        path = DEFAULT_OUTPUT_DIR / path
+    path.parent.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def _render_report(
+    chart: ChartInput,
+    html_path: Path | None,
+    md_path: Path | None,
+) -> None:
     planets = astro_engine.compute_planets(chart)
     houses = astro_engine.compute_houses(chart)
     reports, relationships = build_reports(chart, planets, houses)
 
-    # Prefer Rich tables if rich is installed; otherwise fall back to text.
+    # Rich is a runtime dependency, but keeping the text fallback makes the
+    # library usable in constrained environments and preserves old behavior.
     try:
         import rich  # type: ignore  # noqa: F401
-    except ModuleNotFoundError:
+    except ModuleNotFoundError:  # pragma: no cover - dependency safety net
         output.print_full_report(chart, reports, houses, relationships)
+        if html_path is not None:
+            raise RuntimeError("HTML export requires the 'rich' package.")
     else:
         output.print_rich_report(chart, reports, houses, relationships)
-        if html_path_resolved:
-            output.export_rich_html(str(html_path_resolved), chart, reports, houses, planets, relationships)
+        if html_path is not None:
+            output.export_rich_html(
+                str(html_path), chart, reports, houses, planets, relationships
+            )
 
-    if md_path_resolved:
-        md_content = output.build_markdown_report(chart, reports, houses, planets, relationships)
-        md_path_resolved.write_text(md_content, encoding="utf-8")
+    if md_path is not None:
+        md_content = output.build_markdown_report(
+            chart, reports, houses, planets, relationships
+        )
+        md_path.write_text(md_content, encoding="utf-8")
 
-    # Always show Almuten tables after main report
     print()
     output.print_almuten_tables(chart, planets, houses)
 
-    # Offer a ready-to-edit scan_events.py command with chart location prefilled.
+
+def _scan_helper_template(chart: ChartInput, ephe_path: str | None) -> str:
     dt_utc = chart.datetime_utc
     if dt_utc.tzinfo is not None:
         dt_utc = dt_utc.astimezone(timezone.utc).replace(tzinfo=None)
     dt_str = dt_utc.isoformat() + "Z"
-    scan_cmd_parts = [
-        "python",
-        "scan_events.py",
+
+    parts = [
+        "hor-scan-events",
         f'--start "{dt_str}"',
         '--end "<END_ISO_UTC>"',
         f"--lat {chart.latitude}",
         f"--lon {chart.longitude}",
     ]
     if ephe_path:
-        scan_cmd_parts.append(f'--ephe "{Path(ephe_path).expanduser()}"')
-    print("\nScan helper template:", " ".join(scan_cmd_parts))
+        parts.append(f'--ephe "{Path(ephe_path).expanduser()}"')
+    return " ".join(parts)
+
+
+def run(args: argparse.Namespace) -> int:
+    file_path = args.hor_file.expanduser()
+    if not file_path.is_file():
+        raise FileNotFoundError(f".hor file not found: {file_path}")
+
+    if args.ephe:
+        astro_engine.set_ephe_path(args.ephe)
+
+    chart = hor_parser.load_hor(file_path)
+    html_path = resolve_output_path(args.html)
+    md_path = resolve_output_path(args.md)
+    _render_report(chart, html_path, md_path)
+
+    print("\nScan helper template:", _scan_helper_template(chart, args.ephe))
+    return 0
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    """CLI entry point used by the ``hor-reader`` console script."""
+    parser = build_parser()
+    args = parser.parse_args(argv)
+
+    try:
+        return run(args)
+    except Exception as exc:
+        if args.debug:
+            raise
+        parser.exit(2, f"{parser.prog}: error: {exc}\n")
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
