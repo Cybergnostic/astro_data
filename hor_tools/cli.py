@@ -12,7 +12,8 @@ from . import astro_engine, hor_parser, output
 from .analysis import build_reports
 from .analysis.technical import build_natal_technical_report
 from .models import ChartInput
-from .rendering.technical import build_technical_markdown, print_terminal_summary
+from .rendering.pretty_report import build_pretty_html, build_pretty_markdown
+from .rendering.technical import print_terminal_summary
 
 DEFAULT_OUTPUT_DIR = Path("outputs")
 
@@ -29,11 +30,15 @@ def build_parser() -> argparse.ArgumentParser:
         prog="hor-reader",
         description=(
             "Read a Morinus .hor file, show the compact traditional-astrology snapshot, "
-            "and write the complete technical Markdown report."
+            "and write polished complete Markdown/HTML technical reports."
         ),
     )
     parser.add_argument("hor_file", type=Path, help="Path to a Morinus .hor file.")
-    parser.add_argument("--html", metavar="PATH", help="Export the legacy Rich HTML report.")
+    parser.add_argument(
+        "--html",
+        metavar="PATH",
+        help="Export the complete responsive HTML technical report.",
+    )
     markdown = parser.add_mutually_exclusive_group()
     markdown.add_argument(
         "--md",
@@ -111,21 +116,22 @@ def _render_report(
         print()
         output.print_almuten_tables(chart, planets, houses)
 
-    if html_path is not None:
-        try:
-            import rich  # type: ignore  # noqa: F401
-        except ModuleNotFoundError:  # pragma: no cover
-            raise RuntimeError("HTML export requires the 'rich' package.") from None
-        output.export_rich_html(
-            str(html_path), chart, reports, houses, planets, relationships
-        )
-
-    if md_path is not None:
+    legacy: str | None = None
+    if html_path is not None or md_path is not None:
         legacy = output.build_markdown_report(
             chart, reports, houses, planets, relationships
         )
-        md_content = build_technical_markdown(
-            chart, reports, houses, technical, legacy
+
+    if html_path is not None:
+        html_content = build_pretty_html(
+            chart, reports, houses, technical, legacy or ""
+        )
+        html_path.write_text(html_content, encoding="utf-8")
+        print(f"\nFull HTML report: {html_path}")
+
+    if md_path is not None:
+        md_content = build_pretty_markdown(
+            chart, reports, houses, technical, legacy or ""
         )
         md_path.write_text(md_content, encoding="utf-8")
         print(f"\nFull Markdown report: {md_path}")
