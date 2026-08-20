@@ -1,0 +1,4398 @@
+== uv sync ==
+Using CPython 3.11.15 interpreter at: /opt/hostedtoolcache/Python/3.11.15/x64/bin/python3.11
+Creating virtual environment at: .venv
+Resolved 21 packages in 67ms
+   Building hor-tools @ file:///home/runner/work/astro_data/astro_data
+Downloading ruff (10.5MiB)
+Downloading pygments (1.2MiB)
+Downloading pyswisseph (1.7MiB)
+ Downloaded pyswisseph
+ Downloaded ruff
+ Downloaded pygments
+      Built hor-tools @ file:///home/runner/work/astro_data/astro_data
+Prepared 13 packages in 818ms
+Installed 13 packages in 8ms
+ + build==1.5.0
+ + hor-tools==0.1.0 (from file:///home/runner/work/astro_data/astro_data)
+ + iniconfig==2.3.0
+ + markdown-it-py==4.0.0
+ + mdurl==0.1.2
+ + packaging==25.0
+ + pluggy==1.6.0
+ + pygments==2.19.2
+ + pyproject-hooks==1.2.0
+ + pyswisseph==2.10.3.2
+ + pytest==9.0.1
+ + rich==14.2.0
+ + ruff==0.16.3
+exit_code=0
+
+== pytest ==
+........................................................................ [ 87%]
+..........                                                               [100%]
+82 passed in 0.32s
+exit_code=0
+
+== ruff ==
+I001 [*] Import block is un-sorted or un-formatted
+  --> hor_tools/almuten.py:1:1
+   |
+ 1 | / from __future__ import annotations
+ 2 | |
+ 3 | | from dataclasses import dataclass
+ 4 | | from datetime import datetime, time, timedelta, timezone
+ 5 | | import math
+ 6 | | from typing import Dict, List, Tuple
+ 7 | |
+ 8 | | import swisseph as swe
+ 9 | |
+10 | | from .analysis.dignity import SIGNS, TRIPLICITIES, essential_dignity, degree_in_sign, sign_index_from_longitude
+11 | | from .analysis.sect import chart_sect
+12 | | from .astro_engine import ensure_ephe_path, julian_day_from_chart
+13 | | from .models import ChartInput, Houses, PlanetPosition
+   | |______________________________________________________^
+14 |
+15 |   CHALDEAN_ORDER = ["Saturn", "Jupiter", "Mars", "Sun", "Venus", "Mercury", "Moon"]
+   |
+help: Organize imports
+   |
+2  |
+3  + import math
+4  | from dataclasses import dataclass
+5  | from datetime import datetime, time, timedelta, timezone
+   - import math
+6  | from typing import Dict, List, Tuple
+7  |
+8  | import swisseph as swe
+9  |
+   - from .analysis.dignity import SIGNS, TRIPLICITIES, essential_dignity, degree_in_sign, sign_index_from_longitude
+10 + from .analysis.dignity import (
+11 +     SIGNS,
+12 +     TRIPLICITIES,
+13 +     degree_in_sign,
+14 +     essential_dignity,
+15 +     sign_index_from_longitude,
+16 + )
+17 | from .analysis.sect import chart_sect
+   |
+
+UP035 `typing.Dict` is deprecated, use `dict` instead
+ --> hor_tools/almuten.py:6:1
+  |
+4 | from datetime import datetime, time, timedelta, timezone
+5 | import math
+6 | from typing import Dict, List, Tuple
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+7 |
+8 | import swisseph as swe
+  |
+
+UP035 `typing.List` is deprecated, use `list` instead
+ --> hor_tools/almuten.py:6:1
+  |
+4 | from datetime import datetime, time, timedelta, timezone
+5 | import math
+6 | from typing import Dict, List, Tuple
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+7 |
+8 | import swisseph as swe
+  |
+
+UP035 `typing.Tuple` is deprecated, use `tuple` instead
+ --> hor_tools/almuten.py:6:1
+  |
+4 | from datetime import datetime, time, timedelta, timezone
+5 | import math
+6 | from typing import Dict, List, Tuple
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+7 |
+8 | import swisseph as swe
+  |
+
+F401 [*] `.analysis.dignity.SIGNS` imported but unused
+  --> hor_tools/almuten.py:10:31
+   |
+ 8 | import swisseph as swe
+ 9 |
+10 | from .analysis.dignity import SIGNS, TRIPLICITIES, essential_dignity, degree_in_sign, sign_index_from_longitude
+   |                               ^^^^^
+11 | from .analysis.sect import chart_sect
+12 | from .astro_engine import ensure_ephe_path, julian_day_from_chart
+   |
+help: Remove unused import
+   |
+9  |
+   - from .analysis.dignity import SIGNS, TRIPLICITIES, essential_dignity, degree_in_sign, sign_index_from_longitude
+10 + from .analysis.dignity import TRIPLICITIES, essential_dignity, sign_index_from_longitude
+11 | from .analysis.sect import chart_sect
+   |
+
+F401 [*] `.analysis.dignity.degree_in_sign` imported but unused
+  --> hor_tools/almuten.py:10:71
+   |
+ 8 | import swisseph as swe
+ 9 |
+10 | from .analysis.dignity import SIGNS, TRIPLICITIES, essential_dignity, degree_in_sign, sign_index_from_longitude
+   |                                                                       ^^^^^^^^^^^^^^
+11 | from .analysis.sect import chart_sect
+12 | from .astro_engine import ensure_ephe_path, julian_day_from_chart
+   |
+help: Remove unused import
+   |
+9  |
+   - from .analysis.dignity import SIGNS, TRIPLICITIES, essential_dignity, degree_in_sign, sign_index_from_longitude
+10 + from .analysis.dignity import TRIPLICITIES, essential_dignity, sign_index_from_longitude
+11 | from .analysis.sect import chart_sect
+   |
+
+E501 Line too long (111 > 100)
+  --> hor_tools/almuten.py:10:101
+   |
+ 8 | import swisseph as swe
+ 9 |
+10 | from .analysis.dignity import SIGNS, TRIPLICITIES, essential_dignity, degree_in_sign, sign_index_from_longitude
+   |                                                                                                     ^^^^^^^^^^^
+11 | from .analysis.sect import chart_sect
+12 | from .astro_engine import ensure_ephe_path, julian_day_from_chart
+   |
+
+E501 Line too long (104 > 100)
+  --> hor_tools/almuten.py:66:101
+   |
+66 | def planetary_hour_from_local(birth_str: str, sunrise_str: str, sunset_str: str, day_ruler: str) -> str:
+   |                                                                                                     ^^^^
+67 |     """Reference implementation for a daytime planetary hour from local clock times."""
+68 |     base_date = datetime(2000, 1, 1)
+   |
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+  --> hor_tools/almuten.py:90:20
+   |
+88 |     name: str
+89 |     longitude: float
+90 |     contributions: Dict[str, List[int]]
+   |                    ^^^^
+91 |     totals: Dict[str, int]
+92 |     winners: List[str]
+   |
+help: Replace with `dict`
+   |
+89 |     longitude: float
+   -     contributions: Dict[str, List[int]]
+90 +     contributions: dict[str, List[int]]
+91 |     totals: Dict[str, int]
+   |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+  --> hor_tools/almuten.py:90:30
+   |
+88 |     name: str
+89 |     longitude: float
+90 |     contributions: Dict[str, List[int]]
+   |                              ^^^^
+91 |     totals: Dict[str, int]
+92 |     winners: List[str]
+   |
+help: Replace with `list`
+   |
+89 |     longitude: float
+   -     contributions: Dict[str, List[int]]
+90 +     contributions: Dict[str, list[int]]
+91 |     totals: Dict[str, int]
+   |
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+  --> hor_tools/almuten.py:91:13
+   |
+89 |     longitude: float
+90 |     contributions: Dict[str, List[int]]
+91 |     totals: Dict[str, int]
+   |             ^^^^
+92 |     winners: List[str]
+   |
+help: Replace with `dict`
+   |
+90 |     contributions: Dict[str, List[int]]
+   -     totals: Dict[str, int]
+91 +     totals: dict[str, int]
+92 |     winners: List[str]
+   |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+  --> hor_tools/almuten.py:92:14
+   |
+90 |     contributions: Dict[str, List[int]]
+91 |     totals: Dict[str, int]
+92 |     winners: List[str]
+   |              ^^^^
+help: Replace with `list`
+   |
+91 |     totals: Dict[str, int]
+   -     winners: List[str]
+92 +     winners: list[str]
+93 |
+   |
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+  --> hor_tools/almuten.py:95:80
+   |
+95 | def get_essential_dignities_at_degree(longitude: float, is_day_chart: bool) -> Dict[str, Dict[str, bool]]:
+   |                                                                                ^^^^
+96 |     """For a given longitude, return per-planet dignity flags."""
+97 |     flags: Dict[str, Dict[str, bool]] = {}
+   |
+help: Replace with `dict`
+   |
+94 |
+   - def get_essential_dignities_at_degree(longitude: float, is_day_chart: bool) -> Dict[str, Dict[str, bool]]:
+95 + def get_essential_dignities_at_degree(longitude: float, is_day_chart: bool) -> dict[str, Dict[str, bool]]:
+96 |     """For a given longitude, return per-planet dignity flags."""
+   |
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+  --> hor_tools/almuten.py:95:90
+   |
+95 | def get_essential_dignities_at_degree(longitude: float, is_day_chart: bool) -> Dict[str, Dict[str, bool]]:
+   |                                                                                          ^^^^
+96 |     """For a given longitude, return per-planet dignity flags."""
+97 |     flags: Dict[str, Dict[str, bool]] = {}
+   |
+help: Replace with `dict`
+   |
+94 |
+   - def get_essential_dignities_at_degree(longitude: float, is_day_chart: bool) -> Dict[str, Dict[str, bool]]:
+95 + def get_essential_dignities_at_degree(longitude: float, is_day_chart: bool) -> Dict[str, dict[str, bool]]:
+96 |     """For a given longitude, return per-planet dignity flags."""
+   |
+
+E501 Line too long (106 > 100)
+  --> hor_tools/almuten.py:95:101
+   |
+95 | def get_essential_dignities_at_degree(longitude: float, is_day_chart: bool) -> Dict[str, Dict[str, bool]]:
+   |                                                                                                     ^^^^^^
+96 |     """For a given longitude, return per-planet dignity flags."""
+97 |     flags: Dict[str, Dict[str, bool]] = {}
+   |
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+  --> hor_tools/almuten.py:97:12
+   |
+95 | def get_essential_dignities_at_degree(longitude: float, is_day_chart: bool) -> Dict[str, Dict[str, bool]]:
+96 |     """For a given longitude, return per-planet dignity flags."""
+97 |     flags: Dict[str, Dict[str, bool]] = {}
+   |            ^^^^
+98 |     for planet in ALMUTEN_PLANETS:
+99 |         ess = essential_dignity(planet, longitude, is_day_chart=is_day_chart)
+   |
+help: Replace with `dict`
+   |
+96 |     """For a given longitude, return per-planet dignity flags."""
+   -     flags: Dict[str, Dict[str, bool]] = {}
+97 +     flags: dict[str, Dict[str, bool]] = {}
+98 |     for planet in ALMUTEN_PLANETS:
+   |
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+  --> hor_tools/almuten.py:97:22
+   |
+95 | def get_essential_dignities_at_degree(longitude: float, is_day_chart: bool) -> Dict[str, Dict[str, bool]]:
+96 |     """For a given longitude, return per-planet dignity flags."""
+97 |     flags: Dict[str, Dict[str, bool]] = {}
+   |                      ^^^^
+98 |     for planet in ALMUTEN_PLANETS:
+99 |         ess = essential_dignity(planet, longitude, is_day_chart=is_day_chart)
+   |
+help: Replace with `dict`
+   |
+96 |     """For a given longitude, return per-planet dignity flags."""
+   -     flags: Dict[str, Dict[str, bool]] = {}
+97 +     flags: Dict[str, dict[str, bool]] = {}
+98 |     for planet in ALMUTEN_PLANETS:
+   |
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+   --> hor_tools/almuten.py:110:80
+    |
+110 | def essential_contributions_at_degree(longitude: float, is_day_chart: bool) -> Dict[str, List[int]]:
+    |                                                                                ^^^^
+111 |     """Return per-planet contribution list of point weights."""
+112 |     flags = get_essential_dignities_at_degree(longitude, is_day_chart)
+    |
+help: Replace with `dict`
+    |
+109 |
+    - def essential_contributions_at_degree(longitude: float, is_day_chart: bool) -> Dict[str, List[int]]:
+110 + def essential_contributions_at_degree(longitude: float, is_day_chart: bool) -> dict[str, List[int]]:
+111 |     """Return per-planet contribution list of point weights."""
+    |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> hor_tools/almuten.py:110:90
+    |
+110 | def essential_contributions_at_degree(longitude: float, is_day_chart: bool) -> Dict[str, List[int]]:
+    |                                                                                          ^^^^
+111 |     """Return per-planet contribution list of point weights."""
+112 |     flags = get_essential_dignities_at_degree(longitude, is_day_chart)
+    |
+help: Replace with `list`
+    |
+109 |
+    - def essential_contributions_at_degree(longitude: float, is_day_chart: bool) -> Dict[str, List[int]]:
+110 + def essential_contributions_at_degree(longitude: float, is_day_chart: bool) -> Dict[str, list[int]]:
+111 |     """Return per-planet contribution list of point weights."""
+    |
+
+E501 Line too long (133 > 100)
+   --> hor_tools/almuten.py:114:101
+    |
+112 |     flags = get_essential_dignities_at_degree(longitude, is_day_chart)
+113 |     sign_idx = sign_index_from_longitude(longitude)
+114 |     element = "fire" if sign_idx in {0, 4, 8} else "earth" if sign_idx in {1, 5, 9} else "air" if sign_idx in {2, 6, 10} else "water"
+    |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+115 |     trip_day, trip_night, trip_part = TRIPLICITIES[element]
+116 |     contributions: Dict[str, List[int]] = {}
+    |
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+   --> hor_tools/almuten.py:116:20
+    |
+114 |     element = "fire" if sign_idx in {0, 4, 8} else "earth" if sign_idx in {1, 5, 9} else "air" if sign_idx in {2, 6, 10} else "water"
+115 |     trip_day, trip_night, trip_part = TRIPLICITIES[element]
+116 |     contributions: Dict[str, List[int]] = {}
+    |                    ^^^^
+117 |     for planet, vals in flags.items():
+118 |         contribs: List[int] = []
+    |
+help: Replace with `dict`
+    |
+115 |     trip_day, trip_night, trip_part = TRIPLICITIES[element]
+    -     contributions: Dict[str, List[int]] = {}
+116 +     contributions: dict[str, List[int]] = {}
+117 |     for planet, vals in flags.items():
+    |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> hor_tools/almuten.py:116:30
+    |
+114 |     element = "fire" if sign_idx in {0, 4, 8} else "earth" if sign_idx in {1, 5, 9} else "air" if sign_idx in {2, 6, 10} else "water"
+115 |     trip_day, trip_night, trip_part = TRIPLICITIES[element]
+116 |     contributions: Dict[str, List[int]] = {}
+    |                              ^^^^
+117 |     for planet, vals in flags.items():
+118 |         contribs: List[int] = []
+    |
+help: Replace with `list`
+    |
+115 |     trip_day, trip_night, trip_part = TRIPLICITIES[element]
+    -     contributions: Dict[str, List[int]] = {}
+116 +     contributions: Dict[str, list[int]] = {}
+117 |     for planet, vals in flags.items():
+    |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> hor_tools/almuten.py:118:19
+    |
+116 |     contributions: Dict[str, List[int]] = {}
+117 |     for planet, vals in flags.items():
+118 |         contribs: List[int] = []
+    |                   ^^^^
+119 |         for key, weight in ESSENTIAL_WEIGHTS.items():
+120 |             if key == "trip":
+    |
+help: Replace with `list`
+    |
+117 |     for planet, vals in flags.items():
+    -         contribs: List[int] = []
+118 +         contribs: list[int] = []
+119 |         for key, weight in ESSENTIAL_WEIGHTS.items():
+    |
+
+E501 Line too long (108 > 100)
+   --> hor_tools/almuten.py:131:101
+    |
+131 | def part_of_fortune_longitude(asc_long: float, sun_long: float, moon_long: float, sect_chart: str) -> float:
+    |                                                                                                     ^^^^^^^^
+132 |     if sect_chart == "day":
+133 |         fortune = asc_long + moon_long - sun_long
+    |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> hor_tools/almuten.py:233:54
+    |
+233 | def build_essential_rows(chart: ChartInput, planets: List[PlanetPosition], houses: Houses) -> Tuple[List[EssentialRow], Dict[str, int…
+    |                                                      ^^^^
+234 |     sun = next(p for p in planets if p.name == "Sun")
+235 |     moon = next(p for p in planets if p.name == "Moon")
+    |
+help: Replace with `list`
+    |
+232 |
+    - def build_essential_rows(chart: ChartInput, planets: List[PlanetPosition], houses: Houses) -> Tuple[List[EssentialRow], Dict[str, int], Dict[str, int]]:
+233 + def build_essential_rows(chart: ChartInput, planets: list[PlanetPosition], houses: Houses) -> Tuple[List[EssentialRow], Dict[str, int], Dict[str, int]]:
+234 |     sun = next(p for p in planets if p.name == "Sun")
+    |
+
+UP006 [*] Use `tuple` instead of `Tuple` for type annotation
+   --> hor_tools/almuten.py:233:95
+    |
+233 | def build_essential_rows(chart: ChartInput, planets: List[PlanetPosition], houses: Houses) -> Tuple[List[EssentialRow], Dict[str, int…
+    |                                                                                               ^^^^^
+234 |     sun = next(p for p in planets if p.name == "Sun")
+235 |     moon = next(p for p in planets if p.name == "Moon")
+    |
+help: Replace with `tuple`
+    |
+232 |
+    - def build_essential_rows(chart: ChartInput, planets: List[PlanetPosition], houses: Houses) -> Tuple[List[EssentialRow], Dict[str, int], Dict[str, int]]:
+233 + def build_essential_rows(chart: ChartInput, planets: List[PlanetPosition], houses: Houses) -> tuple[List[EssentialRow], Dict[str, int], Dict[str, int]]:
+234 |     sun = next(p for p in planets if p.name == "Sun")
+    |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> hor_tools/almuten.py:233:101
+    |
+233 | def build_essential_rows(chart: ChartInput, planets: List[PlanetPosition], houses: Houses) -> Tuple[List[EssentialRow], Dict[str, int…
+    |                                                                                                     ^^^^
+234 |     sun = next(p for p in planets if p.name == "Sun")
+235 |     moon = next(p for p in planets if p.name == "Moon")
+    |
+help: Replace with `list`
+    |
+232 |
+    - def build_essential_rows(chart: ChartInput, planets: List[PlanetPosition], houses: Houses) -> Tuple[List[EssentialRow], Dict[str, int], Dict[str, int]]:
+233 + def build_essential_rows(chart: ChartInput, planets: List[PlanetPosition], houses: Houses) -> Tuple[list[EssentialRow], Dict[str, int], Dict[str, int]]:
+234 |     sun = next(p for p in planets if p.name == "Sun")
+    |
+
+E501 Line too long (152 > 100)
+   --> hor_tools/almuten.py:233:101
+    |
+233 | …anetPosition], houses: Houses) -> Tuple[List[EssentialRow], Dict[str, int], Dict[str, int]]:
+    |                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+234 | …
+235 | …
+    |
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+   --> hor_tools/almuten.py:233:121
+    |
+233 | def build_essential_rows(chart: ChartInput, planets: List[PlanetPosition], houses: Houses) -> Tuple[List[EssentialRow], Dict[str, int…
+    |                                                                                                                         ^^^^
+234 |     sun = next(p for p in planets if p.name == "Sun")
+235 |     moon = next(p for p in planets if p.name == "Moon")
+    |
+help: Replace with `dict`
+    |
+232 |
+    - def build_essential_rows(chart: ChartInput, planets: List[PlanetPosition], houses: Houses) -> Tuple[List[EssentialRow], Dict[str, int], Dict[str, int]]:
+233 + def build_essential_rows(chart: ChartInput, planets: List[PlanetPosition], houses: Houses) -> Tuple[List[EssentialRow], dict[str, int], Dict[str, int]]:
+234 |     sun = next(p for p in planets if p.name == "Sun")
+    |
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+   --> hor_tools/almuten.py:233:137
+    |
+233 | …], houses: Houses) -> Tuple[List[EssentialRow], Dict[str, int], Dict[str, int]]:
+    |                                                                  ^^^^
+234 | …
+235 | …
+    |
+help: Replace with `dict`
+    |
+232 |
+    - def build_essential_rows(chart: ChartInput, planets: List[PlanetPosition], houses: Houses) -> Tuple[List[EssentialRow], Dict[str, int], Dict[str, int]]:
+233 + def build_essential_rows(chart: ChartInput, planets: List[PlanetPosition], houses: Houses) -> Tuple[List[EssentialRow], Dict[str, int], dict[str, int]]:
+234 |     sun = next(p for p in planets if p.name == "Sun")
+    |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> hor_tools/almuten.py:249:11
+    |
+247 |     ]
+248 |
+249 |     rows: List[EssentialRow] = []
+    |           ^^^^
+250 |     total_shares = {p: 0 for p in ALMUTEN_PLANETS}
+251 |     total_scores = {p: 0 for p in ALMUTEN_PLANETS}
+    |
+help: Replace with `list`
+    |
+248 |
+    -     rows: List[EssentialRow] = []
+249 +     rows: list[EssentialRow] = []
+250 |     total_shares = {p: 0 for p in ALMUTEN_PLANETS}
+    |
+
+E501 Line too long (115 > 100)
+   --> hor_tools/almuten.py:262:101
+    |
+260 |         for planet, vals in contribs.items():
+261 |             total_shares[planet] += len(vals)
+262 |         rows.append(EssentialRow(name=name, longitude=lon, contributions=contribs, totals=totals, winners=winners))
+    |                                                                                                     ^^^^^^^^^^^^^^^
+263 |
+264 |     return rows, total_shares, total_scores
+    |
+
+UP006 [*] Use `tuple` instead of `Tuple` for type annotation
+   --> hor_tools/almuten.py:267:89
+    |
+267 | def _sunrise_sunset(jd: float, lat: float, lon: float, tz_offset_hours: float = 0.0) -> Tuple[float, float]:
+    |                                                                                         ^^^^^
+268 |     """Return UT Julian days for geographic sunrise and sunset.
+    |
+help: Replace with `tuple`
+    |
+266 |
+    - def _sunrise_sunset(jd: float, lat: float, lon: float, tz_offset_hours: float = 0.0) -> Tuple[float, float]:
+267 + def _sunrise_sunset(jd: float, lat: float, lon: float, tz_offset_hours: float = 0.0) -> tuple[float, float]:
+268 |     """Return UT Julian days for geographic sunrise and sunset.
+    |
+
+E501 Line too long (108 > 100)
+   --> hor_tools/almuten.py:267:101
+    |
+267 | def _sunrise_sunset(jd: float, lat: float, lon: float, tz_offset_hours: float = 0.0) -> Tuple[float, float]:
+    |                                                                                                     ^^^^^^^^
+268 |     """Return UT Julian days for geographic sunrise and sunset.
+    |
+
+UP006 [*] Use `tuple` instead of `Tuple` for type annotation
+   --> hor_tools/almuten.py:295:53
+    |
+295 | def planetary_day_hour_rulers(chart: ChartInput) -> Tuple[str, str]:
+    |                                                     ^^^^^
+296 |     """Return (day_ruler, hour_ruler) from local geographic sunrise to sunrise."""
+297 |     dt_utc = chart.datetime_utc
+    |
+help: Replace with `tuple`
+    |
+294 |
+    - def planetary_day_hour_rulers(chart: ChartInput) -> Tuple[str, str]:
+295 + def planetary_day_hour_rulers(chart: ChartInput) -> tuple[str, str]:
+296 |     """Return (day_ruler, hour_ruler) from local geographic sunrise to sunrise."""
+    |
+
+UP017 [*] Use `datetime.UTC` alias
+   --> hor_tools/almuten.py:299:36
+    |
+297 |     dt_utc = chart.datetime_utc
+298 |     if dt_utc.tzinfo is not None:
+299 |         dt_utc = dt_utc.astimezone(timezone.utc).replace(tzinfo=None)
+    |                                    ^^^^^^^^^^^^
+300 |
+301 |     dt_local = dt_utc + timedelta(hours=chart.tz_offset_hours)
+    |
+help: Convert to `datetime.UTC` alias
+    |
+3   | from dataclasses import dataclass
+    - from datetime import datetime, time, timedelta, timezone
+4   + from datetime import datetime, time, timedelta, timezone, UTC
+5   | import math
+--------------------------------------------------------------------------------
+298 |     if dt_utc.tzinfo is not None:
+    -         dt_utc = dt_utc.astimezone(timezone.utc).replace(tzinfo=None)
+299 +         dt_utc = dt_utc.astimezone(UTC).replace(tzinfo=None)
+300 |
+    |
+
+E501 Line too long (107 > 100)
+   --> hor_tools/almuten.py:329:101
+    |
+327 |         night_length = sunrise_next - sunset_today
+328 |         hour_len_night = night_length / 12.0 if night_length > 0 else 0.0
+329 |         night_hours_since_sunset = int((birth_jd - sunset_today) / hour_len_night) if hour_len_night else 0
+    |                                                                                                     ^^^^^^^
+330 |         hours_since_sunrise = 12 + night_hours_since_sunset
+331 |     else:
+    |
+
+E501 Line too long (121 > 100)
+   --> hor_tools/almuten.py:337:101
+    |
+335 |         night_length_prev = sunrise_today - sunset_prev
+336 |         hour_len_night_prev = night_length_prev / 12.0 if night_length_prev > 0 else 0.0
+337 |         night_hours_since_prev_sunset = int((birth_jd - sunset_prev) / hour_len_night_prev) if hour_len_night_prev else 0
+    |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^
+338 |         hours_since_sunrise = 12 + night_hours_since_prev_sunset
+    |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> hor_tools/almuten.py:377:59
+    |
+377 | def compute_accidental_scores(chart: ChartInput, planets: List[PlanetPosition]) -> Dict[str, Dict[str, int | str]]:
+    |                                                           ^^^^
+378 |     house_scores = {p.name: HOUSE_STRENGTH_SCORES.get(p.house, 0) for p in planets}
+379 |     day_ruler, hour_ruler = planetary_day_hour_rulers(chart)
+    |
+help: Replace with `list`
+    |
+376 |
+    - def compute_accidental_scores(chart: ChartInput, planets: List[PlanetPosition]) -> Dict[str, Dict[str, int | str]]:
+377 + def compute_accidental_scores(chart: ChartInput, planets: list[PlanetPosition]) -> Dict[str, Dict[str, int | str]]:
+378 |     house_scores = {p.name: HOUSE_STRENGTH_SCORES.get(p.house, 0) for p in planets}
+    |
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+   --> hor_tools/almuten.py:377:84
+    |
+377 | def compute_accidental_scores(chart: ChartInput, planets: List[PlanetPosition]) -> Dict[str, Dict[str, int | str]]:
+    |                                                                                    ^^^^
+378 |     house_scores = {p.name: HOUSE_STRENGTH_SCORES.get(p.house, 0) for p in planets}
+379 |     day_ruler, hour_ruler = planetary_day_hour_rulers(chart)
+    |
+help: Replace with `dict`
+    |
+376 |
+    - def compute_accidental_scores(chart: ChartInput, planets: List[PlanetPosition]) -> Dict[str, Dict[str, int | str]]:
+377 + def compute_accidental_scores(chart: ChartInput, planets: List[PlanetPosition]) -> dict[str, Dict[str, int | str]]:
+378 |     house_scores = {p.name: HOUSE_STRENGTH_SCORES.get(p.house, 0) for p in planets}
+    |
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+   --> hor_tools/almuten.py:377:94
+    |
+377 | def compute_accidental_scores(chart: ChartInput, planets: List[PlanetPosition]) -> Dict[str, Dict[str, int | str]]:
+    |                                                                                              ^^^^
+378 |     house_scores = {p.name: HOUSE_STRENGTH_SCORES.get(p.house, 0) for p in planets}
+379 |     day_ruler, hour_ruler = planetary_day_hour_rulers(chart)
+    |
+help: Replace with `dict`
+    |
+376 |
+    - def compute_accidental_scores(chart: ChartInput, planets: List[PlanetPosition]) -> Dict[str, Dict[str, int | str]]:
+377 + def compute_accidental_scores(chart: ChartInput, planets: List[PlanetPosition]) -> Dict[str, dict[str, int | str]]:
+378 |     house_scores = {p.name: HOUSE_STRENGTH_SCORES.get(p.house, 0) for p in planets}
+    |
+
+E501 Line too long (115 > 100)
+   --> hor_tools/almuten.py:377:101
+    |
+377 | def compute_accidental_scores(chart: ChartInput, planets: List[PlanetPosition]) -> Dict[str, Dict[str, int | str]]:
+    |                                                                                                     ^^^^^^^^^^^^^^^
+378 |     house_scores = {p.name: HOUSE_STRENGTH_SCORES.get(p.house, 0) for p in planets}
+379 |     day_ruler, hour_ruler = planetary_day_hour_rulers(chart)
+    |
+
+E501 Line too long (101 > 100)
+   --> hor_tools/almuten.py:380:101
+    |
+378 |     house_scores = {p.name: HOUSE_STRENGTH_SCORES.get(p.house, 0) for p in planets}
+379 |     day_ruler, hour_ruler = planetary_day_hour_rulers(chart)
+380 |     day_bonus = {planet: DAY_RULER_BONUS if planet == day_ruler else 0 for planet in ALMUTEN_PLANETS}
+    |                                                                                                     ^
+381 |     hour_bonus = {planet: HOUR_RULER_BONUS if planet == hour_ruler else 0 for planet in ALMUTEN_PLANETS}
+382 |     sun = next(p for p in planets if p.name == "Sun")
+    |
+
+E501 Line too long (104 > 100)
+   --> hor_tools/almuten.py:381:101
+    |
+379 |     day_ruler, hour_ruler = planetary_day_hour_rulers(chart)
+380 |     day_bonus = {planet: DAY_RULER_BONUS if planet == day_ruler else 0 for planet in ALMUTEN_PLANETS}
+381 |     hour_bonus = {planet: HOUR_RULER_BONUS if planet == hour_ruler else 0 for planet in ALMUTEN_PLANETS}
+    |                                                                                                     ^^^^
+382 |     sun = next(p for p in planets if p.name == "Sun")
+383 |     phase_scores = {p.name: phase_score(p, sun.longitude) for p in planets}
+    |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> hor_tools/almuten.py:404:55
+    |
+404 | def build_almuten_figuris(chart: ChartInput, planets: List[PlanetPosition], houses: Houses) -> Dict[str, object]:
+    |                                                       ^^^^
+405 |     rows, total_shares, total_scores = build_essential_rows(chart, planets, houses)
+406 |     accidental = compute_accidental_scores(chart, planets)
+    |
+help: Replace with `list`
+    |
+403 |
+    - def build_almuten_figuris(chart: ChartInput, planets: List[PlanetPosition], houses: Houses) -> Dict[str, object]:
+404 + def build_almuten_figuris(chart: ChartInput, planets: list[PlanetPosition], houses: Houses) -> Dict[str, object]:
+405 |     rows, total_shares, total_scores = build_essential_rows(chart, planets, houses)
+    |
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+   --> hor_tools/almuten.py:404:96
+    |
+404 | def build_almuten_figuris(chart: ChartInput, planets: List[PlanetPosition], houses: Houses) -> Dict[str, object]:
+    |                                                                                                ^^^^
+405 |     rows, total_shares, total_scores = build_essential_rows(chart, planets, houses)
+406 |     accidental = compute_accidental_scores(chart, planets)
+    |
+help: Replace with `dict`
+    |
+403 |
+    - def build_almuten_figuris(chart: ChartInput, planets: List[PlanetPosition], houses: Houses) -> Dict[str, object]:
+404 + def build_almuten_figuris(chart: ChartInput, planets: List[PlanetPosition], houses: Houses) -> dict[str, object]:
+405 |     rows, total_shares, total_scores = build_essential_rows(chart, planets, houses)
+    |
+
+E501 Line too long (113 > 100)
+   --> hor_tools/almuten.py:404:101
+    |
+404 | def build_almuten_figuris(chart: ChartInput, planets: List[PlanetPosition], houses: Houses) -> Dict[str, object]:
+    |                                                                                                     ^^^^^^^^^^^^^
+405 |     rows, total_shares, total_scores = build_essential_rows(chart, planets, houses)
+406 |     accidental = compute_accidental_scores(chart, planets)
+    |
+
+E501 Line too long (105 > 100)
+   --> hor_tools/almuten.py:410:101
+    |
+408 |     essential_totals = total_scores
+409 |     accidental_totals = accidental["accidental_totals"]
+410 |     grand_scores = {p: essential_totals.get(p, 0) + accidental_totals.get(p, 0) for p in ALMUTEN_PLANETS}
+    |                                                                                                     ^^^^^
+411 |     max_score = max(grand_scores.values()) if grand_scores else 0
+412 |     almuten = [p for p, score in grand_scores.items() if score == max_score]
+    |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> hor_tools/analysis/__init__.py:1:1
+   |
+ 1 | / from __future__ import annotations
+ 2 | |
+ 3 | | from typing import List, Tuple
+ 4 | |
+ 5 | | from ..models import ChartInput, PlanetPosition, Houses, PlanetReport, ChartRelationships
+ 6 | | from .dignity import essential_dignity, classify_speed, SIGNS
+ 7 | | from .sect import chart_sect, planet_sect, compute_hayz_and_halb
+ 8 | | from .stars import stars_near_longitude
+ 9 | | from .aspects import aspects_for_planet
+10 | | from .antiscia import antiscia_longitude, contra_antiscia_longitude, reflection_hits_for_planet
+11 | | from .aversion import compute_domicile_aversion
+12 | | from .conditions import (
+13 | |     is_in_planetary_joy,
+14 | |     latitude_condition,
+15 | |     is_in_via_combusta,
+16 | |     moon_void_of_course,
+17 | | )
+18 | | from ..synodic import compute_elongation_and_orientation, CAZIMI_ORB_DEG, is_true_cazimi
+19 | | from .relationships import aggregate_relationships
+   | |__________________________________________________^
+help: Organize imports
+   |
+4  |
+   - from ..models import ChartInput, PlanetPosition, Houses, PlanetReport, ChartRelationships
+   - from .dignity import essential_dignity, classify_speed, SIGNS
+   - from .sect import chart_sect, planet_sect, compute_hayz_and_halb
+   - from .stars import stars_near_longitude
+5  + from ..models import ChartInput, ChartRelationships, Houses, PlanetPosition, PlanetReport
+6  + from ..synodic import CAZIMI_ORB_DEG, compute_elongation_and_orientation, is_true_cazimi
+7  + from .antiscia import antiscia_longitude, contra_antiscia_longitude, reflection_hits_for_planet
+8  | from .aspects import aspects_for_planet
+   - from .antiscia import antiscia_longitude, contra_antiscia_longitude, reflection_hits_for_planet
+9  | from .aversion import compute_domicile_aversion
+10 | from .conditions import (
+11 |     is_in_planetary_joy,
+12 +     is_in_via_combusta,
+13 |     latitude_condition,
+   -     is_in_via_combusta,
+14 |     moon_void_of_course,
+15 | )
+   - from ..synodic import compute_elongation_and_orientation, CAZIMI_ORB_DEG, is_true_cazimi
+16 + from .dignity import SIGNS, classify_speed, essential_dignity
+17 | from .relationships import aggregate_relationships
+18 + from .sect import chart_sect, compute_hayz_and_halb, planet_sect
+19 + from .stars import stars_near_longitude
+20 |
+   |
+
+UP035 `typing.List` is deprecated, use `list` instead
+ --> hor_tools/analysis/__init__.py:3:1
+  |
+1 | from __future__ import annotations
+2 |
+3 | from typing import List, Tuple
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+4 |
+5 | from ..models import ChartInput, PlanetPosition, Houses, PlanetReport, ChartRelationships
+  |
+
+UP035 `typing.Tuple` is deprecated, use `tuple` instead
+ --> hor_tools/analysis/__init__.py:3:1
+  |
+1 | from __future__ import annotations
+2 |
+3 | from typing import List, Tuple
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+4 |
+5 | from ..models import ChartInput, PlanetPosition, Houses, PlanetReport, ChartRelationships
+  |
+
+F401 `.dignity.SIGNS` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+ --> hor_tools/analysis/__init__.py:6:57
+  |
+5 | from ..models import ChartInput, PlanetPosition, Houses, PlanetReport, ChartRelationships
+6 | from .dignity import essential_dignity, classify_speed, SIGNS
+  |                                                         ^^^^^
+7 | from .sect import chart_sect, planet_sect, compute_hayz_and_halb
+8 | from .stars import stars_near_longitude
+  |
+help: Use an explicit re-export: `SIGNS as SIGNS`
+
+UP006 [*] Use `list` instead of `List` for type annotation
+  --> hor_tools/analysis/__init__.py:23:33
+   |
+22 | def build_reports(
+23 |     chart: ChartInput, planets: List[PlanetPosition], houses: Houses
+   |                                 ^^^^
+24 | ) -> Tuple[List[PlanetReport], ChartRelationships]:
+25 |     """Build the complete traditional report for every supplied planet."""
+   |
+help: Replace with `list`
+   |
+22 | def build_reports(
+   -     chart: ChartInput, planets: List[PlanetPosition], houses: Houses
+23 +     chart: ChartInput, planets: list[PlanetPosition], houses: Houses
+24 | ) -> Tuple[List[PlanetReport], ChartRelationships]:
+   |
+
+UP006 [*] Use `tuple` instead of `Tuple` for type annotation
+  --> hor_tools/analysis/__init__.py:24:6
+   |
+22 | def build_reports(
+23 |     chart: ChartInput, planets: List[PlanetPosition], houses: Houses
+24 | ) -> Tuple[List[PlanetReport], ChartRelationships]:
+   |      ^^^^^
+25 |     """Build the complete traditional report for every supplied planet."""
+26 |     sun = next(p for p in planets if p.name == "Sun")
+   |
+help: Replace with `tuple`
+   |
+23 |     chart: ChartInput, planets: List[PlanetPosition], houses: Houses
+   - ) -> Tuple[List[PlanetReport], ChartRelationships]:
+24 + ) -> tuple[List[PlanetReport], ChartRelationships]:
+25 |     """Build the complete traditional report for every supplied planet."""
+   |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+  --> hor_tools/analysis/__init__.py:24:12
+   |
+22 | def build_reports(
+23 |     chart: ChartInput, planets: List[PlanetPosition], houses: Houses
+24 | ) -> Tuple[List[PlanetReport], ChartRelationships]:
+   |            ^^^^
+25 |     """Build the complete traditional report for every supplied planet."""
+26 |     sun = next(p for p in planets if p.name == "Sun")
+   |
+help: Replace with `list`
+   |
+23 |     chart: ChartInput, planets: List[PlanetPosition], houses: Houses
+   - ) -> Tuple[List[PlanetReport], ChartRelationships]:
+24 + ) -> Tuple[list[PlanetReport], ChartRelationships]:
+25 |     """Build the complete traditional report for every supplied planet."""
+   |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+  --> hor_tools/analysis/__init__.py:36:14
+   |
+34 |     moon_voc = moon_void_of_course(chart, moon) if moon is not None else False
+35 |
+36 |     reports: List[PlanetReport] = []
+   |              ^^^^
+37 |     for p in planets:
+38 |         ess = essential_dignity(p.name, p.longitude, is_day_chart=(sect_chart == "day"))
+   |
+help: Replace with `list`
+   |
+35 |
+   -     reports: List[PlanetReport] = []
+36 +     reports: list[PlanetReport] = []
+37 |     for p in planets:
+   |
+
+UP035 `typing.List` is deprecated, use `list` instead
+ --> hor_tools/analysis/antiscia.py:5:1
+  |
+3 | from __future__ import annotations
+4 |
+5 | from typing import List, Tuple
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+6 |
+7 | from ..models import PlanetPosition, ReflectionHit
+  |
+
+UP035 `typing.Tuple` is deprecated, use `tuple` instead
+ --> hor_tools/analysis/antiscia.py:5:1
+  |
+3 | from __future__ import annotations
+4 |
+5 | from typing import List, Tuple
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+6 |
+7 | from ..models import PlanetPosition, ReflectionHit
+  |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+  --> hor_tools/analysis/antiscia.py:22:38
+   |
+21 | def reflection_hits_for_planet(
+22 |     planet: PlanetPosition, planets: List[PlanetPosition]
+   |                                      ^^^^
+23 | ) -> Tuple[List[ReflectionHit], List[ReflectionHit]]:
+24 |     """
+   |
+help: Replace with `list`
+   |
+21 | def reflection_hits_for_planet(
+   -     planet: PlanetPosition, planets: List[PlanetPosition]
+22 +     planet: PlanetPosition, planets: list[PlanetPosition]
+23 | ) -> Tuple[List[ReflectionHit], List[ReflectionHit]]:
+   |
+
+UP006 [*] Use `tuple` instead of `Tuple` for type annotation
+  --> hor_tools/analysis/antiscia.py:23:6
+   |
+21 | def reflection_hits_for_planet(
+22 |     planet: PlanetPosition, planets: List[PlanetPosition]
+23 | ) -> Tuple[List[ReflectionHit], List[ReflectionHit]]:
+   |      ^^^^^
+24 |     """
+25 |     Return other planets that fall on this planet's antiscia or contra-antiscia.
+   |
+help: Replace with `tuple`
+   |
+22 |     planet: PlanetPosition, planets: List[PlanetPosition]
+   - ) -> Tuple[List[ReflectionHit], List[ReflectionHit]]:
+23 + ) -> tuple[List[ReflectionHit], List[ReflectionHit]]:
+24 |     """
+   |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+  --> hor_tools/analysis/antiscia.py:23:12
+   |
+21 | def reflection_hits_for_planet(
+22 |     planet: PlanetPosition, planets: List[PlanetPosition]
+23 | ) -> Tuple[List[ReflectionHit], List[ReflectionHit]]:
+   |            ^^^^
+24 |     """
+25 |     Return other planets that fall on this planet's antiscia or contra-antiscia.
+   |
+help: Replace with `list`
+   |
+22 |     planet: PlanetPosition, planets: List[PlanetPosition]
+   - ) -> Tuple[List[ReflectionHit], List[ReflectionHit]]:
+23 + ) -> Tuple[list[ReflectionHit], List[ReflectionHit]]:
+24 |     """
+   |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+  --> hor_tools/analysis/antiscia.py:23:33
+   |
+21 | def reflection_hits_for_planet(
+22 |     planet: PlanetPosition, planets: List[PlanetPosition]
+23 | ) -> Tuple[List[ReflectionHit], List[ReflectionHit]]:
+   |                                 ^^^^
+24 |     """
+25 |     Return other planets that fall on this planet's antiscia or contra-antiscia.
+   |
+help: Replace with `list`
+   |
+22 |     planet: PlanetPosition, planets: List[PlanetPosition]
+   - ) -> Tuple[List[ReflectionHit], List[ReflectionHit]]:
+23 + ) -> Tuple[List[ReflectionHit], list[ReflectionHit]]:
+24 |     """
+   |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+  --> hor_tools/analysis/antiscia.py:39:20
+   |
+37 |     deg_int_self = int(deg_in_sign_self)
+38 |
+39 |     antiscia_hits: List[ReflectionHit] = []
+   |                    ^^^^
+40 |     contra_hits: List[ReflectionHit] = []
+   |
+help: Replace with `list`
+   |
+38 |
+   -     antiscia_hits: List[ReflectionHit] = []
+39 +     antiscia_hits: list[ReflectionHit] = []
+40 |     contra_hits: List[ReflectionHit] = []
+   |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+  --> hor_tools/analysis/antiscia.py:40:18
+   |
+39 |     antiscia_hits: List[ReflectionHit] = []
+40 |     contra_hits: List[ReflectionHit] = []
+   |                  ^^^^
+41 |
+42 |     for other in planets:
+   |
+help: Replace with `list`
+   |
+39 |     antiscia_hits: List[ReflectionHit] = []
+   -     contra_hits: List[ReflectionHit] = []
+40 +     contra_hits: list[ReflectionHit] = []
+41 |
+   |
+
+E501 Line too long (117 > 100)
+  --> hor_tools/analysis/antiscia.py:53:101
+   |
+51 |         if degree_sum_ok and int(other.longitude // 30) % 12 == antiscia_sign:
+52 |             orb_antiscia = _shortest_distance(other.longitude, target_antiscia)
+53 |             antiscia_hits.append(ReflectionHit(other=other.name, orb=orb_antiscia, target_longitude=target_antiscia))
+   |                                                                                                     ^^^^^^^^^^^^^^^^^
+54 |
+55 |         # Contra-antiscia (equinox reflection)
+   |
+
+E501 Line too long (111 > 100)
+  --> hor_tools/analysis/antiscia.py:58:101
+   |
+56 |         if degree_sum_ok and int(other.longitude // 30) % 12 == contra_sign:
+57 |             orb_contra = _shortest_distance(other.longitude, target_contra)
+58 |             contra_hits.append(ReflectionHit(other=other.name, orb=orb_contra, target_longitude=target_contra))
+   |                                                                                                     ^^^^^^^^^^^
+59 |
+60 |     antiscia_hits.sort(key=lambda hit: hit.orb)
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> hor_tools/analysis/aspects.py:1:1
+  |
+1 | / from __future__ import annotations
+2 | |
+3 | | from typing import List
+4 | |
+5 | | from ..models import PlanetPosition, AspectInfo
+  | |_______________________________________________^
+6 |
+7 |   # Project-specific working orbs explicitly supplied for this calculator.
+  |
+help: Organize imports
+  |
+4 |
+  - from ..models import PlanetPosition, AspectInfo
+5 + from ..models import AspectInfo, PlanetPosition
+6 |
+  |
+
+UP035 `typing.List` is deprecated, use `list` instead
+ --> hor_tools/analysis/aspects.py:3:1
+  |
+1 | from __future__ import annotations
+2 |
+3 | from typing import List
+  | ^^^^^^^^^^^^^^^^^^^^^^^
+4 |
+5 | from ..models import PlanetPosition, AspectInfo
+  |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+  --> hor_tools/analysis/aspects.py:94:61
+   |
+94 | def aspects_for_planet(planet: PlanetPosition, all_planets: List[PlanetPosition]) -> List[AspectInfo]:
+   |                                                             ^^^^
+95 |     infos: List[AspectInfo] = []
+96 |     for other in all_planets:
+   |
+help: Replace with `list`
+   |
+93 |
+   - def aspects_for_planet(planet: PlanetPosition, all_planets: List[PlanetPosition]) -> List[AspectInfo]:
+94 + def aspects_for_planet(planet: PlanetPosition, all_planets: list[PlanetPosition]) -> List[AspectInfo]:
+95 |     infos: List[AspectInfo] = []
+   |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+  --> hor_tools/analysis/aspects.py:94:86
+   |
+94 | def aspects_for_planet(planet: PlanetPosition, all_planets: List[PlanetPosition]) -> List[AspectInfo]:
+   |                                                                                      ^^^^
+95 |     infos: List[AspectInfo] = []
+96 |     for other in all_planets:
+   |
+help: Replace with `list`
+   |
+93 |
+   - def aspects_for_planet(planet: PlanetPosition, all_planets: List[PlanetPosition]) -> List[AspectInfo]:
+94 + def aspects_for_planet(planet: PlanetPosition, all_planets: List[PlanetPosition]) -> list[AspectInfo]:
+95 |     infos: List[AspectInfo] = []
+   |
+
+E501 Line too long (102 > 100)
+  --> hor_tools/analysis/aspects.py:94:101
+   |
+94 | def aspects_for_planet(planet: PlanetPosition, all_planets: List[PlanetPosition]) -> List[AspectInfo]:
+   |                                                                                                     ^^
+95 |     infos: List[AspectInfo] = []
+96 |     for other in all_planets:
+   |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+  --> hor_tools/analysis/aspects.py:95:12
+   |
+94 | def aspects_for_planet(planet: PlanetPosition, all_planets: List[PlanetPosition]) -> List[AspectInfo]:
+95 |     infos: List[AspectInfo] = []
+   |            ^^^^
+96 |     for other in all_planets:
+97 |         if other.name == planet.name:
+   |
+help: Replace with `list`
+   |
+94 | def aspects_for_planet(planet: PlanetPosition, all_planets: List[PlanetPosition]) -> List[AspectInfo]:
+   -     infos: List[AspectInfo] = []
+95 +     infos: list[AspectInfo] = []
+96 |     for other in all_planets:
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> hor_tools/analysis/aversion.py:3:1
+  |
+1 |   """Aversion to own domicile(s) and avoidance rules."""
+2 |
+3 | / from __future__ import annotations
+4 | |
+5 | | from typing import List
+6 | |
+7 | | from .antiscia import antiscia_longitude, contra_antiscia_longitude
+8 | | from .dignity import SIGN_RULERS, SIGNS, sign_index_from_longitude
+9 | | from ..models import DomicileAversion, PlanetPosition, PlanetReport, TranslationOfLight
+  | |_______________________________________________________________________________________^
+help: Organize imports
+   |
+6  |
+7  + from ..models import DomicileAversion, PlanetPosition, PlanetReport, TranslationOfLight
+8  | from .antiscia import antiscia_longitude, contra_antiscia_longitude
+9  | from .dignity import SIGN_RULERS, SIGNS, sign_index_from_longitude
+   - from ..models import DomicileAversion, PlanetPosition, PlanetReport, TranslationOfLight
+10 |
+   |
+
+UP035 `typing.List` is deprecated, use `list` instead
+ --> hor_tools/analysis/aversion.py:5:1
+  |
+3 | from __future__ import annotations
+4 |
+5 | from typing import List
+  | ^^^^^^^^^^^^^^^^^^^^^^^
+6 |
+7 | from .antiscia import antiscia_longitude, contra_antiscia_longitude
+  |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+  --> hor_tools/analysis/aversion.py:36:14
+   |
+35 | def compute_domicile_aversion(
+36 |     reports: List[PlanetReport],
+   |              ^^^^
+37 |     planets: List[PlanetPosition],
+38 |     translations: List[TranslationOfLight],
+   |
+help: Replace with `list`
+   |
+35 | def compute_domicile_aversion(
+   -     reports: List[PlanetReport],
+36 +     reports: list[PlanetReport],
+37 |     planets: List[PlanetPosition],
+   |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+  --> hor_tools/analysis/aversion.py:37:14
+   |
+35 | def compute_domicile_aversion(
+36 |     reports: List[PlanetReport],
+37 |     planets: List[PlanetPosition],
+   |              ^^^^
+38 |     translations: List[TranslationOfLight],
+39 | ) -> None:
+   |
+help: Replace with `list`
+   |
+36 |     reports: List[PlanetReport],
+   -     planets: List[PlanetPosition],
+37 +     planets: list[PlanetPosition],
+38 |     translations: List[TranslationOfLight],
+   |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+  --> hor_tools/analysis/aversion.py:38:19
+   |
+36 |     reports: List[PlanetReport],
+37 |     planets: List[PlanetPosition],
+38 |     translations: List[TranslationOfLight],
+   |                   ^^^^
+39 | ) -> None:
+40 |     """
+   |
+help: Replace with `list`
+   |
+37 |     planets: List[PlanetPosition],
+   -     translations: List[TranslationOfLight],
+38 +     translations: list[TranslationOfLight],
+39 | ) -> None:
+   |
+
+E402 Module level import not at top of file
+  --> hor_tools/analysis/conditions.py:10:1
+   |
+ 8 | """
+ 9 |
+10 | import swisseph as swe
+   | ^^^^^^^^^^^^^^^^^^^^^^
+11 |
+12 | from ..astro_engine import ensure_ephe_path, julian_day_from_chart
+   |
+help: Move module level imports to top of file
+
+E402 Module level import not at top of file
+  --> hor_tools/analysis/conditions.py:12:1
+   |
+10 | import swisseph as swe
+11 |
+12 | from ..astro_engine import ensure_ephe_path, julian_day_from_chart
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+13 | from ..models import ChartInput, PlanetPosition
+   |
+help: Move module level imports to top of file
+
+E402 Module level import not at top of file
+  --> hor_tools/analysis/conditions.py:13:1
+   |
+12 | from ..astro_engine import ensure_ephe_path, julian_day_from_chart
+13 | from ..models import ChartInput, PlanetPosition
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+14 |
+15 | PLANETARY_JOYS = {
+   |
+help: Move module level imports to top of file
+
+E501 Line too long (102 > 100)
+   --> hor_tools/analysis/conditions.py:143:101
+    |
+141 |     for index in range(1, max_steps + 1):
+142 |         next_jd = jd + index * step
+143 |         current = {name: _planet_longitude(next_jd, body_id) for name, body_id in _PLANET_IDS.items()}
+    |                                                                                                     ^^
+144 |
+145 |         if int(current["Moon"] // 30) % 12 != moon_sign:
+    |
+
+UP035 `typing.Dict` is deprecated, use `dict` instead
+ --> hor_tools/analysis/dignity.py:3:1
+  |
+1 | from __future__ import annotations
+2 |
+3 | from typing import Dict, Tuple
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+4 |
+5 | SIGNS = [
+  |
+
+UP035 `typing.Tuple` is deprecated, use `tuple` instead
+ --> hor_tools/analysis/dignity.py:3:1
+  |
+1 | from __future__ import annotations
+2 |
+3 | from typing import Dict, Tuple
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+4 |
+5 | SIGNS = [
+  |
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+  --> hor_tools/analysis/dignity.py:46:15
+   |
+45 | # Dorothean triplicity rulers: (day, night, participating)
+46 | TRIPLICITIES: Dict[str, Tuple[str, str, str]] = {
+   |               ^^^^
+47 |     "fire": ("Sun", "Jupiter", "Saturn"),
+48 |     "earth": ("Venus", "Moon", "Mars"),
+   |
+help: Replace with `dict`
+   |
+45 | # Dorothean triplicity rulers: (day, night, participating)
+   - TRIPLICITIES: Dict[str, Tuple[str, str, str]] = {
+46 + TRIPLICITIES: dict[str, Tuple[str, str, str]] = {
+47 |     "fire": ("Sun", "Jupiter", "Saturn"),
+   |
+
+UP006 [*] Use `tuple` instead of `Tuple` for type annotation
+  --> hor_tools/analysis/dignity.py:46:25
+   |
+45 | # Dorothean triplicity rulers: (day, night, participating)
+46 | TRIPLICITIES: Dict[str, Tuple[str, str, str]] = {
+   |                         ^^^^^
+47 |     "fire": ("Sun", "Jupiter", "Saturn"),
+48 |     "earth": ("Venus", "Moon", "Mars"),
+   |
+help: Replace with `tuple`
+   |
+45 | # Dorothean triplicity rulers: (day, night, participating)
+   - TRIPLICITIES: Dict[str, Tuple[str, str, str]] = {
+46 + TRIPLICITIES: Dict[str, tuple[str, str, str]] = {
+47 |     "fire": ("Sun", "Jupiter", "Saturn"),
+   |
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+  --> hor_tools/analysis/dignity.py:55:8
+   |
+53 | # Egyptian terms. Each number is the EXCLUSIVE end of the preceding term:
+54 | # e.g. Aries Jupiter covers 0°00'00" <= x < 6°00'00", Venus starts at 6°.
+55 | TERMS: Dict[int, list[Tuple[float, str]]] = {
+   |        ^^^^
+56 |     0: [(6, "Jupiter"), (12, "Venus"), (20, "Mercury"), (25, "Mars"), (30, "Saturn")],  # Aries
+57 |     1: [(8, "Venus"), (14, "Mercury"), (22, "Jupiter"), (27, "Saturn"), (30, "Mars")],  # Taurus
+   |
+help: Replace with `dict`
+   |
+54 | # e.g. Aries Jupiter covers 0°00'00" <= x < 6°00'00", Venus starts at 6°.
+   - TERMS: Dict[int, list[Tuple[float, str]]] = {
+55 + TERMS: dict[int, list[Tuple[float, str]]] = {
+56 |     0: [(6, "Jupiter"), (12, "Venus"), (20, "Mercury"), (25, "Mars"), (30, "Saturn")],  # Aries
+   |
+
+UP006 [*] Use `tuple` instead of `Tuple` for type annotation
+  --> hor_tools/analysis/dignity.py:55:23
+   |
+53 | # Egyptian terms. Each number is the EXCLUSIVE end of the preceding term:
+54 | # e.g. Aries Jupiter covers 0°00'00" <= x < 6°00'00", Venus starts at 6°.
+55 | TERMS: Dict[int, list[Tuple[float, str]]] = {
+   |                       ^^^^^
+56 |     0: [(6, "Jupiter"), (12, "Venus"), (20, "Mercury"), (25, "Mars"), (30, "Saturn")],  # Aries
+57 |     1: [(8, "Venus"), (14, "Mercury"), (22, "Jupiter"), (27, "Saturn"), (30, "Mars")],  # Taurus
+   |
+help: Replace with `tuple`
+   |
+54 | # e.g. Aries Jupiter covers 0°00'00" <= x < 6°00'00", Venus starts at 6°.
+   - TERMS: Dict[int, list[Tuple[float, str]]] = {
+55 + TERMS: Dict[int, list[tuple[float, str]]] = {
+56 |     0: [(6, "Jupiter"), (12, "Venus"), (20, "Mercury"), (25, "Mars"), (30, "Saturn")],  # Aries
+   |
+
+E501 Line too long (102 > 100)
+  --> hor_tools/analysis/dignity.py:64:101
+   |
+62 |     6: [(6, "Saturn"), (14, "Mercury"), (21, "Jupiter"), (28, "Venus"), (30, "Mars")],  # Libra
+63 |     7: [(7, "Mars"), (11, "Venus"), (19, "Mercury"), (24, "Jupiter"), (30, "Saturn")],  # Scorpio
+64 |     8: [(12, "Jupiter"), (17, "Venus"), (21, "Mercury"), (26, "Saturn"), (30, "Mars")],  # Sagittarius
+   |                                                                                                     ^^
+65 |     9: [(7, "Mercury"), (14, "Jupiter"), (22, "Venus"), (26, "Saturn"), (30, "Mars")],  # Capricorn
+66 |     10: [(7, "Mercury"), (13, "Venus"), (20, "Jupiter"), (25, "Mars"), (30, "Saturn")],  # Aquarius
+   |
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+  --> hor_tools/analysis/dignity.py:72:13
+   |
+70 | CHALDEAN_SEQUENCE = ["Saturn", "Jupiter", "Mars", "Sun", "Venus", "Mercury", "Moon"]
+71 |
+72 | MEAN_SPEED: Dict[str, float] = {
+   |             ^^^^
+73 |     "Sun": 0.9856,
+74 |     "Moon": 13.1764,
+   |
+help: Replace with `dict`
+   |
+71 |
+   - MEAN_SPEED: Dict[str, float] = {
+72 + MEAN_SPEED: dict[str, float] = {
+73 |     "Sun": 0.9856,
+   |
+
+E402 Module level import not at top of file
+  --> hor_tools/analysis/ray_geometry.py:11:1
+   |
+ 9 | """
+10 |
+11 | from math import inf
+   | ^^^^^^^^^^^^^^^^^^^^
+12 | from typing import Iterable
+   |
+help: Move module level imports to top of file
+
+E402 Module level import not at top of file
+  --> hor_tools/analysis/ray_geometry.py:12:1
+   |
+11 | from math import inf
+12 | from typing import Iterable
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+13 |
+14 | from ..models import PlanetPosition
+   |
+help: Move module level imports to top of file
+
+UP035 [*] Import from `collections.abc` instead: `Iterable`
+  --> hor_tools/analysis/ray_geometry.py:12:1
+   |
+11 | from math import inf
+12 | from typing import Iterable
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+13 |
+14 | from ..models import PlanetPosition
+   |
+help: Import from `collections.abc`
+   |
+11 | from math import inf
+   - from typing import Iterable
+12 + from collections.abc import Iterable
+13 |
+   |
+
+E402 Module level import not at top of file
+  --> hor_tools/analysis/ray_geometry.py:14:1
+   |
+12 | from typing import Iterable
+13 |
+14 | from ..models import PlanetPosition
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+15 |
+16 | ASPECT_ANGLE_BY_KIND = {
+   |
+help: Move module level imports to top of file
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> hor_tools/analysis/relationships.py:1:1
+   |
+ 1 | / from __future__ import annotations
+ 2 | |
+ 3 | | from itertools import combinations
+ 4 | | from typing import Dict, List, Tuple
+ 5 | |
+ 6 | | from .dignity import MEAN_SPEED, dignity_holders_for_position, sign_index_from_longitude
+ 7 | | from .ray_geometry import (
+ 8 | |     casters_with_ray_in_sign,
+ 9 | |     has_intervening_ray,
+10 | |     nearest_rays_in_sign,
+11 | | )
+12 | | from ..models import (
+13 | |     AspectInfo,
+14 | |     ChartRelationships,
+15 | |     CollectionOfLight,
+16 | |     DominationInfo,
+17 | |     InfluenceSource,
+18 | |     PlanetPosition,
+19 | |     PlanetReport,
+20 | |     ReceptionInfo,
+21 | |     TranslationOfLight,
+22 | | )
+   | |_^
+23 |
+24 |   BENEFICS = {"Jupiter", "Venus"}
+   |
+help: Organize imports
+   |
+5  |
+   - from .dignity import MEAN_SPEED, dignity_holders_for_position, sign_index_from_longitude
+   - from .ray_geometry import (
+   -     casters_with_ray_in_sign,
+   -     has_intervening_ray,
+   -     nearest_rays_in_sign,
+   - )
+6  | from ..models import (
+--------------------------------------------------------------------------------
+16 | )
+17 + from .dignity import MEAN_SPEED, dignity_holders_for_position, sign_index_from_longitude
+18 + from .ray_geometry import (
+19 +     casters_with_ray_in_sign,
+20 +     has_intervening_ray,
+21 +     nearest_rays_in_sign,
+22 + )
+23 |
+   |
+
+UP035 `typing.Dict` is deprecated, use `dict` instead
+ --> hor_tools/analysis/relationships.py:4:1
+  |
+3 | from itertools import combinations
+4 | from typing import Dict, List, Tuple
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+5 |
+6 | from .dignity import MEAN_SPEED, dignity_holders_for_position, sign_index_from_longitude
+  |
+
+UP035 `typing.List` is deprecated, use `list` instead
+ --> hor_tools/analysis/relationships.py:4:1
+  |
+3 | from itertools import combinations
+4 | from typing import Dict, List, Tuple
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+5 |
+6 | from .dignity import MEAN_SPEED, dignity_holders_for_position, sign_index_from_longitude
+  |
+
+UP035 `typing.Tuple` is deprecated, use `tuple` instead
+ --> hor_tools/analysis/relationships.py:4:1
+  |
+3 | from itertools import combinations
+4 | from typing import Dict, List, Tuple
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+5 |
+6 | from .dignity import MEAN_SPEED, dignity_holders_for_position, sign_index_from_longitude
+  |
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+  --> hor_tools/analysis/relationships.py:29:51
+   |
+29 | def aspect_lookup(reports: list[PlanetReport]) -> Dict[Tuple[str, str], AspectInfo]:
+   |                                                   ^^^^
+30 |     """Build a fast lookup of aspects keyed by (source, target)."""
+31 |     lookup: Dict[Tuple[str, str], AspectInfo] = {}
+   |
+help: Replace with `dict`
+   |
+28 |
+   - def aspect_lookup(reports: list[PlanetReport]) -> Dict[Tuple[str, str], AspectInfo]:
+29 + def aspect_lookup(reports: list[PlanetReport]) -> dict[Tuple[str, str], AspectInfo]:
+30 |     """Build a fast lookup of aspects keyed by (source, target)."""
+   |
+
+UP006 [*] Use `tuple` instead of `Tuple` for type annotation
+  --> hor_tools/analysis/relationships.py:29:56
+   |
+29 | def aspect_lookup(reports: list[PlanetReport]) -> Dict[Tuple[str, str], AspectInfo]:
+   |                                                        ^^^^^
+30 |     """Build a fast lookup of aspects keyed by (source, target)."""
+31 |     lookup: Dict[Tuple[str, str], AspectInfo] = {}
+   |
+help: Replace with `tuple`
+   |
+28 |
+   - def aspect_lookup(reports: list[PlanetReport]) -> Dict[Tuple[str, str], AspectInfo]:
+29 + def aspect_lookup(reports: list[PlanetReport]) -> Dict[tuple[str, str], AspectInfo]:
+30 |     """Build a fast lookup of aspects keyed by (source, target)."""
+   |
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+  --> hor_tools/analysis/relationships.py:31:13
+   |
+29 | def aspect_lookup(reports: list[PlanetReport]) -> Dict[Tuple[str, str], AspectInfo]:
+30 |     """Build a fast lookup of aspects keyed by (source, target)."""
+31 |     lookup: Dict[Tuple[str, str], AspectInfo] = {}
+   |             ^^^^
+32 |     for rep in reports:
+33 |         for asp in rep.aspects:
+   |
+help: Replace with `dict`
+   |
+30 |     """Build a fast lookup of aspects keyed by (source, target)."""
+   -     lookup: Dict[Tuple[str, str], AspectInfo] = {}
+31 +     lookup: dict[Tuple[str, str], AspectInfo] = {}
+32 |     for rep in reports:
+   |
+
+UP006 [*] Use `tuple` instead of `Tuple` for type annotation
+  --> hor_tools/analysis/relationships.py:31:18
+   |
+29 | def aspect_lookup(reports: list[PlanetReport]) -> Dict[Tuple[str, str], AspectInfo]:
+30 |     """Build a fast lookup of aspects keyed by (source, target)."""
+31 |     lookup: Dict[Tuple[str, str], AspectInfo] = {}
+   |                  ^^^^^
+32 |     for rep in reports:
+33 |         for asp in rep.aspects:
+   |
+help: Replace with `tuple`
+   |
+30 |     """Build a fast lookup of aspects keyed by (source, target)."""
+   -     lookup: Dict[Tuple[str, str], AspectInfo] = {}
+31 +     lookup: Dict[tuple[str, str], AspectInfo] = {}
+32 |     for rep in reports:
+   |
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+  --> hor_tools/analysis/relationships.py:39:44
+   |
+38 | def compute_domination(
+39 |     planets: list[PlanetPosition], lookup: Dict[Tuple[str, str], AspectInfo]
+   |                                            ^^^^
+40 | ) -> list[DominationInfo]:
+41 |     """Return sign-based domination and source-correct aktinobolia flags."""
+   |
+help: Replace with `dict`
+   |
+38 | def compute_domination(
+   -     planets: list[PlanetPosition], lookup: Dict[Tuple[str, str], AspectInfo]
+39 +     planets: list[PlanetPosition], lookup: dict[Tuple[str, str], AspectInfo]
+40 | ) -> list[DominationInfo]:
+   |
+
+UP006 [*] Use `tuple` instead of `Tuple` for type annotation
+  --> hor_tools/analysis/relationships.py:39:49
+   |
+38 | def compute_domination(
+39 |     planets: list[PlanetPosition], lookup: Dict[Tuple[str, str], AspectInfo]
+   |                                                 ^^^^^
+40 | ) -> list[DominationInfo]:
+41 |     """Return sign-based domination and source-correct aktinobolia flags."""
+   |
+help: Replace with `tuple`
+   |
+38 | def compute_domination(
+   -     planets: list[PlanetPosition], lookup: Dict[Tuple[str, str], AspectInfo]
+39 +     planets: list[PlanetPosition], lookup: Dict[tuple[str, str], AspectInfo]
+40 | ) -> list[DominationInfo]:
+   |
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+   --> hor_tools/analysis/relationships.py:105:31
+    |
+104 | def _malefic_enclosure_relieved(
+105 |     target_name: str, lookup: Dict[Tuple[str, str], AspectInfo]
+    |                               ^^^^
+106 | ) -> bool:
+107 |     """Sun or a benefic looking within <7° cancels malefic enclosure."""
+    |
+help: Replace with `dict`
+    |
+104 | def _malefic_enclosure_relieved(
+    -     target_name: str, lookup: Dict[Tuple[str, str], AspectInfo]
+105 +     target_name: str, lookup: dict[Tuple[str, str], AspectInfo]
+106 | ) -> bool:
+    |
+
+UP006 [*] Use `tuple` instead of `Tuple` for type annotation
+   --> hor_tools/analysis/relationships.py:105:36
+    |
+104 | def _malefic_enclosure_relieved(
+105 |     target_name: str, lookup: Dict[Tuple[str, str], AspectInfo]
+    |                                    ^^^^^
+106 | ) -> bool:
+107 |     """Sun or a benefic looking within <7° cancels malefic enclosure."""
+    |
+help: Replace with `tuple`
+    |
+104 | def _malefic_enclosure_relieved(
+    -     target_name: str, lookup: Dict[Tuple[str, str], AspectInfo]
+105 +     target_name: str, lookup: Dict[tuple[str, str], AspectInfo]
+106 | ) -> bool:
+    |
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+   --> hor_tools/analysis/relationships.py:116:44
+    |
+115 | def compute_enclosures(
+116 |     planets: list[PlanetPosition], lookup: Dict[Tuple[str, str], AspectInfo]
+    |                                            ^^^^
+117 | ) -> Dict[str, dict[str, object]]:
+118 |     """Compute degree/ray and sign enclosure from exact ray landing points.
+    |
+help: Replace with `dict`
+    |
+115 | def compute_enclosures(
+    -     planets: list[PlanetPosition], lookup: Dict[Tuple[str, str], AspectInfo]
+116 +     planets: list[PlanetPosition], lookup: dict[Tuple[str, str], AspectInfo]
+117 | ) -> Dict[str, dict[str, object]]:
+    |
+
+UP006 [*] Use `tuple` instead of `Tuple` for type annotation
+   --> hor_tools/analysis/relationships.py:116:49
+    |
+115 | def compute_enclosures(
+116 |     planets: list[PlanetPosition], lookup: Dict[Tuple[str, str], AspectInfo]
+    |                                                 ^^^^^
+117 | ) -> Dict[str, dict[str, object]]:
+118 |     """Compute degree/ray and sign enclosure from exact ray landing points.
+    |
+help: Replace with `tuple`
+    |
+115 | def compute_enclosures(
+    -     planets: list[PlanetPosition], lookup: Dict[Tuple[str, str], AspectInfo]
+116 +     planets: list[PlanetPosition], lookup: Dict[tuple[str, str], AspectInfo]
+117 | ) -> Dict[str, dict[str, object]]:
+    |
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+   --> hor_tools/analysis/relationships.py:117:6
+    |
+115 | def compute_enclosures(
+116 |     planets: list[PlanetPosition], lookup: Dict[Tuple[str, str], AspectInfo]
+117 | ) -> Dict[str, dict[str, object]]:
+    |      ^^^^
+118 |     """Compute degree/ray and sign enclosure from exact ray landing points.
+    |
+help: Replace with `dict`
+    |
+116 |     planets: list[PlanetPosition], lookup: Dict[Tuple[str, str], AspectInfo]
+    - ) -> Dict[str, dict[str, object]]:
+117 + ) -> dict[str, dict[str, object]]:
+118 |     """Compute degree/ray and sign enclosure from exact ray landing points.
+    |
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+   --> hor_tools/analysis/relationships.py:129:13
+    |
+127 |     either type of malefic enclosure.
+128 |     """
+129 |     result: Dict[str, dict[str, object]] = {}
+    |             ^^^^
+130 |
+131 |     for target in planets:
+    |
+help: Replace with `dict`
+    |
+128 |     """
+    -     result: Dict[str, dict[str, object]] = {}
+129 +     result: dict[str, dict[str, object]] = {}
+130 |
+    |
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+   --> hor_tools/analysis/relationships.py:174:13
+    |
+172 | def compute_receptions_and_generosity(
+173 |     planets: list[PlanetPosition],
+174 |     lookup: Dict[Tuple[str, str], AspectInfo],
+    |             ^^^^
+175 |     is_day_chart: bool,
+176 | ) -> dict[str, dict[str, list[ReceptionInfo]]]:
+    |
+help: Replace with `dict`
+    |
+173 |     planets: list[PlanetPosition],
+    -     lookup: Dict[Tuple[str, str], AspectInfo],
+174 +     lookup: dict[Tuple[str, str], AspectInfo],
+175 |     is_day_chart: bool,
+    |
+
+UP006 [*] Use `tuple` instead of `Tuple` for type annotation
+   --> hor_tools/analysis/relationships.py:174:18
+    |
+172 | def compute_receptions_and_generosity(
+173 |     planets: list[PlanetPosition],
+174 |     lookup: Dict[Tuple[str, str], AspectInfo],
+    |                  ^^^^^
+175 |     is_day_chart: bool,
+176 | ) -> dict[str, dict[str, list[ReceptionInfo]]]:
+    |
+help: Replace with `tuple`
+    |
+173 |     planets: list[PlanetPosition],
+    -     lookup: Dict[Tuple[str, str], AspectInfo],
+174 +     lookup: Dict[tuple[str, str], AspectInfo],
+175 |     is_day_chart: bool,
+    |
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+   --> hor_tools/analysis/relationships.py:217:44
+    |
+216 | def compute_translation_of_light(
+217 |     planets: list[PlanetPosition], lookup: Dict[Tuple[str, str], AspectInfo]
+    |                                            ^^^^
+218 | ) -> list[TranslationOfLight]:
+219 |     """Translation: fast planet separates from one and next applies to another.
+    |
+help: Replace with `dict`
+    |
+216 | def compute_translation_of_light(
+    -     planets: list[PlanetPosition], lookup: Dict[Tuple[str, str], AspectInfo]
+217 +     planets: list[PlanetPosition], lookup: dict[Tuple[str, str], AspectInfo]
+218 | ) -> list[TranslationOfLight]:
+    |
+
+UP006 [*] Use `tuple` instead of `Tuple` for type annotation
+   --> hor_tools/analysis/relationships.py:217:49
+    |
+216 | def compute_translation_of_light(
+217 |     planets: list[PlanetPosition], lookup: Dict[Tuple[str, str], AspectInfo]
+    |                                                 ^^^^^
+218 | ) -> list[TranslationOfLight]:
+219 |     """Translation: fast planet separates from one and next applies to another.
+    |
+help: Replace with `tuple`
+    |
+216 | def compute_translation_of_light(
+    -     planets: list[PlanetPosition], lookup: Dict[Tuple[str, str], AspectInfo]
+217 +     planets: list[PlanetPosition], lookup: Dict[tuple[str, str], AspectInfo]
+218 | ) -> list[TranslationOfLight]:
+    |
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+   --> hor_tools/analysis/relationships.py:273:44
+    |
+272 | def compute_collection_of_light(
+273 |     planets: list[PlanetPosition], lookup: Dict[Tuple[str, str], AspectInfo]
+    |                                            ^^^^
+274 | ) -> list[CollectionOfLight]:
+275 |     """Collection by a slower third planet, provided it is each feeder's next contact."""
+    |
+help: Replace with `dict`
+    |
+272 | def compute_collection_of_light(
+    -     planets: list[PlanetPosition], lookup: Dict[Tuple[str, str], AspectInfo]
+273 +     planets: list[PlanetPosition], lookup: dict[Tuple[str, str], AspectInfo]
+274 | ) -> list[CollectionOfLight]:
+    |
+
+UP006 [*] Use `tuple` instead of `Tuple` for type annotation
+   --> hor_tools/analysis/relationships.py:273:49
+    |
+272 | def compute_collection_of_light(
+273 |     planets: list[PlanetPosition], lookup: Dict[Tuple[str, str], AspectInfo]
+    |                                                 ^^^^^
+274 | ) -> list[CollectionOfLight]:
+275 |     """Collection by a slower third planet, provided it is each feeder's next contact."""
+    |
+help: Replace with `tuple`
+    |
+272 | def compute_collection_of_light(
+    -     planets: list[PlanetPosition], lookup: Dict[Tuple[str, str], AspectInfo]
+273 +     planets: list[PlanetPosition], lookup: Dict[tuple[str, str], AspectInfo]
+274 | ) -> list[CollectionOfLight]:
+    |
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+   --> hor_tools/analysis/relationships.py:334:13
+    |
+332 | def compute_bonification_and_maltreatment(
+333 |     reports: list[PlanetReport],
+334 |     lookup: Dict[Tuple[str, str], AspectInfo],
+    |             ^^^^
+335 |     dominations: list[DominationInfo],
+336 |     enclosures: Dict[str, dict[str, object]],
+    |
+help: Replace with `dict`
+    |
+333 |     reports: list[PlanetReport],
+    -     lookup: Dict[Tuple[str, str], AspectInfo],
+334 +     lookup: dict[Tuple[str, str], AspectInfo],
+335 |     dominations: list[DominationInfo],
+    |
+
+UP006 [*] Use `tuple` instead of `Tuple` for type annotation
+   --> hor_tools/analysis/relationships.py:334:18
+    |
+332 | def compute_bonification_and_maltreatment(
+333 |     reports: list[PlanetReport],
+334 |     lookup: Dict[Tuple[str, str], AspectInfo],
+    |                  ^^^^^
+335 |     dominations: list[DominationInfo],
+336 |     enclosures: Dict[str, dict[str, object]],
+    |
+help: Replace with `tuple`
+    |
+333 |     reports: list[PlanetReport],
+    -     lookup: Dict[Tuple[str, str], AspectInfo],
+334 +     lookup: Dict[tuple[str, str], AspectInfo],
+335 |     dominations: list[DominationInfo],
+    |
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+   --> hor_tools/analysis/relationships.py:336:17
+    |
+334 |     lookup: Dict[Tuple[str, str], AspectInfo],
+335 |     dominations: list[DominationInfo],
+336 |     enclosures: Dict[str, dict[str, object]],
+    |                 ^^^^
+337 | ) -> None:
+338 |     """Populate bonification/maltreatment sources on PlanetReport objects."""
+    |
+help: Replace with `dict`
+    |
+335 |     dominations: list[DominationInfo],
+    -     enclosures: Dict[str, dict[str, object]],
+336 +     enclosures: dict[str, dict[str, object]],
+337 | ) -> None:
+    |
+
+E501 Line too long (120 > 100)
+   --> hor_tools/analysis/relationships.py:372:101
+    |
+370 |             if other_rep.planet.name == name:
+371 |                 continue
+372 |             if sign_index_from_longitude(other_rep.planet.longitude) != sign_index_from_longitude(rep.planet.longitude):
+    |                                                                                                     ^^^^^^^^^^^^^^^^^^^^
+373 |                 continue
+374 |             if _shortest_distance(rep.planet.longitude, other_rep.planet.longitude) <= 3.0:
+    |
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+   --> hor_tools/analysis/relationships.py:472:13
+    |
+470 |     a: str,
+471 |     b: str,
+472 |     lookup: Dict[Tuple[str, str], AspectInfo],
+    |             ^^^^
+473 |     desired_kind: str | None = None,
+474 | ) -> AspectInfo | None:
+    |
+help: Replace with `dict`
+    |
+471 |     b: str,
+    -     lookup: Dict[Tuple[str, str], AspectInfo],
+472 +     lookup: dict[Tuple[str, str], AspectInfo],
+473 |     desired_kind: str | None = None,
+    |
+
+UP006 [*] Use `tuple` instead of `Tuple` for type annotation
+   --> hor_tools/analysis/relationships.py:472:18
+    |
+470 |     a: str,
+471 |     b: str,
+472 |     lookup: Dict[Tuple[str, str], AspectInfo],
+    |                  ^^^^^
+473 |     desired_kind: str | None = None,
+474 | ) -> AspectInfo | None:
+    |
+help: Replace with `tuple`
+    |
+471 |     b: str,
+    -     lookup: Dict[Tuple[str, str], AspectInfo],
+472 +     lookup: Dict[tuple[str, str], AspectInfo],
+473 |     desired_kind: str | None = None,
+    |
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+   --> hor_tools/analysis/relationships.py:481:45
+    |
+481 | def _aspecting_planets(target: str, lookup: Dict[Tuple[str, str], AspectInfo]) -> List[str]:
+    |                                             ^^^^
+482 |     names = set()
+483 |     for src, other in lookup:
+    |
+help: Replace with `dict`
+    |
+480 |
+    - def _aspecting_planets(target: str, lookup: Dict[Tuple[str, str], AspectInfo]) -> List[str]:
+481 + def _aspecting_planets(target: str, lookup: dict[Tuple[str, str], AspectInfo]) -> List[str]:
+482 |     names = set()
+    |
+
+UP006 [*] Use `tuple` instead of `Tuple` for type annotation
+   --> hor_tools/analysis/relationships.py:481:50
+    |
+481 | def _aspecting_planets(target: str, lookup: Dict[Tuple[str, str], AspectInfo]) -> List[str]:
+    |                                                  ^^^^^
+482 |     names = set()
+483 |     for src, other in lookup:
+    |
+help: Replace with `tuple`
+    |
+480 |
+    - def _aspecting_planets(target: str, lookup: Dict[Tuple[str, str], AspectInfo]) -> List[str]:
+481 + def _aspecting_planets(target: str, lookup: Dict[tuple[str, str], AspectInfo]) -> List[str]:
+482 |     names = set()
+    |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> hor_tools/analysis/relationships.py:481:83
+    |
+481 | def _aspecting_planets(target: str, lookup: Dict[Tuple[str, str], AspectInfo]) -> List[str]:
+    |                                                                                   ^^^^
+482 |     names = set()
+483 |     for src, other in lookup:
+    |
+help: Replace with `list`
+    |
+480 |
+    - def _aspecting_planets(target: str, lookup: Dict[Tuple[str, str], AspectInfo]) -> List[str]:
+481 + def _aspecting_planets(target: str, lookup: Dict[Tuple[str, str], AspectInfo]) -> list[str]:
+482 |     names = set()
+    |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> hor_tools/analysis/stars.py:1:1
+   |
+ 1 | / from __future__ import annotations
+ 2 | |
+ 3 | | from typing import List
+ 4 | |
+ 5 | | import swisseph as swe
+ 6 | |
+ 7 | | from ..models import ChartInput
+ 8 | | from ..astro_engine import julian_day_from_chart, ensure_ephe_path
+   | |__________________________________________________________________^
+ 9 |
+10 |   # Working catalogue from the course's fixed-star handout/table, plus named stars
+   |
+help: Organize imports
+  |
+6 |
+7 + from ..astro_engine import ensure_ephe_path, julian_day_from_chart
+8 | from ..models import ChartInput
+  - from ..astro_engine import julian_day_from_chart, ensure_ephe_path
+9 |
+  |
+
+UP035 `typing.List` is deprecated, use `list` instead
+ --> hor_tools/analysis/stars.py:3:1
+  |
+1 | from __future__ import annotations
+2 |
+3 | from typing import List
+  | ^^^^^^^^^^^^^^^^^^^^^^^
+4 |
+5 | import swisseph as swe
+  |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> hor_tools/analysis/stars.py:170:6
+    |
+168 |     body_latitude: float | None = None,
+169 |     max_orb: float | None = None,
+170 | ) -> List[str]:
+    |      ^^^^
+171 |     """Return course-catalogue fixed stars conjunct a body in longitude.
+    |
+help: Replace with `list`
+    |
+169 |     max_orb: float | None = None,
+    - ) -> List[str]:
+170 + ) -> list[str]:
+171 |     """Return course-catalogue fixed stars conjunct a body in longitude.
+    |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> hor_tools/analysis/stars.py:183:11
+    |
+181 |     ensure_ephe_path()
+182 |
+183 |     hits: List[str] = []
+    |           ^^^^
+184 |     for display_name, aliases in COURSE_STARS:
+185 |         resolved = _resolve_star(aliases, jd_ut)
+    |
+help: Replace with `list`
+    |
+182 |
+    -     hits: List[str] = []
+183 +     hits: list[str] = []
+184 |     for display_name, aliases in COURSE_STARS:
+    |
+
+UP017 [*] Use `datetime.UTC` alias
+   --> hor_tools/astro_engine.py:149:36
+    |
+147 |     dt_utc = chart.datetime_utc
+148 |     if dt_utc.tzinfo is not None:
+149 |         dt_utc = dt_utc.astimezone(timezone.utc).replace(tzinfo=None)
+    |                                    ^^^^^^^^^^^^
+150 |
+151 |     ut_hour = (
+    |
+help: Convert to `datetime.UTC` alias
+    |
+5   | import os
+    - from datetime import timezone
+6   + from datetime import timezone, UTC
+7   | from pathlib import Path
+--------------------------------------------------------------------------------
+148 |     if dt_utc.tzinfo is not None:
+    -         dt_utc = dt_utc.astimezone(timezone.utc).replace(tzinfo=None)
+149 +         dt_utc = dt_utc.astimezone(UTC).replace(tzinfo=None)
+150 |
+    |
+
+UP035 [*] Import from `collections.abc` instead: `Sequence`
+  --> hor_tools/cli.py:9:1
+   |
+ 7 | from importlib.metadata import PackageNotFoundError, version
+ 8 | from pathlib import Path
+ 9 | from typing import Sequence
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+10 |
+11 | from . import astro_engine, hor_parser, output
+   |
+help: Import from `collections.abc`
+   |
+8  | from pathlib import Path
+   - from typing import Sequence
+9  + from collections.abc import Sequence
+10 |
+   |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  --> hor_tools/cli.py:81:13
+   |
+79 |         output.print_full_report(chart, reports, houses, relationships)
+80 |         if html_path is not None:
+81 |             raise RuntimeError("HTML export requires the 'rich' package.")
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+82 |     else:
+83 |         output.print_rich_report(chart, reports, houses, relationships)
+   |
+
+UP017 [*] Use `datetime.UTC` alias
+   --> hor_tools/cli.py:102:36
+    |
+100 |     dt_utc = chart.datetime_utc
+101 |     if dt_utc.tzinfo is not None:
+102 |         dt_utc = dt_utc.astimezone(timezone.utc).replace(tzinfo=None)
+    |                                    ^^^^^^^^^^^^
+103 |     dt_str = dt_utc.isoformat() + "Z"
+    |
+help: Convert to `datetime.UTC` alias
+    |
+5   | import argparse
+    - from datetime import timezone
+6   + from datetime import timezone, UTC
+7   | from importlib.metadata import PackageNotFoundError, version
+--------------------------------------------------------------------------------
+101 |     if dt_utc.tzinfo is not None:
+    -         dt_utc = dt_utc.astimezone(timezone.utc).replace(tzinfo=None)
+102 +         dt_utc = dt_utc.astimezone(UTC).replace(tzinfo=None)
+103 |     dt_str = dt_utc.isoformat() + "Z"
+    |
+
+UP035 [*] Import from `collections.abc` instead: `Iterable`, `Sequence`
+  --> hor_tools/commands/asc_window.py:9:1
+   |
+ 7 | from datetime import date, datetime, time, timedelta, timezone, tzinfo
+ 8 | from pathlib import Path
+ 9 | from typing import Iterable, Sequence
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+10 | from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+   |
+help: Import from `collections.abc`
+   |
+8  | from pathlib import Path
+   - from typing import Iterable, Sequence
+9  + from collections.abc import Iterable, Sequence
+10 | from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+   |
+
+UP017 [*] Use `datetime.UTC` alias
+   --> hor_tools/commands/asc_window.py:129:32
+    |
+127 |     local_zone = zone or _fixed_template_zone(template)
+128 |     dt_local = datetime.combine(day, local_time, tzinfo=local_zone)
+129 |     return dt_local.astimezone(timezone.utc)
+    |                                ^^^^^^^^^^^^
+help: Convert to `datetime.UTC` alias
+    |
+6   | from dataclasses import replace
+    - from datetime import date, datetime, time, timedelta, timezone, tzinfo
+7   + from datetime import date, datetime, time, timedelta, timezone, tzinfo, UTC
+8   | from pathlib import Path
+--------------------------------------------------------------------------------
+128 |     dt_local = datetime.combine(day, local_time, tzinfo=local_zone)
+    -     return dt_local.astimezone(timezone.utc)
+129 +     return dt_local.astimezone(UTC)
+130 |
+    |
+
+E501 Line too long (102 > 100)
+   --> hor_tools/commands/asc_window.py:201:101
+    |
+199 |     parser.add_argument("--window-end", type=parse_time, default=time(23, 59))
+200 |     parser.add_argument("--step-min", type=float, default=15.0, help="Coarse step in minutes.")
+201 |     parser.add_argument("--tol-min", type=float, default=0.2, help="Refinement tolerance in minutes.")
+    |                                                                                                     ^^
+202 |     parser.add_argument("--out", help="Output Markdown path.")
+203 |     parser.add_argument("--ephe", help="Swiss Ephemeris directory.")
+    |
+
+UP035 [*] Import from `collections.abc` instead: `Iterable`, `Sequence`
+ --> hor_tools/commands/scan_events.py:7:1
+  |
+5 | import argparse
+6 | from datetime import datetime, timedelta, timezone
+7 | from typing import Iterable, Sequence
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+8 |
+9 | from ..astro_engine import compute_longitudes, set_ephe_path
+  |
+help: Import from `collections.abc`
+  |
+6 | from datetime import datetime, timedelta, timezone
+  - from typing import Iterable, Sequence
+7 + from collections.abc import Iterable, Sequence
+8 |
+  |
+
+UP017 [*] Use `datetime.UTC` alias
+  --> hor_tools/commands/scan_events.py:48:32
+   |
+47 |     if dt.tzinfo is None:
+48 |         dt = dt.replace(tzinfo=timezone.utc)
+   |                                ^^^^^^^^^^^^
+49 |     return dt.astimezone(timezone.utc)
+   |
+help: Convert to `datetime.UTC` alias
+   |
+5  | import argparse
+   - from datetime import datetime, timedelta, timezone
+6  + from datetime import datetime, timedelta, timezone, UTC
+7  | from typing import Iterable, Sequence
+--------------------------------------------------------------------------------
+47 |     if dt.tzinfo is None:
+   -         dt = dt.replace(tzinfo=timezone.utc)
+48 +         dt = dt.replace(tzinfo=UTC)
+49 |     return dt.astimezone(timezone.utc)
+   |
+
+UP017 [*] Use `datetime.UTC` alias
+  --> hor_tools/commands/scan_events.py:49:26
+   |
+47 |     if dt.tzinfo is None:
+48 |         dt = dt.replace(tzinfo=timezone.utc)
+49 |     return dt.astimezone(timezone.utc)
+   |                          ^^^^^^^^^^^^
+help: Convert to `datetime.UTC` alias
+   |
+5  | import argparse
+   - from datetime import datetime, timedelta, timezone
+6  + from datetime import datetime, timedelta, timezone, UTC
+7  | from typing import Iterable, Sequence
+--------------------------------------------------------------------------------
+48 |         dt = dt.replace(tzinfo=timezone.utc)
+   -     return dt.astimezone(timezone.utc)
+49 +     return dt.astimezone(UTC)
+50 |
+   |
+
+E501 Line too long (102 > 100)
+   --> hor_tools/commands/scan_events.py:299:101
+    |
+297 |     parser.add_argument("--lon", required=True, type=float, help="Longitude in decimal degrees.")
+298 |     parser.add_argument("--step-min", type=float, default=60.0, help="Coarse step in minutes.")
+299 |     parser.add_argument("--tol-min", type=float, default=0.1, help="Refinement tolerance in minutes.")
+    |                                                                                                     ^^
+300 |     parser.add_argument(
+301 |         "--aspect",
+    |
+
+UP017 [*] Use `datetime.UTC` alias
+   --> hor_tools/hor_parser.py:144:75
+    |
+143 |     tz_offset_hours = base_offset + (1.0 if daylight else 0.0)
+144 |     dt_utc = (dt_local - timedelta(hours=tz_offset_hours)).replace(tzinfo=timezone.utc)
+    |                                                                           ^^^^^^^^^^^^
+145 |     return dt_utc, tz_offset_hours
+    |
+help: Convert to `datetime.UTC` alias
+    |
+5   | import re
+    - from datetime import datetime, timedelta, timezone
+6   + from datetime import datetime, timedelta, timezone, UTC
+7   | from pathlib import Path
+--------------------------------------------------------------------------------
+143 |     tz_offset_hours = base_offset + (1.0 if daylight else 0.0)
+    -     dt_utc = (dt_local - timedelta(hours=tz_offset_hours)).replace(tzinfo=timezone.utc)
+144 +     dt_utc = (dt_local - timedelta(hours=tz_offset_hours)).replace(tzinfo=UTC)
+145 |     return dt_utc, tz_offset_hours
+    |
+
+UP035 `typing.List` is deprecated, use `list` instead
+ --> hor_tools/models.py:7:1
+  |
+5 | from dataclasses import dataclass
+6 | from datetime import datetime
+7 | from typing import List, Optional
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+UP045 [*] Use `X | None` for type annotations
+   --> hor_tools/models.py:167:12
+    |
+165 |     # Essential dignity
+166 |     sign: str
+167 |     ruler: Optional[str]
+    |            ^^^^^^^^^^^^^
+168 |     exaltation_lord: Optional[str]
+169 |     triplicity_lord: Optional[str]
+    |
+help: Convert to `X | None`
+    |
+166 |     sign: str
+    -     ruler: Optional[str]
+167 +     ruler: str | None
+168 |     exaltation_lord: Optional[str]
+    |
+
+UP045 [*] Use `X | None` for type annotations
+   --> hor_tools/models.py:168:22
+    |
+166 |     sign: str
+167 |     ruler: Optional[str]
+168 |     exaltation_lord: Optional[str]
+    |                      ^^^^^^^^^^^^^
+169 |     triplicity_lord: Optional[str]
+170 |     term_lord: Optional[str]
+    |
+help: Convert to `X | None`
+    |
+167 |     ruler: Optional[str]
+    -     exaltation_lord: Optional[str]
+168 +     exaltation_lord: str | None
+169 |     triplicity_lord: Optional[str]
+    |
+
+UP045 [*] Use `X | None` for type annotations
+   --> hor_tools/models.py:169:22
+    |
+167 |     ruler: Optional[str]
+168 |     exaltation_lord: Optional[str]
+169 |     triplicity_lord: Optional[str]
+    |                      ^^^^^^^^^^^^^
+170 |     term_lord: Optional[str]
+171 |     face_lord: Optional[str]
+    |
+help: Convert to `X | None`
+    |
+168 |     exaltation_lord: Optional[str]
+    -     triplicity_lord: Optional[str]
+169 +     triplicity_lord: str | None
+170 |     term_lord: Optional[str]
+    |
+
+UP045 [*] Use `X | None` for type annotations
+   --> hor_tools/models.py:170:16
+    |
+168 |     exaltation_lord: Optional[str]
+169 |     triplicity_lord: Optional[str]
+170 |     term_lord: Optional[str]
+    |                ^^^^^^^^^^^^^
+171 |     face_lord: Optional[str]
+172 |     is_domicile: bool
+    |
+help: Convert to `X | None`
+    |
+169 |     triplicity_lord: Optional[str]
+    -     term_lord: Optional[str]
+170 +     term_lord: str | None
+171 |     face_lord: Optional[str]
+    |
+
+UP045 [*] Use `X | None` for type annotations
+   --> hor_tools/models.py:171:16
+    |
+169 |     triplicity_lord: Optional[str]
+170 |     term_lord: Optional[str]
+171 |     face_lord: Optional[str]
+    |                ^^^^^^^^^^^^^
+172 |     is_domicile: bool
+173 |     is_exalted: bool
+    |
+help: Convert to `X | None`
+    |
+170 |     term_lord: Optional[str]
+    -     face_lord: Optional[str]
+171 +     face_lord: str | None
+172 |     is_domicile: bool
+    |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> hor_tools/models.py:191:18
+    |
+190 |     # Fixed stars
+191 |     fixed_stars: List[str]
+    |                  ^^^^
+192 |
+193 |     # Aspects
+    |
+help: Replace with `list`
+    |
+190 |     # Fixed stars
+    -     fixed_stars: List[str]
+191 +     fixed_stars: list[str]
+192 |
+    |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> hor_tools/models.py:194:14
+    |
+193 |     # Aspects
+194 |     aspects: List[AspectInfo]
+    |              ^^^^
+195 |     antiscia_longitude: float
+196 |     contra_antiscia_longitude: float
+    |
+help: Replace with `list`
+    |
+193 |     # Aspects
+    -     aspects: List[AspectInfo]
+194 +     aspects: list[AspectInfo]
+195 |     antiscia_longitude: float
+    |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> hor_tools/models.py:197:20
+    |
+195 |     antiscia_longitude: float
+196 |     contra_antiscia_longitude: float
+197 |     antiscia_hits: List[ReflectionHit]
+    |                    ^^^^
+198 |     contra_antiscia_hits: List[ReflectionHit]
+199 |     domicile_aversions: List[DomicileAversion]
+    |
+help: Replace with `list`
+    |
+196 |     contra_antiscia_longitude: float
+    -     antiscia_hits: List[ReflectionHit]
+197 +     antiscia_hits: list[ReflectionHit]
+198 |     contra_antiscia_hits: List[ReflectionHit]
+    |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> hor_tools/models.py:198:27
+    |
+196 |     contra_antiscia_longitude: float
+197 |     antiscia_hits: List[ReflectionHit]
+198 |     contra_antiscia_hits: List[ReflectionHit]
+    |                           ^^^^
+199 |     domicile_aversions: List[DomicileAversion]
+    |
+help: Replace with `list`
+    |
+197 |     antiscia_hits: List[ReflectionHit]
+    -     contra_antiscia_hits: List[ReflectionHit]
+198 +     contra_antiscia_hits: list[ReflectionHit]
+199 |     domicile_aversions: List[DomicileAversion]
+    |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> hor_tools/models.py:199:25
+    |
+197 |     antiscia_hits: List[ReflectionHit]
+198 |     contra_antiscia_hits: List[ReflectionHit]
+199 |     domicile_aversions: List[DomicileAversion]
+    |                         ^^^^
+200 |
+201 |     # Relationship flags
+    |
+help: Replace with `list`
+    |
+198 |     contra_antiscia_hits: List[ReflectionHit]
+    -     domicile_aversions: List[DomicileAversion]
+199 +     domicile_aversions: list[DomicileAversion]
+200 |
+    |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> hor_tools/models.py:202:27
+    |
+201 |     # Relationship flags
+202 |     bonification_sources: List[InfluenceSource]
+    |                           ^^^^
+203 |     maltreatment_sources: List[InfluenceSource]
+204 |     is_bonified: bool
+    |
+help: Replace with `list`
+    |
+201 |     # Relationship flags
+    -     bonification_sources: List[InfluenceSource]
+202 +     bonification_sources: list[InfluenceSource]
+203 |     maltreatment_sources: List[InfluenceSource]
+    |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> hor_tools/models.py:203:27
+    |
+201 |     # Relationship flags
+202 |     bonification_sources: List[InfluenceSource]
+203 |     maltreatment_sources: List[InfluenceSource]
+    |                           ^^^^
+204 |     is_bonified: bool
+205 |     is_maltreated: bool
+    |
+help: Replace with `list`
+    |
+202 |     bonification_sources: List[InfluenceSource]
+    -     maltreatment_sources: List[InfluenceSource]
+203 +     maltreatment_sources: list[InfluenceSource]
+204 |     is_bonified: bool
+    |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> hor_tools/models.py:211:23
+    |
+209 |     benefic_enclosure_by_sign: bool
+210 |     malefic_enclosure_by_sign: bool
+211 |     dominations_over: List[DominationInfo]
+    |                       ^^^^
+212 |     dominated_by: List[DominationInfo]
+213 |     receptions_given: List[ReceptionInfo]
+    |
+help: Replace with `list`
+    |
+210 |     malefic_enclosure_by_sign: bool
+    -     dominations_over: List[DominationInfo]
+211 +     dominations_over: list[DominationInfo]
+212 |     dominated_by: List[DominationInfo]
+    |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> hor_tools/models.py:212:19
+    |
+210 |     malefic_enclosure_by_sign: bool
+211 |     dominations_over: List[DominationInfo]
+212 |     dominated_by: List[DominationInfo]
+    |                   ^^^^
+213 |     receptions_given: List[ReceptionInfo]
+214 |     receptions_received: List[ReceptionInfo]
+    |
+help: Replace with `list`
+    |
+211 |     dominations_over: List[DominationInfo]
+    -     dominated_by: List[DominationInfo]
+212 +     dominated_by: list[DominationInfo]
+213 |     receptions_given: List[ReceptionInfo]
+    |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> hor_tools/models.py:213:23
+    |
+211 |     dominations_over: List[DominationInfo]
+212 |     dominated_by: List[DominationInfo]
+213 |     receptions_given: List[ReceptionInfo]
+    |                       ^^^^
+214 |     receptions_received: List[ReceptionInfo]
+215 |     generosities_given: List[ReceptionInfo]
+    |
+help: Replace with `list`
+    |
+212 |     dominated_by: List[DominationInfo]
+    -     receptions_given: List[ReceptionInfo]
+213 +     receptions_given: list[ReceptionInfo]
+214 |     receptions_received: List[ReceptionInfo]
+    |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> hor_tools/models.py:214:26
+    |
+212 |     dominated_by: List[DominationInfo]
+213 |     receptions_given: List[ReceptionInfo]
+214 |     receptions_received: List[ReceptionInfo]
+    |                          ^^^^
+215 |     generosities_given: List[ReceptionInfo]
+216 |     generosities_received: List[ReceptionInfo]
+    |
+help: Replace with `list`
+    |
+213 |     receptions_given: List[ReceptionInfo]
+    -     receptions_received: List[ReceptionInfo]
+214 +     receptions_received: list[ReceptionInfo]
+215 |     generosities_given: List[ReceptionInfo]
+    |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> hor_tools/models.py:215:25
+    |
+213 |     receptions_given: List[ReceptionInfo]
+214 |     receptions_received: List[ReceptionInfo]
+215 |     generosities_given: List[ReceptionInfo]
+    |                         ^^^^
+216 |     generosities_received: List[ReceptionInfo]
+217 |     is_feral: bool
+    |
+help: Replace with `list`
+    |
+214 |     receptions_received: List[ReceptionInfo]
+    -     generosities_given: List[ReceptionInfo]
+215 +     generosities_given: list[ReceptionInfo]
+216 |     generosities_received: List[ReceptionInfo]
+    |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> hor_tools/models.py:216:28
+    |
+214 |     receptions_received: List[ReceptionInfo]
+215 |     generosities_given: List[ReceptionInfo]
+216 |     generosities_received: List[ReceptionInfo]
+    |                            ^^^^
+217 |     is_feral: bool
+    |
+help: Replace with `list`
+    |
+215 |     generosities_given: List[ReceptionInfo]
+    -     generosities_received: List[ReceptionInfo]
+216 +     generosities_received: list[ReceptionInfo]
+217 |     is_feral: bool
+    |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> hor_tools/output.py:3:1
+   |
+ 1 |   """Output helpers for presenting computed chart data."""
+ 2 |
+ 3 | / from __future__ import annotations
+ 4 | |
+ 5 | | from datetime import timedelta
+ 6 | | from contextlib import redirect_stdout
+ 7 | | from io import StringIO
+ 8 | | from pathlib import Path
+ 9 | |
+10 | | from .almuten import ALMUTEN_PLANETS, build_almuten_figuris
+11 | | from .models import AspectInfo, ChartInput, ChartRelationships, Houses, PlanetPosition, PlanetReport, ReflectionHit
+12 | | from .analysis.dignity import SIGNS, degree_in_sign
+   | |___________________________________________________^
+13 |
+14 |   # Optional: maps for pretty symbols when rendering with Rich
+   |
+help: Organize imports
+   |
+4  |
+5  + from contextlib import redirect_stdout
+6  | from datetime import timedelta
+   - from contextlib import redirect_stdout
+7  | from io import StringIO
+8  | from pathlib import Path
+9  |
+10 | from .almuten import ALMUTEN_PLANETS, build_almuten_figuris
+   - from .models import AspectInfo, ChartInput, ChartRelationships, Houses, PlanetPosition, PlanetReport, ReflectionHit
+11 | from .analysis.dignity import SIGNS, degree_in_sign
+12 + from .models import (
+13 +     AspectInfo,
+14 +     ChartInput,
+15 +     ChartRelationships,
+16 +     Houses,
+17 +     PlanetPosition,
+18 +     PlanetReport,
+19 +     ReflectionHit,
+20 + )
+21 |
+   |
+
+E501 Line too long (115 > 100)
+  --> hor_tools/output.py:11:101
+   |
+10 | from .almuten import ALMUTEN_PLANETS, build_almuten_figuris
+11 | from .models import AspectInfo, ChartInput, ChartRelationships, Houses, PlanetPosition, PlanetReport, ReflectionHit
+   |                                                                                                     ^^^^^^^^^^^^^^^
+12 | from .analysis.dignity import SIGNS, degree_in_sign
+   |
+
+E501 Line too long (101 > 100)
+  --> hor_tools/output.py:41:101
+   |
+41 | def _format_coord(value: float, positive_label: str, negative_label: str, precision: int = 4) -> str:
+   |                                                                                                     ^
+42 |     """Return a signed coordinate with cardinal direction."""
+   |
+
+E501 Line too long (101 > 100)
+   --> hor_tools/output.py:320:101
+    |
+320 | def _collect_reflections(reports: list[PlanetReport]) -> list[tuple[str, str, float, ReflectionHit]]:
+    |                                                                                                     ^
+321 |     """Collect antiscia/contra-antiscia hits sorted by orb."""
+322 |     rows: list[tuple[str, str, float, ReflectionHit]] = []
+    |
+
+E501 Line too long (108 > 100)
+   --> hor_tools/output.py:324:101
+    |
+322 |     rows: list[tuple[str, str, float, ReflectionHit]] = []
+323 |     for rep in reports:
+324 |         rows.extend((rep.planet.name, "antiscia", rep.antiscia_longitude, hit) for hit in rep.antiscia_hits)
+    |                                                                                                     ^^^^^^^^
+325 |         rows.extend(
+326 |             (rep.planet.name, "contra-antiscia", rep.contra_antiscia_longitude, hit) for hit in rep.contra_antiscia_hits
+    |
+
+E501 Line too long (120 > 100)
+   --> hor_tools/output.py:326:101
+    |
+324 |         rows.extend((rep.planet.name, "antiscia", rep.antiscia_longitude, hit) for hit in rep.antiscia_hits)
+325 |         rows.extend(
+326 |             (rep.planet.name, "contra-antiscia", rep.contra_antiscia_longitude, hit) for hit in rep.contra_antiscia_hits
+    |                                                                                                     ^^^^^^^^^^^^^^^^^^^^
+327 |         )
+328 |     rows.sort(key=lambda row: row[3].orb)
+    |
+
+E501 Line too long (115 > 100)
+   --> hor_tools/output.py:388:101
+    |
+387 | def print_full_report(
+388 |     chart: ChartInput, reports: list[PlanetReport], houses: Houses, relationships: ChartRelationships | None = None
+    |                                                                                                     ^^^^^^^^^^^^^^^
+389 | ) -> None:
+390 |     """
+    |
+
+E501 Line too long (121 > 100)
+   --> hor_tools/output.py:459:101
+    |
+458 |         print(f"  {_format_reflection_line('Antiscia', rep.antiscia_longitude, rep.antiscia_hits)}")
+459 |         print(f"  {_format_reflection_line('Contra-antiscia', rep.contra_antiscia_longitude, rep.contra_antiscia_hits)}")
+    |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^
+460 |
+461 |         dom_lines = _format_domicile_lines(rep, markup=False)
+    |
+
+E501 Line too long (103 > 100)
+   --> hor_tools/output.py:469:101
+    |
+467 |         if rep.is_bonified or rep.is_maltreated:
+468 |             if rep.is_bonified:
+469 |                 sources = "; ".join(f"{src.reason} ({src.planet})" for src in rep.bonification_sources)
+    |                                                                                                     ^^^
+470 |                 print(f"  Bonification: {sources}")
+471 |             if rep.is_maltreated:
+    |
+
+E501 Line too long (103 > 100)
+   --> hor_tools/output.py:472:101
+    |
+470 |                 print(f"  Bonification: {sources}")
+471 |             if rep.is_maltreated:
+472 |                 sources = "; ".join(f"{src.reason} ({src.planet})" for src in rep.maltreatment_sources)
+    |                                                                                                     ^^^
+473 |                 print(f"  Maltreatment: {sources}")
+    |
+
+E501 Line too long (114 > 100)
+   --> hor_tools/output.py:478:101
+    |
+476 |             print("  Feral: no whole-sign aspects")
+477 |
+478 |         if rep.receptions_given or rep.receptions_received or rep.generosities_given or rep.generosities_received:
+    |                                                                                                     ^^^^^^^^^^^^^^
+479 |             if rep.receptions_given:
+480 |                 rows = ", ".join(
+    |
+
+E501 Line too long (108 > 100)
+   --> hor_tools/output.py:481:101
+    |
+479 |             if rep.receptions_given:
+480 |                 rows = ", ".join(
+481 |                     f"{r.guest} ({'/'.join(r.dignities)}){f' via {r.aspect_kind}' if r.aspect_kind else ''}"
+    |                                                                                                     ^^^^^^^^
+482 |                     for r in rep.receptions_given
+483 |                 )
+    |
+
+E501 Line too long (107 > 100)
+   --> hor_tools/output.py:487:101
+    |
+485 |             if rep.receptions_received:
+486 |                 rows = ", ".join(
+487 |                     f"{r.host} ({'/'.join(r.dignities)}){f' via {r.aspect_kind}' if r.aspect_kind else ''}"
+    |                                                                                                     ^^^^^^^
+488 |                     for r in rep.receptions_received
+489 |                 )
+    |
+
+E501 Line too long (101 > 100)
+   --> hor_tools/output.py:509:101
+    |
+507 |             for dom in relationships.dominations:
+508 |                 counter = " with counter-ray" if dom.has_counter_ray else ""
+509 |                 print(f"  - {dom.dominator} dominates {dom.dominated} ({dom.relationship}){counter}")
+    |                                                                                                     ^
+510 |         else:
+511 |             print("  none")
+    |
+
+E501 Line too long (118 > 100)
+   --> hor_tools/output.py:570:101
+    |
+569 |     console = Console(record=True, theme=Theme({}))
+570 |     _render_rich_report(console, chart, reports, houses, relationships, use_sign_symbols=False, use_narrow_icons=True)
+    |                                                                                                     ^^^^^^^^^^^^^^^^^^
+571 |     if include_almuten:
+572 |         console.print()  # spacer before Almuten section
+    |
+
+E501 Line too long (115 > 100)
+   --> hor_tools/output.py:600:101
+    |
+599 | def print_rich_report(
+600 |     chart: ChartInput, reports: list[PlanetReport], houses: Houses, relationships: ChartRelationships | None = None
+    |                                                                                                     ^^^^^^^^^^^^^^^
+601 | ) -> None:
+602 |     """
+    |
+
+E501 Line too long (101 > 100)
+   --> hor_tools/output.py:615:101
+    |
+613 |     console = Console()
+614 |     _render_rich_report(
+615 |         console, chart, reports, houses, relationships, use_sign_symbols=True, use_narrow_icons=False
+    |                                                                                                     ^
+616 |     )
+    |
+
+E501 Line too long (105 > 100)
+   --> hor_tools/output.py:634:101
+    |
+632 |         from rich.theme import Theme
+633 |     except ModuleNotFoundError:
+634 |         raise RuntimeError("Rich is not installed. Install with 'uv add rich' to export HTML.") from None
+    |                                                                                                     ^^^^^
+635 |
+636 |     # Use a neutral theme; we'll inject our own dark background CSS.
+    |
+
+E501 Line too long (101 > 100)
+   --> hor_tools/output.py:640:101
+    |
+638 |     # Avoid sign symbols in HTML export so all glyphs share a fixed width.
+639 |     _render_rich_report(
+640 |         console, chart, reports, houses, relationships, use_sign_symbols=False, use_narrow_icons=True
+    |                                                                                                     ^
+641 |     )
+642 |     console.print()  # spacer before Almuten section
+    |
+
+E501 Line too long (122 > 100)
+   --> hor_tools/output.py:652:101
+    |
+650 |   color:#eaeaea !important;
+651 |   white-space: pre;
+652 |   font-family:'Noto Sans Mono','DejaVu Sans Mono','JetBrains Mono','Fira Code','Menlo','Consolas','Courier New',monospace;
+    |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^
+653 |   font-variant-ligatures: none;
+654 | }
+    |
+
+E501 Line too long (107 > 100)
+   --> hor_tools/output.py:686:101
+    |
+685 |     # Planetary State table
+686 |     planet_table = Table(title="Planetary State", box=box.ROUNDED, expand=False, width=128, padding=(0, 1))
+    |                                                                                                     ^^^^^^^
+687 |     planet_table.add_column("Planet", style="cyan", no_wrap=True)
+688 |     planet_table.add_column("Position", style="magenta", no_wrap=True, justify="right")
+    |
+
+E501 Line too long (108 > 100)
+   --> hor_tools/output.py:761:101
+    |
+759 |             polarity = "[cyan]dexter[/]" if asp.dexter else "[magenta]sinister[/]"
+760 |
+761 |             mutual = "mutual" if asp.mutual_application else ("mutual sep" if asp.mutual_separation else "")
+    |                                                                                                     ^^^^^^^^
+762 |             counter = "counter-ray" if asp.counter_ray else ""
+763 |             extra = ", ".join([p for p in [mutual, counter] if p])
+    |
+
+E501 Line too long (104 > 100)
+   --> hor_tools/output.py:797:101
+    |
+795 |             other_rep = report_map.get(hit.other)
+796 |             if other_rep:
+797 |                 other_pos = _format_position(other_rep.planet, other_rep.sign, use_sign_symbols).strip()
+    |                                                                                                     ^^^^
+798 |                 contact = f"{hit.other} @ {other_pos}"
+799 |             else:
+    |
+
+E501 Line too long (103 > 100)
+   --> hor_tools/output.py:835:101
+    |
+834 |     if relationships:
+835 |         _render_relationship_tables(console, reports, relationships, use_narrow_icons=use_narrow_icons)
+    |                                                                                                     ^^^
+836 |
+837 |     # Houses table
+    |
+
+E501 Line too long (101 > 100)
+   --> hor_tools/output.py:856:101
+    |
+854 |     console.print(house_table)
+855 |
+856 |     angle_table = Table(title="Angles", box=rich_box.MINIMAL, expand=False, width=36, padding=(0, 1))
+    |                                                                                                     ^
+857 |     angle_table.add_column("Point", justify="center", no_wrap=True)
+858 |     angle_table.add_column("Position", style="cyan", no_wrap=True)
+    |
+
+E501 Line too long (107 > 100)
+   --> hor_tools/output.py:874:101
+    |
+873 | def _render_relationship_tables(
+874 |     console, reports: list[PlanetReport], relationships: ChartRelationships, use_narrow_icons: bool = False
+    |                                                                                                     ^^^^^^^
+875 | ) -> None:
+876 |     """Render supplementary relationship tables."""
+    |
+
+F821 Undefined name `InfluenceSource`
+   --> hor_tools/output.py:897:43
+    |
+895 |     feral_icon = "o" if use_narrow_icons else "🕳"
+896 |
+897 |     def _format_ray_entries(sources: list[InfluenceSource], icon: str) -> list[str]:
+    |                                           ^^^^^^^^^^^^^^^
+898 |         grouped: dict[str, set[str]] = {}
+899 |         for src in sources:
+    |
+
+E501 Line too long (107 > 100)
+   --> hor_tools/output.py:907:101
+    |
+905 |             conj = "conjunction" in reasons
+906 |             applying = "applying" in reasons
+907 |             special = next((r for r in reasons if r.endswith("_trine") or r.endswith("_opposition")), None)
+    |                                                                                                     ^^^^^^^
+908 |             if aspect_reason:
+909 |                 aspect = aspect_reason.replace("ray_", "").replace("_", " ")
+    |
+
+F821 Undefined name `InfluenceSource`
+   --> hor_tools/output.py:924:23
+    |
+923 |     def _format_domination_entries(
+924 |         sources: list[InfluenceSource], enclosure_flags: list[str], icon: str
+    |                       ^^^^^^^^^^^^^^^
+925 |     ) -> list[str]:
+926 |         entries: list[str] = []
+    |
+
+E501 Line too long (102 > 100)
+   --> hor_tools/output.py:929:101
+    |
+927 |         for src in sources:
+928 |             if src.reason.startswith("domination_"):
+929 |                 entries.append(f"{icon} dominated by {src.planet} ({_domination_phrase(src.reason)})")
+    |                                                                                                     ^^
+930 |             if src.reason.startswith("counter_domination_"):
+931 |                 entries.append(f"{icon} counter-ray from {src.planet} ({_domination_phrase(src.reason)})")
+    |
+
+E501 Line too long (106 > 100)
+   --> hor_tools/output.py:931:101
+    |
+929 |                 entries.append(f"{icon} dominated by {src.planet} ({_domination_phrase(src.reason)})")
+930 |             if src.reason.startswith("counter_domination_"):
+931 |                 entries.append(f"{icon} counter-ray from {src.planet} ({_domination_phrase(src.reason)})")
+    |                                                                                                     ^^^^^^
+932 |             if src.reason == "dispositor":
+933 |                 entries.append(f"{icon} {src.planet} as sign ruler (dispositor)")
+    |
+
+E501 Line too long (104 > 100)
+   --> hor_tools/output.py:963:101
+    |
+962 |     for rep in reports:
+963 |         ben_rays = _format_ray_entries(rep.bonification_sources, ben_icon) if rep.is_bonified else ["—"]
+    |                                                                                                     ^^^^
+964 |         mal_rays = _format_ray_entries(rep.maltreatment_sources, mal_icon) if rep.is_maltreated else ["—"]
+    |
+
+E501 Line too long (106 > 100)
+   --> hor_tools/output.py:964:101
+    |
+962 |     for rep in reports:
+963 |         ben_rays = _format_ray_entries(rep.bonification_sources, ben_icon) if rep.is_bonified else ["—"]
+964 |         mal_rays = _format_ray_entries(rep.maltreatment_sources, mal_icon) if rep.is_maltreated else ["—"]
+    |                                                                                                     ^^^^^^
+965 |
+966 |         enclosure_ben: list[str] = []
+    |
+
+E501 Line too long (106 > 100)
+   --> hor_tools/output.py:978:101
+    |
+977 |         ben_dom = _format_domination_entries(
+978 |             [s for s in rep.bonification_sources if "domination" in s.reason or s.reason == "dispositor"],
+    |                                                                                                     ^^^^^^
+979 |             enclosure_ben,
+980 |             dom_icon,
+    |
+
+E501 Line too long (106 > 100)
+   --> hor_tools/output.py:983:101
+    |
+981 |         )
+982 |         mal_dom = _format_domination_entries(
+983 |             [s for s in rep.maltreatment_sources if "domination" in s.reason or s.reason == "dispositor"],
+    |                                                                                                     ^^^^^^
+984 |             enclosure_mal,
+985 |             dom_icon,
+    |
+
+E501 Line too long (101 > 100)
+    --> hor_tools/output.py:1021:101
+     |
+1019 |                 orb = f" ({dom.orb:.2f}°)" if dom.orb is not None else ""
+1020 |                 counter = f"[bold green]✅ counter-ray[/]{orb}"
+1021 |             dom_table.add_row(dom.dominator, dom.dominated, _aspect_label(dom.relationship), counter)
+     |                                                                                                     ^
+1022 |     else:
+1023 |         dom_table.add_row("—", "—", "—", "—")
+     |
+
+E501 Line too long (103 > 100)
+    --> hor_tools/output.py:1070:101
+     |
+1068 |     )
+1069 |     collect_table.add_column("Collector", style="cyan", no_wrap=True)
+1070 |     collect_table.add_column("Planets being collected", style="magenta", overflow="fold", max_width=36)
+     |                                                                                                     ^^^
+1071 |     collect_table.add_column("Action", style="yellow", overflow="fold", max_width=54)
+     |
+
+E501 Line too long (104 > 100)
+    --> hor_tools/output.py:1110:101
+     |
+1108 |     for rep in reports:
+1109 |         for r in rep.receptions_given:
+1110 |             rec_table.add_row(r.host, r.guest, "reception", "/".join(r.dignities), r.aspect_kind or "—")
+     |                                                                                                     ^^^^
+1111 |             rows_added = True
+1112 |         for g in rep.generosities_given:
+     |
+
+E501 Line too long (137 > 100)
+    --> hor_tools/output.py:1327:101
+     |
+1325 | …
+1326 | …
+1327 | …otals.get(name, 0)} + accidental {accidental['accidental_totals'].get(name, 0)})[/]"
+     |                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1328 | …
+1329 | …
+     |
+
+E501 Line too long (110 > 100)
+    --> hor_tools/output.py:1331:101
+     |
+1329 |         breakdown = "; ".join(detail_bits)
+1330 |         rich_console.print(
+1331 |             f"[bold magenta]Almuten Figuris:[/] {names} ([green]{almuten_score}[/]) — highest combined score."
+     |                                                                                                     ^^^^^^^^^^
+1332 |         )
+1333 |         rich_console.print(f"[dim]{breakdown}[/]")
+     |
+
+E501 Line too long (104 > 100)
+  --> hor_tools/synodic.py:46:101
+   |
+46 | def compute_elongation_and_orientation(planet_long: float, sun_long: float) -> tuple[float, bool, bool]:
+   |                                                                                                     ^^^^
+47 |     """Return (elongation, oriental, occidental) relative to the Sun.
+   |
+
+E501 Line too long (106 > 100)
+  --> tests/test_antiscia.py:31:101
+   |
+30 | def test_degree_sum_rule_no_orb():
+31 |     # Mercury 28° Gemini (88°) antiscia sign = Cancer; degree int=28 → needs partner at degree 1 (28+1=29)
+   |                                                                                                     ^^^^^^
+32 |     mercury = make_planet("Mercury", 88.0)
+33 |     moon_exact = make_planet("Moon", 91.0)  # 1° Cancer -> should count
+   |
+
+F401 [*] `hor_tools.models.DomicileAversion` imported but unused
+ --> tests/test_aversion.py:4:5
+  |
+2 | from hor_tools.models import (
+3 |     AspectInfo,
+4 |     DomicileAversion,
+  |     ^^^^^^^^^^^^^^^^
+5 |     PlanetPosition,
+6 |     PlanetReport,
+  |
+help: Remove unused import
+  |
+3 |     AspectInfo,
+  -     DomicileAversion,
+4 |     PlanetPosition,
+5 |     PlanetReport,
+  -     ReflectionHit,
+6 |     TranslationOfLight,
+  |
+
+F401 [*] `hor_tools.models.ReflectionHit` imported but unused
+ --> tests/test_aversion.py:7:5
+  |
+5 |     PlanetPosition,
+6 |     PlanetReport,
+7 |     ReflectionHit,
+  |     ^^^^^^^^^^^^^
+8 |     TranslationOfLight,
+9 | )
+  |
+help: Remove unused import
+  |
+3 |     AspectInfo,
+  -     DomicileAversion,
+4 |     PlanetPosition,
+5 |     PlanetReport,
+  -     ReflectionHit,
+6 |     TranslationOfLight,
+  |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> tests/test_calculation_regressions.py:1:1
+   |
+ 1 | / from __future__ import annotations
+ 2 | |
+ 3 | | from datetime import datetime, timezone
+ 4 | | from pathlib import Path
+ 5 | | import sys
+ 6 | | import unittest
+ 7 | |
+ 8 | | import swisseph as swe
+   | |______________________^
+ 9 |
+10 |   # The event/Ascendant scanners are intentionally root-level scripts rather than
+   |
+help: Organize imports
+  |
+2 |
+3 + import sys
+4 + import unittest
+5 | from datetime import datetime, timezone
+6 | from pathlib import Path
+  - import sys
+  - import unittest
+7 |
+  |
+
+E402 Module level import not at top of file
+  --> tests/test_calculation_regressions.py:17:1
+   |
+15 |     sys.path.insert(0, str(ROOT))
+16 |
+17 | from asc_window_scan import offset_hours_at, resolve_zone
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+18 | from hor_tools.analysis.aspects import PLANET_ORBS, _is_applying
+19 | from hor_tools.analysis.conditions import (
+   |
+help: Move module level imports to top of file
+
+E402 Module level import not at top of file
+  --> tests/test_calculation_regressions.py:18:1
+   |
+17 | from asc_window_scan import offset_hours_at, resolve_zone
+18 | from hor_tools.analysis.aspects import PLANET_ORBS, _is_applying
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+19 | from hor_tools.analysis.conditions import (
+20 |     _crosses_major_aspect,
+   |
+help: Move module level imports to top of file
+
+E402 Module level import not at top of file
+  --> tests/test_calculation_regressions.py:19:1
+   |
+17 |   from asc_window_scan import offset_hours_at, resolve_zone
+18 |   from hor_tools.analysis.aspects import PLANET_ORBS, _is_applying
+19 | / from hor_tools.analysis.conditions import (
+20 | |     _crosses_major_aspect,
+21 | |     is_in_planetary_joy,
+22 | |     is_in_via_combusta,
+23 | |     latitude_condition,
+24 | | )
+   | |_^
+25 |   from hor_tools.analysis.dignity import MEAN_SPEED, _term_lord, classify_speed
+26 |   from hor_tools.analysis.relationship_rules import (
+   |
+help: Move module level imports to top of file
+
+E402 Module level import not at top of file
+  --> tests/test_calculation_regressions.py:25:1
+   |
+23 |     latitude_condition,
+24 | )
+25 | from hor_tools.analysis.dignity import MEAN_SPEED, _term_lord, classify_speed
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+26 | from hor_tools.analysis.relationship_rules import (
+27 |     _qualifies_for_reception,
+   |
+help: Move module level imports to top of file
+
+E402 Module level import not at top of file
+  --> tests/test_calculation_regressions.py:26:1
+   |
+24 |   )
+25 |   from hor_tools.analysis.dignity import MEAN_SPEED, _term_lord, classify_speed
+26 | / from hor_tools.analysis.relationship_rules import (
+27 | |     _qualifies_for_reception,
+28 | |     compute_collection_of_light,
+29 | |     compute_domination,
+30 | | )
+   | |_^
+31 |   from hor_tools.analysis.sect import chart_sect, compute_hayz_and_halb
+32 |   from hor_tools.analysis.stars import _star_orb_from_magnitude
+   |
+help: Move module level imports to top of file
+
+E402 Module level import not at top of file
+  --> tests/test_calculation_regressions.py:31:1
+   |
+29 |     compute_domination,
+30 | )
+31 | from hor_tools.analysis.sect import chart_sect, compute_hayz_and_halb
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+32 | from hor_tools.analysis.stars import _star_orb_from_magnitude
+33 | from hor_tools.astro_engine import julian_day_from_chart
+   |
+help: Move module level imports to top of file
+
+E402 Module level import not at top of file
+  --> tests/test_calculation_regressions.py:32:1
+   |
+30 | )
+31 | from hor_tools.analysis.sect import chart_sect, compute_hayz_and_halb
+32 | from hor_tools.analysis.stars import _star_orb_from_magnitude
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+33 | from hor_tools.astro_engine import julian_day_from_chart
+34 | from hor_tools.models import AspectInfo, ChartInput, PlanetPosition
+   |
+help: Move module level imports to top of file
+
+E402 Module level import not at top of file
+  --> tests/test_calculation_regressions.py:33:1
+   |
+31 | from hor_tools.analysis.sect import chart_sect, compute_hayz_and_halb
+32 | from hor_tools.analysis.stars import _star_orb_from_magnitude
+33 | from hor_tools.astro_engine import julian_day_from_chart
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+34 | from hor_tools.models import AspectInfo, ChartInput, PlanetPosition
+35 | from scan_events import _crossed_aspect_target
+   |
+help: Move module level imports to top of file
+
+E402 Module level import not at top of file
+  --> tests/test_calculation_regressions.py:34:1
+   |
+32 | from hor_tools.analysis.stars import _star_orb_from_magnitude
+33 | from hor_tools.astro_engine import julian_day_from_chart
+34 | from hor_tools.models import AspectInfo, ChartInput, PlanetPosition
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+35 | from scan_events import _crossed_aspect_target
+   |
+help: Move module level imports to top of file
+
+E402 Module level import not at top of file
+  --> tests/test_calculation_regressions.py:35:1
+   |
+33 | from hor_tools.astro_engine import julian_day_from_chart
+34 | from hor_tools.models import AspectInfo, ChartInput, PlanetPosition
+35 | from scan_events import _crossed_aspect_target
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+help: Move module level imports to top of file
+
+E501 Line too long (109 > 100)
+   --> tests/test_calculation_regressions.py:175:101
+    |
+174 |     def test_latitude_strength_testimony(self) -> None:
+175 |         self.assertEqual("north_strengthening", latitude_condition(_planet("Venus", 0.0, 1.0, latitude=2.0)))
+    |                                                                                                     ^^^^^^^^^
+176 |         self.assertEqual("south_weakening", latitude_condition(_planet("Venus", 0.0, 1.0, latitude=-2.0)))
+177 |         self.assertEqual("on_ecliptic", latitude_condition(_planet("Venus", 0.0, 1.0, latitude=0.0)))
+    |
+
+E501 Line too long (106 > 100)
+   --> tests/test_calculation_regressions.py:176:101
+    |
+174 |     def test_latitude_strength_testimony(self) -> None:
+175 |         self.assertEqual("north_strengthening", latitude_condition(_planet("Venus", 0.0, 1.0, latitude=2.0)))
+176 |         self.assertEqual("south_weakening", latitude_condition(_planet("Venus", 0.0, 1.0, latitude=-2.0)))
+    |                                                                                                     ^^^^^^
+177 |         self.assertEqual("on_ecliptic", latitude_condition(_planet("Venus", 0.0, 1.0, latitude=0.0)))
+    |
+
+E501 Line too long (101 > 100)
+   --> tests/test_calculation_regressions.py:177:101
+    |
+175 |         self.assertEqual("north_strengthening", latitude_condition(_planet("Venus", 0.0, 1.0, latitude=2.0)))
+176 |         self.assertEqual("south_weakening", latitude_condition(_planet("Venus", 0.0, 1.0, latitude=-2.0)))
+177 |         self.assertEqual("on_ecliptic", latitude_condition(_planet("Venus", 0.0, 1.0, latitude=0.0)))
+    |                                                                                                     ^
+178 |
+179 |     def test_via_combusta_formal_course_core(self) -> None:
+    |
+
+UP017 [*] Use `datetime.UTC` alias
+   --> tests/test_calculation_regressions.py:196:62
+    |
+194 |         chart = ChartInput(
+195 |             name="horizon",
+196 |             datetime_utc=datetime(2026, 8, 20, 12, 0, tzinfo=timezone.utc),
+    |                                                              ^^^^^^^^^^^^
+197 |             tz_offset_hours=0.0,
+198 |             latitude=43.32,
+    |
+help: Convert to `datetime.UTC` alias
+    |
+2   |
+    - from datetime import datetime, timezone
+3   + from datetime import datetime, timezone, UTC
+4   | from pathlib import Path
+--------------------------------------------------------------------------------
+195 |             name="horizon",
+    -             datetime_utc=datetime(2026, 8, 20, 12, 0, tzinfo=timezone.utc),
+196 +             datetime_utc=datetime(2026, 8, 20, 12, 0, tzinfo=UTC),
+197 |             tz_offset_hours=0.0,
+    |
+
+UP017 [*] Use `datetime.UTC` alias
+   --> tests/test_calculation_regressions.py:215:62
+    |
+213 |         chart = ChartInput(
+214 |             name="halb",
+215 |             datetime_utc=datetime(2026, 8, 20, 12, 0, tzinfo=timezone.utc),
+    |                                                              ^^^^^^^^^^^^
+216 |             tz_offset_hours=0.0,
+217 |             latitude=43.32,
+    |
+help: Convert to `datetime.UTC` alias
+    |
+2   |
+    - from datetime import datetime, timezone
+3   + from datetime import datetime, timezone, UTC
+4   | from pathlib import Path
+--------------------------------------------------------------------------------
+214 |             name="halb",
+    -             datetime_utc=datetime(2026, 8, 20, 12, 0, tzinfo=timezone.utc),
+215 +             datetime_utc=datetime(2026, 8, 20, 12, 0, tzinfo=UTC),
+216 |             tz_offset_hours=0.0,
+    |
+
+UP017 [*] Use `datetime.UTC` alias
+   --> tests/test_calculation_regressions.py:249:54
+    |
+247 |         template = ChartInput(
+248 |             name="dst",
+249 |             datetime_utc=datetime(2026, 1, 1, tzinfo=timezone.utc),
+    |                                                      ^^^^^^^^^^^^
+250 |             tz_offset_hours=1.0,
+251 |             latitude=43.32,
+    |
+help: Convert to `datetime.UTC` alias
+    |
+2   |
+    - from datetime import datetime, timezone
+3   + from datetime import datetime, timezone, UTC
+4   | from pathlib import Path
+--------------------------------------------------------------------------------
+248 |             name="dst",
+    -             datetime_utc=datetime(2026, 1, 1, tzinfo=timezone.utc),
+249 +             datetime_utc=datetime(2026, 1, 1, tzinfo=UTC),
+250 |             tz_offset_hours=1.0,
+    |
+
+UP017 [*] Use `datetime.UTC` alias
+   --> tests/test_calculation_regressions.py:257:51
+    |
+255 |         )
+256 |         zone = resolve_zone(template, "Europe/Belgrade")
+257 |         winter = datetime(2026, 1, 15, 12, tzinfo=timezone.utc)
+    |                                                   ^^^^^^^^^^^^
+258 |         summer = datetime(2026, 7, 15, 12, tzinfo=timezone.utc)
+259 |         self.assertEqual(1.0, offset_hours_at(winter, zone))
+    |
+help: Convert to `datetime.UTC` alias
+    |
+2   |
+    - from datetime import datetime, timezone
+3   + from datetime import datetime, timezone, UTC
+4   | from pathlib import Path
+--------------------------------------------------------------------------------
+256 |         zone = resolve_zone(template, "Europe/Belgrade")
+    -         winter = datetime(2026, 1, 15, 12, tzinfo=timezone.utc)
+257 +         winter = datetime(2026, 1, 15, 12, tzinfo=UTC)
+258 |         summer = datetime(2026, 7, 15, 12, tzinfo=timezone.utc)
+    |
+
+UP017 [*] Use `datetime.UTC` alias
+   --> tests/test_calculation_regressions.py:258:51
+    |
+256 |         zone = resolve_zone(template, "Europe/Belgrade")
+257 |         winter = datetime(2026, 1, 15, 12, tzinfo=timezone.utc)
+258 |         summer = datetime(2026, 7, 15, 12, tzinfo=timezone.utc)
+    |                                                   ^^^^^^^^^^^^
+259 |         self.assertEqual(1.0, offset_hours_at(winter, zone))
+260 |         self.assertEqual(2.0, offset_hours_at(summer, zone))
+    |
+help: Convert to `datetime.UTC` alias
+    |
+2   |
+    - from datetime import datetime, timezone
+3   + from datetime import datetime, timezone, UTC
+4   | from pathlib import Path
+--------------------------------------------------------------------------------
+257 |         winter = datetime(2026, 1, 15, 12, tzinfo=timezone.utc)
+    -         summer = datetime(2026, 7, 15, 12, tzinfo=timezone.utc)
+258 +         summer = datetime(2026, 7, 15, 12, tzinfo=UTC)
+259 |         self.assertEqual(1.0, offset_hours_at(winter, zone))
+    |
+
+UP017 [*] Use `datetime.UTC` alias
+  --> tests/test_cli.py:17:58
+   |
+15 |     return ChartInput(
+16 |         name="test",
+17 |         datetime_utc=datetime(2026, 8, 20, 10, 0, tzinfo=timezone.utc),
+   |                                                          ^^^^^^^^^^^^
+18 |         tz_offset_hours=2.0,
+19 |         latitude=43.32,
+   |
+help: Convert to `datetime.UTC` alias
+   |
+2  |
+   - from datetime import datetime, timezone
+3  + from datetime import datetime, timezone, UTC
+4  | from pathlib import Path
+--------------------------------------------------------------------------------
+16 |         name="test",
+   -         datetime_utc=datetime(2026, 8, 20, 10, 0, tzinfo=timezone.utc),
+17 +         datetime_utc=datetime(2026, 8, 20, 10, 0, tzinfo=UTC),
+18 |         tz_offset_hours=2.0,
+   |
+
+E501 Line too long (104 > 100)
+  --> tests/test_cli.py:46:101
+   |
+46 | def test_simple_output_name_goes_under_outputs(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+   |                                                                                                     ^^^^
+47 |     monkeypatch.chdir(tmp_path)
+48 |     resolved = resolve_output_path("report.md")
+   |
+
+UP017 [*] Use `datetime.UTC` alias
+  --> tests/test_cli.py:54:41
+   |
+53 | def test_event_scanner_rejects_nonpositive_step_before_looping() -> None:
+54 |     start = datetime(2026, 1, 1, tzinfo=timezone.utc)
+   |                                         ^^^^^^^^^^^^
+55 |     end = datetime(2026, 1, 2, tzinfo=timezone.utc)
+56 |     with pytest.raises(ValueError, match="step-min"):
+   |
+help: Convert to `datetime.UTC` alias
+   |
+2  |
+   - from datetime import datetime, timezone
+3  + from datetime import datetime, timezone, UTC
+4  | from pathlib import Path
+--------------------------------------------------------------------------------
+53 | def test_event_scanner_rejects_nonpositive_step_before_looping() -> None:
+   -     start = datetime(2026, 1, 1, tzinfo=timezone.utc)
+54 +     start = datetime(2026, 1, 1, tzinfo=UTC)
+55 |     end = datetime(2026, 1, 2, tzinfo=timezone.utc)
+   |
+
+UP017 [*] Use `datetime.UTC` alias
+  --> tests/test_cli.py:55:39
+   |
+53 | def test_event_scanner_rejects_nonpositive_step_before_looping() -> None:
+54 |     start = datetime(2026, 1, 1, tzinfo=timezone.utc)
+55 |     end = datetime(2026, 1, 2, tzinfo=timezone.utc)
+   |                                       ^^^^^^^^^^^^
+56 |     with pytest.raises(ValueError, match="step-min"):
+57 |         scan_range(start, end, 0.0, 0.0, 0.0, 0.1, {})
+   |
+help: Convert to `datetime.UTC` alias
+   |
+2  |
+   - from datetime import datetime, timezone
+3  + from datetime import datetime, timezone, UTC
+4  | from pathlib import Path
+--------------------------------------------------------------------------------
+54 |     start = datetime(2026, 1, 1, tzinfo=timezone.utc)
+   -     end = datetime(2026, 1, 2, tzinfo=timezone.utc)
+55 +     end = datetime(2026, 1, 2, tzinfo=UTC)
+56 |     with pytest.raises(ValueError, match="step-min"):
+   |
+
+UP017 [*] Use `datetime.UTC` alias
+  --> tests/test_fixed_stars.py:11:50
+   |
+ 9 |     return ChartInput(
+10 |         name="stars",
+11 |         datetime_utc=datetime(2000, 1, 1, tzinfo=timezone.utc),
+   |                                                  ^^^^^^^^^^^^
+12 |         tz_offset_hours=0.0,
+13 |         latitude=0.0,
+   |
+help: Convert to `datetime.UTC` alias
+   |
+   - from datetime import datetime, timezone
+1  + from datetime import datetime, timezone, UTC
+2  | from unittest.mock import patch
+--------------------------------------------------------------------------------
+10 |         name="stars",
+   -         datetime_utc=datetime(2000, 1, 1, tzinfo=timezone.utc),
+11 +         datetime_utc=datetime(2000, 1, 1, tzinfo=UTC),
+12 |         tz_offset_hours=0.0,
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> tests/test_hor_parser.py:1:1
+  |
+1 | / from __future__ import annotations
+2 | |
+3 | | from datetime import datetime, timezone
+4 | | from pathlib import Path
+5 | |
+6 | | import pytest
+7 | |
+8 | | from hor_tools.hor_parser import HorParseError, load_hor
+  | |________________________________________________________^
+help: Organize imports
+   |
+9  |
+   -
+10 | FIXTURE = Path(__file__).parent / "fixtures" / "sample_nis.hor"
+   |
+
+UP017 [*] Use `datetime.UTC` alias
+  --> tests/test_hor_parser.py:20:70
+   |
+18 |     assert chart.location_name == "Niš"
+19 |     assert chart.altitude_m == 195.0
+20 |     assert chart.datetime_utc == datetime(1988, 6, 8, 17, 15, tzinfo=timezone.utc)
+   |                                                                      ^^^^^^^^^^^^
+21 |     assert chart.tz_offset_hours == 2.0
+22 |     assert chart.longitude == pytest.approx(21.9)
+   |
+help: Convert to `datetime.UTC` alias
+   |
+2  |
+   - from datetime import datetime, timezone
+3  + from datetime import datetime, timezone, UTC
+4  | from pathlib import Path
+--------------------------------------------------------------------------------
+19 |     assert chart.altitude_m == 195.0
+   -     assert chart.datetime_utc == datetime(1988, 6, 8, 17, 15, tzinfo=timezone.utc)
+20 +     assert chart.datetime_utc == datetime(1988, 6, 8, 17, 15, tzinfo=UTC)
+21 |     assert chart.tz_offset_hours == 2.0
+   |
+
+UP017 [*] Use `datetime.UTC` alias
+  --> tests/test_hor_parser.py:58:70
+   |
+56 |     # UTC-1 base zone + DST => effective UTC+0 for this synthetic fixture.
+57 |     assert chart.tz_offset_hours == 0.0
+58 |     assert chart.datetime_utc == datetime(1988, 6, 8, 19, 15, tzinfo=timezone.utc)
+   |                                                                      ^^^^^^^^^^^^
+59 |     assert chart.longitude == pytest.approx(-21.9)
+60 |     assert chart.latitude == pytest.approx(-(43 + 19 / 60))
+   |
+help: Convert to `datetime.UTC` alias
+   |
+2  |
+   - from datetime import datetime, timezone
+3  + from datetime import datetime, timezone, UTC
+4  | from pathlib import Path
+--------------------------------------------------------------------------------
+57 |     assert chart.tz_offset_hours == 0.0
+   -     assert chart.datetime_utc == datetime(1988, 6, 8, 19, 15, tzinfo=timezone.utc)
+58 +     assert chart.datetime_utc == datetime(1988, 6, 8, 19, 15, tzinfo=UTC)
+59 |     assert chart.longitude == pytest.approx(-21.9)
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> tests/test_planetary_hours.py:1:1
+   |
+ 1 | / from __future__ import annotations
+ 2 | |
+ 3 | | from datetime import datetime, timedelta, timezone
+ 4 | | import unittest
+ 5 | |
+ 6 | | import swisseph as swe
+ 7 | |
+ 8 | | from hor_tools.almuten import _sunrise_sunset, planetary_day_hour_rulers, planetary_hour_from_local
+ 9 | | from hor_tools.models import ChartInput
+   | |_______________________________________^
+10 |
+11 |   NIS_LAT = 43 + 19 / 60.0
+   |
+help: Organize imports
+  |
+2 |
+3 + import unittest
+4 | from datetime import datetime, timedelta, timezone
+  - import unittest
+5 |
+  |
+
+UP017 [*] Use `datetime.UTC` alias
+  --> tests/test_planetary_hours.py:18:52
+   |
+16 |     def _jd_to_local(self, jd: float, tz_offset_hours: float) -> datetime:
+17 |         year, month, day, ut_hour = swe.revjul(jd, swe.GREG_CAL)
+18 |         dt_utc = datetime(year, month, day, tzinfo=timezone.utc) + timedelta(hours=ut_hour)
+   |                                                    ^^^^^^^^^^^^
+19 |         return dt_utc + timedelta(hours=tz_offset_hours)
+   |
+help: Convert to `datetime.UTC` alias
+   |
+2  |
+   - from datetime import datetime, timedelta, timezone
+3  + from datetime import datetime, timedelta, timezone, UTC
+4  | import unittest
+--------------------------------------------------------------------------------
+17 |         year, month, day, ut_hour = swe.revjul(jd, swe.GREG_CAL)
+   -         dt_utc = datetime(year, month, day, tzinfo=timezone.utc) + timedelta(hours=ut_hour)
+18 +         dt_utc = datetime(year, month, day, tzinfo=UTC) + timedelta(hours=ut_hour)
+19 |         return dt_utc + timedelta(hours=tz_offset_hours)
+   |
+
+UP017 [*] Use `datetime.UTC` alias
+  --> tests/test_planetary_hours.py:24:79
+   |
+22 |         tz_offset_hours = 2.0
+23 |         dt_local = datetime(1996, 9, 6, 17, 32, 36)
+24 |         dt_utc = (dt_local - timedelta(hours=tz_offset_hours)).replace(tzinfo=timezone.utc)
+   |                                                                               ^^^^^^^^^^^^
+25 |         return ChartInput(
+26 |             name="geographic planetary hour example",
+   |
+help: Convert to `datetime.UTC` alias
+   |
+2  |
+   - from datetime import datetime, timedelta, timezone
+3  + from datetime import datetime, timedelta, timezone, UTC
+4  | import unittest
+--------------------------------------------------------------------------------
+23 |         dt_local = datetime(1996, 9, 6, 17, 32, 36)
+   -         dt_utc = (dt_local - timedelta(hours=tz_offset_hours)).replace(tzinfo=timezone.utc)
+24 +         dt_utc = (dt_local - timedelta(hours=tz_offset_hours)).replace(tzinfo=UTC)
+25 |         return ChartInput(
+   |
+
+UP017 [*] Use `datetime.UTC` alias
+  --> tests/test_planetary_hours.py:41:50
+   |
+39 |         self.assertEqual("Saturn", hour_ruler)
+40 |
+41 |         dt_local = chart.datetime_utc.astimezone(timezone.utc).replace(tzinfo=None) + timedelta(hours=2)
+   |                                                  ^^^^^^^^^^^^
+42 |         local_midnight = dt_local.replace(hour=0, minute=0, second=0, microsecond=0)
+43 |         utc_midnight = local_midnight - timedelta(hours=2)
+   |
+help: Convert to `datetime.UTC` alias
+   |
+2  |
+   - from datetime import datetime, timedelta, timezone
+3  + from datetime import datetime, timedelta, timezone, UTC
+4  | import unittest
+--------------------------------------------------------------------------------
+40 |
+   -         dt_local = chart.datetime_utc.astimezone(timezone.utc).replace(tzinfo=None) + timedelta(hours=2)
+41 +         dt_local = chart.datetime_utc.astimezone(UTC).replace(tzinfo=None) + timedelta(hours=2)
+42 |         local_midnight = dt_local.replace(hour=0, minute=0, second=0, microsecond=0)
+   |
+
+E501 Line too long (104 > 100)
+  --> tests/test_planetary_hours.py:41:101
+   |
+39 |         self.assertEqual("Saturn", hour_ruler)
+40 |
+41 |         dt_local = chart.datetime_utc.astimezone(timezone.utc).replace(tzinfo=None) + timedelta(hours=2)
+   |                                                                                                     ^^^^
+42 |         local_midnight = dt_local.replace(hour=0, minute=0, second=0, microsecond=0)
+43 |         utc_midnight = local_midnight - timedelta(hours=2)
+   |
+
+UP017 [*] Use `datetime.UTC` alias
+  --> tests/test_planetary_hours.py:56:62
+   |
+54 |         sunset_local = self._jd_to_local(sunset_ut, 2.0)
+55 |
+56 |         expected_sunrise = datetime(1996, 9, 6, 6, 3, tzinfo=timezone.utc)
+   |                                                              ^^^^^^^^^^^^
+57 |         expected_sunset = datetime(1996, 9, 6, 18, 57, tzinfo=timezone.utc)
+58 |         self.assertLess(abs((sunrise_local - expected_sunrise).total_seconds()), 120)
+   |
+help: Convert to `datetime.UTC` alias
+   |
+2  |
+   - from datetime import datetime, timedelta, timezone
+3  + from datetime import datetime, timedelta, timezone, UTC
+4  | import unittest
+--------------------------------------------------------------------------------
+55 |
+   -         expected_sunrise = datetime(1996, 9, 6, 6, 3, tzinfo=timezone.utc)
+56 +         expected_sunrise = datetime(1996, 9, 6, 6, 3, tzinfo=UTC)
+57 |         expected_sunset = datetime(1996, 9, 6, 18, 57, tzinfo=timezone.utc)
+   |
+
+UP017 [*] Use `datetime.UTC` alias
+  --> tests/test_planetary_hours.py:57:63
+   |
+56 |         expected_sunrise = datetime(1996, 9, 6, 6, 3, tzinfo=timezone.utc)
+57 |         expected_sunset = datetime(1996, 9, 6, 18, 57, tzinfo=timezone.utc)
+   |                                                               ^^^^^^^^^^^^
+58 |         self.assertLess(abs((sunrise_local - expected_sunrise).total_seconds()), 120)
+59 |         self.assertLess(abs((sunset_local - expected_sunset).total_seconds()), 120)
+   |
+help: Convert to `datetime.UTC` alias
+   |
+2  |
+   - from datetime import datetime, timedelta, timezone
+3  + from datetime import datetime, timedelta, timezone, UTC
+4  | import unittest
+--------------------------------------------------------------------------------
+56 |         expected_sunrise = datetime(1996, 9, 6, 6, 3, tzinfo=timezone.utc)
+   -         expected_sunset = datetime(1996, 9, 6, 18, 57, tzinfo=timezone.utc)
+57 +         expected_sunset = datetime(1996, 9, 6, 18, 57, tzinfo=UTC)
+58 |         self.assertLess(abs((sunrise_local - expected_sunrise).total_seconds()), 120)
+   |
+
+UP017 [*] Use `datetime.UTC` alias
+  --> tests/test_planetary_hours.py:68:50
+   |
+66 |     def test_timezone_offset_does_not_replace_longitude(self) -> None:
+67 |         chart = self._chart()
+68 |         dt_local = chart.datetime_utc.astimezone(timezone.utc).replace(tzinfo=None) + timedelta(hours=2)
+   |                                                  ^^^^^^^^^^^^
+69 |         utc_midnight = dt_local.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(hours=2)
+70 |         base_jd = swe.julday(utc_midnight.year, utc_midnight.month, utc_midnight.day, utc_midnight.hour, swe.GREG_CAL)
+   |
+help: Convert to `datetime.UTC` alias
+   |
+2  |
+   - from datetime import datetime, timedelta, timezone
+3  + from datetime import datetime, timedelta, timezone, UTC
+4  | import unittest
+--------------------------------------------------------------------------------
+67 |         chart = self._chart()
+   -         dt_local = chart.datetime_utc.astimezone(timezone.utc).replace(tzinfo=None) + timedelta(hours=2)
+68 +         dt_local = chart.datetime_utc.astimezone(UTC).replace(tzinfo=None) + timedelta(hours=2)
+69 |         utc_midnight = dt_local.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(hours=2)
+   |
+
+E501 Line too long (104 > 100)
+  --> tests/test_planetary_hours.py:68:101
+   |
+66 |     def test_timezone_offset_does_not_replace_longitude(self) -> None:
+67 |         chart = self._chart()
+68 |         dt_local = chart.datetime_utc.astimezone(timezone.utc).replace(tzinfo=None) + timedelta(hours=2)
+   |                                                                                                     ^^^^
+69 |         utc_midnight = dt_local.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(hours=2)
+70 |         base_jd = swe.julday(utc_midnight.year, utc_midnight.month, utc_midnight.day, utc_midnight.hour, swe.GREG_CAL)
+   |
+
+E501 Line too long (103 > 100)
+  --> tests/test_planetary_hours.py:69:101
+   |
+67 |         chart = self._chart()
+68 |         dt_local = chart.datetime_utc.astimezone(timezone.utc).replace(tzinfo=None) + timedelta(hours=2)
+69 |         utc_midnight = dt_local.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(hours=2)
+   |                                                                                                     ^^^
+70 |         base_jd = swe.julday(utc_midnight.year, utc_midnight.month, utc_midnight.day, utc_midnight.hour, swe.GREG_CAL)
+   |
+
+E501 Line too long (118 > 100)
+  --> tests/test_planetary_hours.py:70:101
+   |
+68 |         dt_local = chart.datetime_utc.astimezone(timezone.utc).replace(tzinfo=None) + timedelta(hours=2)
+69 |         utc_midnight = dt_local.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(hours=2)
+70 |         base_jd = swe.julday(utc_midnight.year, utc_midnight.month, utc_midnight.day, utc_midnight.hour, swe.GREG_CAL)
+   |                                                                                                     ^^^^^^^^^^^^^^^^^^
+71 |
+72 |         sunrise_a, sunset_a = _sunrise_sunset(base_jd, NIS_LAT, NIS_LON, 1.0)
+   |
+
+UP017 [*] Use `datetime.UTC` alias
+  --> tests/test_relationships.py:24:59
+   |
+22 |     return ChartInput(
+23 |         name="synthetic",
+24 |         datetime_utc=datetime.datetime(2000, 1, 1, tzinfo=datetime.timezone.utc),
+   |                                                           ^^^^^^^^^^^^^^^^^^^^^
+25 |         tz_offset_hours=0.0,
+26 |         latitude=0.0,
+   |
+help: Convert to `datetime.UTC` alias
+   |
+23 |         name="synthetic",
+   -         datetime_utc=datetime.datetime(2000, 1, 1, tzinfo=datetime.timezone.utc),
+24 +         datetime_utc=datetime.datetime(2000, 1, 1, tzinfo=datetime.UTC),
+25 |         tz_offset_hours=0.0,
+   |
+
+E501 Line too long (108 > 100)
+  --> tests/test_relationships.py:61:101
+   |
+59 |         self.assertTrue(saturn_aspect.mutual_separation)
+60 |
+61 |         dom = next(d for d in relationships.dominations if d.dominated == "Sun" and d.dominator == "Saturn")
+   |                                                                                                     ^^^^^^^^
+62 |         self.assertFalse(dom.has_counter_ray)
+63 |         self.assertEqual(dom.relationship, "square_decimation")
+   |
+
+E501 Line too long (107 > 100)
+  --> tests/test_synodic_phases.py:35:101
+   |
+33 |     def test_superior_oriental_sequence(self) -> None:
+34 |         sun_long = 0.0
+35 |         self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 310.0, 0.3), sun_long).index, 4)
+   |                                                                                                     ^^^^^^^
+36 |         self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 285.0, 0.3), sun_long).index, 5)
+37 |         self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 250.0, 0.3), sun_long).index, 6)
+   |
+
+E501 Line too long (107 > 100)
+  --> tests/test_synodic_phases.py:36:101
+   |
+34 |         sun_long = 0.0
+35 |         self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 310.0, 0.3), sun_long).index, 4)
+36 |         self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 285.0, 0.3), sun_long).index, 5)
+   |                                                                                                     ^^^^^^^
+37 |         self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 250.0, 0.3), sun_long).index, 6)
+38 |         self.assertEqual(compute_superior_synodic_phase(_planet("Saturn", 250.0, 0.01, station="first"), sun_long).index, 7)
+   |
+
+E501 Line too long (107 > 100)
+  --> tests/test_synodic_phases.py:37:101
+   |
+35 |         self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 310.0, 0.3), sun_long).index, 4)
+36 |         self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 285.0, 0.3), sun_long).index, 5)
+37 |         self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 250.0, 0.3), sun_long).index, 6)
+   |                                                                                                     ^^^^^^^
+38 |         self.assertEqual(compute_superior_synodic_phase(_planet("Saturn", 250.0, 0.01, station="first"), sun_long).index, 7)
+39 |         self.assertEqual(compute_superior_synodic_phase(_planet("Mars", 210.0, -0.2), sun_long).index, 8)
+   |
+
+E501 Line too long (124 > 100)
+  --> tests/test_synodic_phases.py:38:101
+   |
+36 |         self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 285.0, 0.3), sun_long).index, 5)
+37 |         self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 250.0, 0.3), sun_long).index, 6)
+38 |         self.assertEqual(compute_superior_synodic_phase(_planet("Saturn", 250.0, 0.01, station="first"), sun_long).index, 7)
+   |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^
+39 |         self.assertEqual(compute_superior_synodic_phase(_planet("Mars", 210.0, -0.2), sun_long).index, 8)
+40 |         self.assertEqual(compute_superior_synodic_phase(_planet("Mars", 180.0, -0.2), sun_long).index, 9)
+   |
+
+E501 Line too long (105 > 100)
+  --> tests/test_synodic_phases.py:39:101
+   |
+37 |         self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 250.0, 0.3), sun_long).index, 6)
+38 |         self.assertEqual(compute_superior_synodic_phase(_planet("Saturn", 250.0, 0.01, station="first"), sun_long).index, 7)
+39 |         self.assertEqual(compute_superior_synodic_phase(_planet("Mars", 210.0, -0.2), sun_long).index, 8)
+   |                                                                                                     ^^^^^
+40 |         self.assertEqual(compute_superior_synodic_phase(_planet("Mars", 180.0, -0.2), sun_long).index, 9)
+   |
+
+E501 Line too long (105 > 100)
+  --> tests/test_synodic_phases.py:40:101
+   |
+38 |         self.assertEqual(compute_superior_synodic_phase(_planet("Saturn", 250.0, 0.01, station="first"), sun_long).index, 7)
+39 |         self.assertEqual(compute_superior_synodic_phase(_planet("Mars", 210.0, -0.2), sun_long).index, 8)
+40 |         self.assertEqual(compute_superior_synodic_phase(_planet("Mars", 180.0, -0.2), sun_long).index, 9)
+   |                                                                                                     ^^^^^
+41 |
+42 |     def test_superior_occidental_return_sequence(self) -> None:
+   |
+
+E501 Line too long (106 > 100)
+  --> tests/test_synodic_phases.py:44:101
+   |
+42 |     def test_superior_occidental_return_sequence(self) -> None:
+43 |         sun_long = 0.0
+44 |         self.assertEqual(compute_superior_synodic_phase(_planet("Mars", 150.0, -0.2), sun_long).index, 10)
+   |                                                                                                     ^^^^^^
+45 |         self.assertEqual(compute_superior_synodic_phase(_planet("Saturn", 120.0, -0.01, station="second"), sun_long).index, 11)
+46 |         self.assertEqual(compute_superior_synodic_phase(_planet("Saturn", 120.0, 0.2), sun_long).index, 12)
+   |
+
+E501 Line too long (127 > 100)
+  --> tests/test_synodic_phases.py:45:101
+   |
+43 |         sun_long = 0.0
+44 |         self.assertEqual(compute_superior_synodic_phase(_planet("Mars", 150.0, -0.2), sun_long).index, 10)
+45 |         self.assertEqual(compute_superior_synodic_phase(_planet("Saturn", 120.0, -0.01, station="second"), sun_long).index, 11)
+   |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+46 |         self.assertEqual(compute_superior_synodic_phase(_planet("Saturn", 120.0, 0.2), sun_long).index, 12)
+47 |         self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 80.0, 0.2), sun_long).index, 13)
+   |
+
+E501 Line too long (107 > 100)
+  --> tests/test_synodic_phases.py:46:101
+   |
+44 |         self.assertEqual(compute_superior_synodic_phase(_planet("Mars", 150.0, -0.2), sun_long).index, 10)
+45 |         self.assertEqual(compute_superior_synodic_phase(_planet("Saturn", 120.0, -0.01, station="second"), sun_long).index, 11)
+46 |         self.assertEqual(compute_superior_synodic_phase(_planet("Saturn", 120.0, 0.2), sun_long).index, 12)
+   |                                                                                                     ^^^^^^^
+47 |         self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 80.0, 0.2), sun_long).index, 13)
+48 |         self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 50.0, 0.2), sun_long).index, 14)
+   |
+
+E501 Line too long (107 > 100)
+  --> tests/test_synodic_phases.py:47:101
+   |
+45 |         self.assertEqual(compute_superior_synodic_phase(_planet("Saturn", 120.0, -0.01, station="second"), sun_long).index, 11)
+46 |         self.assertEqual(compute_superior_synodic_phase(_planet("Saturn", 120.0, 0.2), sun_long).index, 12)
+47 |         self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 80.0, 0.2), sun_long).index, 13)
+   |                                                                                                     ^^^^^^^
+48 |         self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 50.0, 0.2), sun_long).index, 14)
+49 |         self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 20.0, 0.2), sun_long).index, 15)
+   |
+
+E501 Line too long (107 > 100)
+  --> tests/test_synodic_phases.py:48:101
+   |
+46 |         self.assertEqual(compute_superior_synodic_phase(_planet("Saturn", 120.0, 0.2), sun_long).index, 12)
+47 |         self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 80.0, 0.2), sun_long).index, 13)
+48 |         self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 50.0, 0.2), sun_long).index, 14)
+   |                                                                                                     ^^^^^^^
+49 |         self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 20.0, 0.2), sun_long).index, 15)
+   |
+
+E501 Line too long (107 > 100)
+  --> tests/test_synodic_phases.py:49:101
+   |
+47 |         self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 80.0, 0.2), sun_long).index, 13)
+48 |         self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 50.0, 0.2), sun_long).index, 14)
+49 |         self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 20.0, 0.2), sun_long).index, 15)
+   |                                                                                                     ^^^^^^^
+50 |
+51 |     def test_superior_strong_easternization_runs_to_sixty_degrees(self) -> None:
+   |
+
+E501 Line too long (122 > 100)
+  --> tests/test_synodic_phases.py:53:101
+   |
+51 |     def test_superior_strong_easternization_runs_to_sixty_degrees(self) -> None:
+52 |         sun_long = 0.0
+53 |         self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 300.0, 0.3), sun_long).code, "oriental_strong")
+   |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^
+54 |         self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 299.9, 0.3), sun_long).code, "oriental_weak")
+55 |         self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 270.0, 0.3), sun_long).code, "oriental_weak")
+   |
+
+E501 Line too long (120 > 100)
+  --> tests/test_synodic_phases.py:54:101
+   |
+52 |         sun_long = 0.0
+53 |         self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 300.0, 0.3), sun_long).code, "oriental_strong")
+54 |         self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 299.9, 0.3), sun_long).code, "oriental_weak")
+   |                                                                                                     ^^^^^^^^^^^^^^^^^^^^
+55 |         self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 270.0, 0.3), sun_long).code, "oriental_weak")
+56 |         self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 269.9, 0.3), sun_long).code, "oriental_far_before_station")
+   |
+
+E501 Line too long (120 > 100)
+  --> tests/test_synodic_phases.py:55:101
+   |
+53 |         self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 300.0, 0.3), sun_long).code, "oriental_strong")
+54 |         self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 299.9, 0.3), sun_long).code, "oriental_weak")
+55 |         self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 270.0, 0.3), sun_long).code, "oriental_weak")
+   |                                                                                                     ^^^^^^^^^^^^^^^^^^^^
+56 |         self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 269.9, 0.3), sun_long).code, "oriental_far_before_station")
+   |
+
+E501 Line too long (134 > 100)
+  --> tests/test_synodic_phases.py:56:101
+   |
+54 |         self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 299.9, 0.3), sun_long).code, "oriental_weak")
+55 |         self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 270.0, 0.3), sun_long).code, "oriental_weak")
+56 |         self.assertEqual(compute_superior_synodic_phase(_planet("Jupiter", 269.9, 0.3), sun_long).code, "oriental_far_before_station")
+   |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+57 |
+58 |     def test_inferior_occidental_sequence(self) -> None:
+   |
+
+E501 Line too long (104 > 100)
+  --> tests/test_synodic_phases.py:60:101
+   |
+58 |     def test_inferior_occidental_sequence(self) -> None:
+59 |         sun_long = 0.0
+60 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Venus", 5.0, 0.4), sun_long).index, 10)
+   |                                                                                                     ^^^^
+61 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 9.0, 0.4), sun_long).index, 11)
+62 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Venus", 30.0, 0.4), sun_long).index, 12)
+   |
+
+E501 Line too long (106 > 100)
+  --> tests/test_synodic_phases.py:61:101
+   |
+59 |         sun_long = 0.0
+60 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Venus", 5.0, 0.4), sun_long).index, 10)
+61 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 9.0, 0.4), sun_long).index, 11)
+   |                                                                                                     ^^^^^^
+62 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Venus", 30.0, 0.4), sun_long).index, 12)
+63 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 30.0, 0.02, station="first"), sun_long).index, 13)
+   |
+
+E501 Line too long (105 > 100)
+  --> tests/test_synodic_phases.py:62:101
+   |
+60 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Venus", 5.0, 0.4), sun_long).index, 10)
+61 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 9.0, 0.4), sun_long).index, 11)
+62 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Venus", 30.0, 0.4), sun_long).index, 12)
+   |                                                                                                     ^^^^^
+63 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 30.0, 0.02, station="first"), sun_long).index, 13)
+64 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Venus", 30.0, -0.1), sun_long).index, 14)
+   |
+
+E501 Line too long (125 > 100)
+  --> tests/test_synodic_phases.py:63:101
+   |
+61 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 9.0, 0.4), sun_long).index, 11)
+62 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Venus", 30.0, 0.4), sun_long).index, 12)
+63 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 30.0, 0.02, station="first"), sun_long).index, 13)
+   |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+64 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Venus", 30.0, -0.1), sun_long).index, 14)
+65 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 9.0, -0.1), sun_long).index, 15)
+   |
+
+E501 Line too long (106 > 100)
+  --> tests/test_synodic_phases.py:64:101
+   |
+62 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Venus", 30.0, 0.4), sun_long).index, 12)
+63 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 30.0, 0.02, station="first"), sun_long).index, 13)
+64 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Venus", 30.0, -0.1), sun_long).index, 14)
+   |                                                                                                     ^^^^^^
+65 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 9.0, -0.1), sun_long).index, 15)
+66 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 5.0, -0.1), sun_long).index, 16)
+   |
+
+E501 Line too long (107 > 100)
+  --> tests/test_synodic_phases.py:65:101
+   |
+63 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 30.0, 0.02, station="first"), sun_long).index, 13)
+64 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Venus", 30.0, -0.1), sun_long).index, 14)
+65 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 9.0, -0.1), sun_long).index, 15)
+   |                                                                                                     ^^^^^^^
+66 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 5.0, -0.1), sun_long).index, 16)
+   |
+
+E501 Line too long (107 > 100)
+  --> tests/test_synodic_phases.py:66:101
+   |
+64 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Venus", 30.0, -0.1), sun_long).index, 14)
+65 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 9.0, -0.1), sun_long).index, 15)
+66 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 5.0, -0.1), sun_long).index, 16)
+   |                                                                                                     ^^^^^^^
+67 |
+68 |     def test_inferior_oriental_sequence_uses_retrograde_before_second_station(self) -> None:
+   |
+
+E501 Line too long (106 > 100)
+  --> tests/test_synodic_phases.py:70:101
+   |
+68 |     def test_inferior_oriental_sequence_uses_retrograde_before_second_station(self) -> None:
+69 |         sun_long = 0.0
+70 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Venus", 355.0, -0.1), sun_long).index, 2)
+   |                                                                                                     ^^^^^^
+71 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 345.0, -0.1), sun_long).index, 3)
+72 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Venus", 330.0, -0.1), sun_long).index, 4)
+   |
+
+E501 Line too long (108 > 100)
+  --> tests/test_synodic_phases.py:71:101
+   |
+69 |         sun_long = 0.0
+70 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Venus", 355.0, -0.1), sun_long).index, 2)
+71 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 345.0, -0.1), sun_long).index, 3)
+   |                                                                                                     ^^^^^^^^
+72 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Venus", 330.0, -0.1), sun_long).index, 4)
+73 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 330.0, -0.01, station="second"), sun_long).index, 5)
+   |
+
+E501 Line too long (106 > 100)
+  --> tests/test_synodic_phases.py:72:101
+   |
+70 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Venus", 355.0, -0.1), sun_long).index, 2)
+71 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 345.0, -0.1), sun_long).index, 3)
+72 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Venus", 330.0, -0.1), sun_long).index, 4)
+   |                                                                                                     ^^^^^^
+73 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 330.0, -0.01, station="second"), sun_long).index, 5)
+74 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 330.0, 0.4), sun_long).index, 6)
+   |
+
+E501 Line too long (127 > 100)
+  --> tests/test_synodic_phases.py:73:101
+   |
+71 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 345.0, -0.1), sun_long).index, 3)
+72 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Venus", 330.0, -0.1), sun_long).index, 4)
+73 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 330.0, -0.01, station="second"), sun_long).index, 5)
+   |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+74 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 330.0, 0.4), sun_long).index, 6)
+75 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 345.0, 0.4), sun_long).index, 7)
+   |
+
+E501 Line too long (107 > 100)
+  --> tests/test_synodic_phases.py:74:101
+   |
+72 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Venus", 330.0, -0.1), sun_long).index, 4)
+73 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 330.0, -0.01, station="second"), sun_long).index, 5)
+74 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 330.0, 0.4), sun_long).index, 6)
+   |                                                                                                     ^^^^^^^
+75 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 345.0, 0.4), sun_long).index, 7)
+76 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 355.0, 0.4), sun_long).index, 8)
+   |
+
+E501 Line too long (107 > 100)
+  --> tests/test_synodic_phases.py:75:101
+   |
+73 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 330.0, -0.01, station="second"), sun_long).index, 5)
+74 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 330.0, 0.4), sun_long).index, 6)
+75 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 345.0, 0.4), sun_long).index, 7)
+   |                                                                                                     ^^^^^^^
+76 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 355.0, 0.4), sun_long).index, 8)
+   |
+
+E501 Line too long (107 > 100)
+  --> tests/test_synodic_phases.py:76:101
+   |
+74 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 330.0, 0.4), sun_long).index, 6)
+75 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 345.0, 0.4), sun_long).index, 7)
+76 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 355.0, 0.4), sun_long).index, 8)
+   |                                                                                                     ^^^^^^^
+77 |
+78 |     def test_course_project_solar_ray_boundaries(self) -> None:
+   |
+
+E501 Line too long (118 > 100)
+  --> tests/test_synodic_phases.py:80:101
+   |
+78 |     def test_course_project_solar_ray_boundaries(self) -> None:
+79 |         sun_long = 0.0
+80 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 7.49, 0.4), sun_long).code, "combust_west")
+   |                                                                                                     ^^^^^^^^^^^^^^^^^^
+81 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 7.51, 0.4), sun_long).code, "under_beams_west")
+82 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 15.01, 0.4), sun_long).code, "occidental_visible_direct")
+   |
+
+E501 Line too long (122 > 100)
+  --> tests/test_synodic_phases.py:81:101
+   |
+79 |         sun_long = 0.0
+80 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 7.49, 0.4), sun_long).code, "combust_west")
+81 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 7.51, 0.4), sun_long).code, "under_beams_west")
+   |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^
+82 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 15.01, 0.4), sun_long).code, "occidental_visible_direct")
+83 |         self.assertEqual(compute_superior_synodic_phase(_planet("Mars", 7.49, 0.4), sun_long).code, "combust_west")
+   |
+
+E501 Line too long (132 > 100)
+  --> tests/test_synodic_phases.py:82:101
+   |
+80 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 7.49, 0.4), sun_long).code, "combust_west")
+81 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 7.51, 0.4), sun_long).code, "under_beams_west")
+82 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 15.01, 0.4), sun_long).code, "occidental_visible_direct")
+   |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+83 |         self.assertEqual(compute_superior_synodic_phase(_planet("Mars", 7.49, 0.4), sun_long).code, "combust_west")
+84 |         self.assertEqual(compute_superior_synodic_phase(_planet("Mars", 7.51, 0.4), sun_long).code, "under_beams_west")
+   |
+
+E501 Line too long (115 > 100)
+  --> tests/test_synodic_phases.py:83:101
+   |
+81 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 7.51, 0.4), sun_long).code, "under_beams_west")
+82 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 15.01, 0.4), sun_long).code, "occidental_visible_direct")
+83 |         self.assertEqual(compute_superior_synodic_phase(_planet("Mars", 7.49, 0.4), sun_long).code, "combust_west")
+   |                                                                                                     ^^^^^^^^^^^^^^^
+84 |         self.assertEqual(compute_superior_synodic_phase(_planet("Mars", 7.51, 0.4), sun_long).code, "under_beams_west")
+   |
+
+E501 Line too long (119 > 100)
+  --> tests/test_synodic_phases.py:84:101
+   |
+82 |         self.assertEqual(compute_inferior_synodic_phase(_planet("Mercury", 15.01, 0.4), sun_long).code, "occidental_visible_direct")
+83 |         self.assertEqual(compute_superior_synodic_phase(_planet("Mars", 7.49, 0.4), sun_long).code, "combust_west")
+84 |         self.assertEqual(compute_superior_synodic_phase(_planet("Mars", 7.51, 0.4), sun_long).code, "under_beams_west")
+   |                                                                                                     ^^^^^^^^^^^^^^^^^^^
+85 |
+86 |     def test_lunar_waxing_sequence(self) -> None:
+   |
+
+UP017 [*] Use `datetime.UTC` alias
+  --> tests/test_voc_ingress.py:13:50
+   |
+11 |     return ChartInput(
+12 |         name="voc-ingress",
+13 |         datetime_utc=datetime(2000, 1, 1, tzinfo=timezone.utc),
+   |                                                  ^^^^^^^^^^^^
+14 |         tz_offset_hours=0.0,
+15 |         latitude=0.0,
+   |
+help: Convert to `datetime.UTC` alias
+   |
+   - from datetime import datetime, timezone
+1  + from datetime import datetime, timezone, UTC
+2  | from unittest.mock import patch
+--------------------------------------------------------------------------------
+12 |         name="voc-ingress",
+   -         datetime_utc=datetime(2000, 1, 1, tzinfo=timezone.utc),
+13 +         datetime_utc=datetime(2000, 1, 1, tzinfo=UTC),
+14 |         tz_offset_hours=0.0,
+   |
+
+Found 279 errors.
+[*] 137 fixable with the `--fix` option.
+exit_code=1
+
+== build ==
+Building source distribution...
+running egg_info
+writing hor_tools.egg-info/PKG-INFO
+writing dependency_links to hor_tools.egg-info/dependency_links.txt
+writing entry points to hor_tools.egg-info/entry_points.txt
+writing requirements to hor_tools.egg-info/requires.txt
+writing top-level names to hor_tools.egg-info/top_level.txt
+reading manifest file 'hor_tools.egg-info/SOURCES.txt'
+writing manifest file 'hor_tools.egg-info/SOURCES.txt'
+running sdist
+running egg_info
+writing hor_tools.egg-info/PKG-INFO
+writing dependency_links to hor_tools.egg-info/dependency_links.txt
+writing entry points to hor_tools.egg-info/entry_points.txt
+writing requirements to hor_tools.egg-info/requires.txt
+writing top-level names to hor_tools.egg-info/top_level.txt
+reading manifest file 'hor_tools.egg-info/SOURCES.txt'
+writing manifest file 'hor_tools.egg-info/SOURCES.txt'
+running check
+creating hor_tools-0.1.0
+creating hor_tools-0.1.0/hor_tools
+creating hor_tools-0.1.0/hor_tools.egg-info
+creating hor_tools-0.1.0/hor_tools/analysis
+creating hor_tools-0.1.0/hor_tools/commands
+creating hor_tools-0.1.0/tests
+copying files to hor_tools-0.1.0...
+copying README.md -> hor_tools-0.1.0
+copying pyproject.toml -> hor_tools-0.1.0
+copying hor_tools/__init__.py -> hor_tools-0.1.0/hor_tools
+copying hor_tools/almuten.py -> hor_tools-0.1.0/hor_tools
+copying hor_tools/astro_engine.py -> hor_tools-0.1.0/hor_tools
+copying hor_tools/cli.py -> hor_tools-0.1.0/hor_tools
+copying hor_tools/hor_parser.py -> hor_tools-0.1.0/hor_tools
+copying hor_tools/models.py -> hor_tools-0.1.0/hor_tools
+copying hor_tools/output.py -> hor_tools-0.1.0/hor_tools
+copying hor_tools/synodic.py -> hor_tools-0.1.0/hor_tools
+copying hor_tools.egg-info/PKG-INFO -> hor_tools-0.1.0/hor_tools.egg-info
+copying hor_tools.egg-info/SOURCES.txt -> hor_tools-0.1.0/hor_tools.egg-info
+copying hor_tools.egg-info/dependency_links.txt -> hor_tools-0.1.0/hor_tools.egg-info
+copying hor_tools.egg-info/entry_points.txt -> hor_tools-0.1.0/hor_tools.egg-info
+copying hor_tools.egg-info/requires.txt -> hor_tools-0.1.0/hor_tools.egg-info
+copying hor_tools.egg-info/top_level.txt -> hor_tools-0.1.0/hor_tools.egg-info
+copying hor_tools/analysis/__init__.py -> hor_tools-0.1.0/hor_tools/analysis
+copying hor_tools/analysis/antiscia.py -> hor_tools-0.1.0/hor_tools/analysis
+copying hor_tools/analysis/aspects.py -> hor_tools-0.1.0/hor_tools/analysis
+copying hor_tools/analysis/aversion.py -> hor_tools-0.1.0/hor_tools/analysis
+copying hor_tools/analysis/conditions.py -> hor_tools-0.1.0/hor_tools/analysis
+copying hor_tools/analysis/dignity.py -> hor_tools-0.1.0/hor_tools/analysis
+copying hor_tools/analysis/ray_geometry.py -> hor_tools-0.1.0/hor_tools/analysis
+copying hor_tools/analysis/relationship_rules.py -> hor_tools-0.1.0/hor_tools/analysis
+copying hor_tools/analysis/relationships.py -> hor_tools-0.1.0/hor_tools/analysis
+copying hor_tools/analysis/sect.py -> hor_tools-0.1.0/hor_tools/analysis
+copying hor_tools/analysis/stars.py -> hor_tools-0.1.0/hor_tools/analysis
+copying hor_tools/commands/__init__.py -> hor_tools-0.1.0/hor_tools/commands
+copying hor_tools/commands/asc_window.py -> hor_tools-0.1.0/hor_tools/commands
+copying hor_tools/commands/scan_events.py -> hor_tools-0.1.0/hor_tools/commands
+copying tests/test_antiscia.py -> hor_tools-0.1.0/tests
+copying tests/test_aspect_sign_boundaries.py -> hor_tools-0.1.0/tests
+copying tests/test_aversion.py -> hor_tools-0.1.0/tests
+copying tests/test_calculation_regressions.py -> hor_tools-0.1.0/tests
+copying tests/test_cli.py -> hor_tools-0.1.0/tests
+copying tests/test_condition_output.py -> hor_tools-0.1.0/tests
+copying tests/test_fixed_stars.py -> hor_tools-0.1.0/tests
+copying tests/test_hor_parser.py -> hor_tools-0.1.0/tests
+copying tests/test_phase_scoring.py -> hor_tools-0.1.0/tests
+copying tests/test_planetary_hours.py -> hor_tools-0.1.0/tests
+copying tests/test_relationship_ray_order.py -> hor_tools-0.1.0/tests
+copying tests/test_relationships.py -> hor_tools-0.1.0/tests
+copying tests/test_stations.py -> hor_tools-0.1.0/tests
+copying tests/test_synodic_phases.py -> hor_tools-0.1.0/tests
+copying tests/test_voc_ingress.py -> hor_tools-0.1.0/tests
+Writing hor_tools-0.1.0/setup.cfg
+Creating tar archive
+removing 'hor_tools-0.1.0' (and everything under it)
+Building wheel from source distribution...
+running egg_info
+writing hor_tools.egg-info/PKG-INFO
+writing dependency_links to hor_tools.egg-info/dependency_links.txt
+writing entry points to hor_tools.egg-info/entry_points.txt
+writing requirements to hor_tools.egg-info/requires.txt
+writing top-level names to hor_tools.egg-info/top_level.txt
+reading manifest file 'hor_tools.egg-info/SOURCES.txt'
+writing manifest file 'hor_tools.egg-info/SOURCES.txt'
+running bdist_wheel
+running build
+running build_py
+creating build/lib/hor_tools
+copying hor_tools/__init__.py -> build/lib/hor_tools
+copying hor_tools/hor_parser.py -> build/lib/hor_tools
+copying hor_tools/models.py -> build/lib/hor_tools
+copying hor_tools/astro_engine.py -> build/lib/hor_tools
+copying hor_tools/almuten.py -> build/lib/hor_tools
+copying hor_tools/output.py -> build/lib/hor_tools
+copying hor_tools/cli.py -> build/lib/hor_tools
+copying hor_tools/synodic.py -> build/lib/hor_tools
+creating build/lib/hor_tools/analysis
+copying hor_tools/analysis/__init__.py -> build/lib/hor_tools/analysis
+copying hor_tools/analysis/sect.py -> build/lib/hor_tools/analysis
+copying hor_tools/analysis/antiscia.py -> build/lib/hor_tools/analysis
+copying hor_tools/analysis/relationship_rules.py -> build/lib/hor_tools/analysis
+copying hor_tools/analysis/dignity.py -> build/lib/hor_tools/analysis
+copying hor_tools/analysis/conditions.py -> build/lib/hor_tools/analysis
+copying hor_tools/analysis/relationships.py -> build/lib/hor_tools/analysis
+copying hor_tools/analysis/aspects.py -> build/lib/hor_tools/analysis
+copying hor_tools/analysis/stars.py -> build/lib/hor_tools/analysis
+copying hor_tools/analysis/ray_geometry.py -> build/lib/hor_tools/analysis
+copying hor_tools/analysis/aversion.py -> build/lib/hor_tools/analysis
+creating build/lib/hor_tools/commands
+copying hor_tools/commands/__init__.py -> build/lib/hor_tools/commands
+copying hor_tools/commands/scan_events.py -> build/lib/hor_tools/commands
+copying hor_tools/commands/asc_window.py -> build/lib/hor_tools/commands
+running egg_info
+writing hor_tools.egg-info/PKG-INFO
+writing dependency_links to hor_tools.egg-info/dependency_links.txt
+writing entry points to hor_tools.egg-info/entry_points.txt
+writing requirements to hor_tools.egg-info/requires.txt
+writing top-level names to hor_tools.egg-info/top_level.txt
+reading manifest file 'hor_tools.egg-info/SOURCES.txt'
+writing manifest file 'hor_tools.egg-info/SOURCES.txt'
+installing to build/bdist.linux-x86_64/wheel
+running install
+running install_lib
+creating build/bdist.linux-x86_64/wheel
+creating build/bdist.linux-x86_64/wheel/hor_tools
+copying build/lib/hor_tools/__init__.py -> build/bdist.linux-x86_64/wheel/./hor_tools
+copying build/lib/hor_tools/hor_parser.py -> build/bdist.linux-x86_64/wheel/./hor_tools
+copying build/lib/hor_tools/models.py -> build/bdist.linux-x86_64/wheel/./hor_tools
+creating build/bdist.linux-x86_64/wheel/hor_tools/analysis
+copying build/lib/hor_tools/analysis/__init__.py -> build/bdist.linux-x86_64/wheel/./hor_tools/analysis
+copying build/lib/hor_tools/analysis/sect.py -> build/bdist.linux-x86_64/wheel/./hor_tools/analysis
+copying build/lib/hor_tools/analysis/antiscia.py -> build/bdist.linux-x86_64/wheel/./hor_tools/analysis
+copying build/lib/hor_tools/analysis/relationship_rules.py -> build/bdist.linux-x86_64/wheel/./hor_tools/analysis
+copying build/lib/hor_tools/analysis/dignity.py -> build/bdist.linux-x86_64/wheel/./hor_tools/analysis
+copying build/lib/hor_tools/analysis/conditions.py -> build/bdist.linux-x86_64/wheel/./hor_tools/analysis
+copying build/lib/hor_tools/analysis/relationships.py -> build/bdist.linux-x86_64/wheel/./hor_tools/analysis
+copying build/lib/hor_tools/analysis/aspects.py -> build/bdist.linux-x86_64/wheel/./hor_tools/analysis
+copying build/lib/hor_tools/analysis/stars.py -> build/bdist.linux-x86_64/wheel/./hor_tools/analysis
+copying build/lib/hor_tools/analysis/ray_geometry.py -> build/bdist.linux-x86_64/wheel/./hor_tools/analysis
+copying build/lib/hor_tools/analysis/aversion.py -> build/bdist.linux-x86_64/wheel/./hor_tools/analysis
+copying build/lib/hor_tools/astro_engine.py -> build/bdist.linux-x86_64/wheel/./hor_tools
+copying build/lib/hor_tools/almuten.py -> build/bdist.linux-x86_64/wheel/./hor_tools
+copying build/lib/hor_tools/output.py -> build/bdist.linux-x86_64/wheel/./hor_tools
+copying build/lib/hor_tools/cli.py -> build/bdist.linux-x86_64/wheel/./hor_tools
+creating build/bdist.linux-x86_64/wheel/hor_tools/commands
+copying build/lib/hor_tools/commands/__init__.py -> build/bdist.linux-x86_64/wheel/./hor_tools/commands
+copying build/lib/hor_tools/commands/scan_events.py -> build/bdist.linux-x86_64/wheel/./hor_tools/commands
+copying build/lib/hor_tools/commands/asc_window.py -> build/bdist.linux-x86_64/wheel/./hor_tools/commands
+copying build/lib/hor_tools/synodic.py -> build/bdist.linux-x86_64/wheel/./hor_tools
+running install_egg_info
+Copying hor_tools.egg-info to build/bdist.linux-x86_64/wheel/./hor_tools-0.1.0-py3.11.egg-info
+running install_scripts
+creating build/bdist.linux-x86_64/wheel/hor_tools-0.1.0.dist-info/WHEEL
+creating '/home/runner/work/astro_data/astro_data/dist/.tmp-xet_0id4/hor_tools-0.1.0-py3-none-any.whl' and adding 'build/bdist.linux-x86_64/wheel' to it
+adding 'hor_tools/__init__.py'
+adding 'hor_tools/almuten.py'
+adding 'hor_tools/astro_engine.py'
+adding 'hor_tools/cli.py'
+adding 'hor_tools/hor_parser.py'
+adding 'hor_tools/models.py'
+adding 'hor_tools/output.py'
+adding 'hor_tools/synodic.py'
+adding 'hor_tools/analysis/__init__.py'
+adding 'hor_tools/analysis/antiscia.py'
+adding 'hor_tools/analysis/aspects.py'
+adding 'hor_tools/analysis/aversion.py'
+adding 'hor_tools/analysis/conditions.py'
+adding 'hor_tools/analysis/dignity.py'
+adding 'hor_tools/analysis/ray_geometry.py'
+adding 'hor_tools/analysis/relationship_rules.py'
+adding 'hor_tools/analysis/relationships.py'
+adding 'hor_tools/analysis/sect.py'
+adding 'hor_tools/analysis/stars.py'
+adding 'hor_tools/commands/__init__.py'
+adding 'hor_tools/commands/asc_window.py'
+adding 'hor_tools/commands/scan_events.py'
+adding 'hor_tools-0.1.0.dist-info/METADATA'
+adding 'hor_tools-0.1.0.dist-info/WHEEL'
+adding 'hor_tools-0.1.0.dist-info/entry_points.txt'
+adding 'hor_tools-0.1.0.dist-info/top_level.txt'
+adding 'hor_tools-0.1.0.dist-info/RECORD'
+removing build/bdist.linux-x86_64/wheel
+Successfully built dist/hor_tools-0.1.0.tar.gz
+Successfully built dist/hor_tools-0.1.0-py3-none-any.whl
+exit_code=0
+
+== clean wheel smoke ==
+
+[notice] A new release of pip is available: 24.0 -> 26.2.1
+[notice] To update, run: python -m pip install --upgrade pip
+clean wheel imports: ok
+exit_code=0
+
+tested_commit=1d0e4795d2443ecf52b15eff73a20e39dc2c9336
+summary sync=0 pytest=0 ruff=1 build=0 wheel=0
