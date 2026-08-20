@@ -72,8 +72,15 @@ def _unique_aspects(reports: list[PlanetReport]) -> list[tuple[str, str, str, fl
             if key in seen:
                 continue
             seen.add(key)
-            status = "app" if aspect.applying else "sep"
-            result.append((report.planet.name, aspect.other, aspect.kind, aspect.orb, status))
+            result.append(
+                (
+                    report.planet.name,
+                    aspect.other,
+                    aspect.kind,
+                    aspect.orb,
+                    "app" if aspect.applying else "sep",
+                )
+            )
     return sorted(result, key=lambda item: item[3])
 
 
@@ -84,7 +91,6 @@ def print_terminal_summary(
     technical: NatalTechnicalReport,
 ) -> None:
     """Print the intentionally compact working view."""
-
     try:
         from rich import box
         from rich.console import Console
@@ -116,14 +122,13 @@ def print_terminal_summary(
     console.print(frame)
 
     totals = technical.temperament.totals
-    temperament = " / ".join(technical.temperament.dominant)
-    almuten = ", ".join(technical.almuten.almuten) or "—"
     console.print(
-        f"[bold]Temperament:[/] K {totals['K']} | S {totals['S']} | M {totals['M']} | F {totals['F']}"
-        f"  → {temperament}"
+        f"[bold]Temperament:[/] K {totals['K']} | S {totals['S']} | "
+        f"M {totals['M']} | F {totals['F']}  → {' / '.join(technical.temperament.dominant)}"
     )
     console.print(
-        f"[bold]Almuten Figuris:[/] {almuten} ({technical.almuten.almuten_score})"
+        f"[bold]Almuten Figuris:[/] {', '.join(technical.almuten.almuten) or '—'} "
+        f"({technical.almuten.almuten_score})"
     )
     behaviour = technical.behaviour.primary or "unresolved"
     secondary = f"; secondary {technical.behaviour.secondary}" if technical.behaviour.secondary else ""
@@ -204,7 +209,10 @@ def _md_table(headers: list[str], rows: list[list[str]]) -> str:
         "| " + " | ".join(headers) + " |",
         "| " + " | ".join("---" for _ in headers) + " |",
     ]
-    lines.extend("| " + " | ".join(cell.replace("|", "\\|") for cell in row) + " |" for row in rows)
+    lines.extend(
+        "| " + " | ".join(cell.replace("|", "\\|") for cell in row) + " |"
+        for row in rows
+    )
     return "\n".join(lines)
 
 
@@ -216,7 +224,6 @@ def build_technical_markdown(
     legacy_markdown: str,
 ) -> str:
     """Return the complete technical worksheet plus the existing detailed tables."""
-
     local_dt = chart.datetime_utc + timedelta(hours=chart.tz_offset_hours)
     parts: list[str] = [
         f"# Natal Technical Report — {chart.name}",
@@ -255,6 +262,8 @@ def build_technical_markdown(
         "",
         "## 3. Duads / Dodekatemoria",
         "",
+        "Temperament uses a fixed **5° orb** when a planetary duad is tested against the Ascendant.",
+        "",
         _md_table(
             ["Body / Point", "Source position", "Duad"],
             [[item.name, _position(item.source_longitude), _position(item.duad.longitude)] for item in technical.duads],
@@ -268,32 +277,22 @@ def build_technical_markdown(
     for report in reports:
         for reception in report.receptions_given:
             relation_rows.append([
-                "Reception",
-                reception.host,
-                reception.guest,
-                ", ".join(reception.dignities),
-                reception.aspect_kind or "—",
+                "Reception", reception.host, reception.guest,
+                ", ".join(reception.dignities), reception.aspect_kind or "—",
             ])
         for generosity in report.generosities_given:
             relation_rows.append([
-                "Generosity",
-                generosity.host,
-                generosity.guest,
-                ", ".join(generosity.dignities),
-                "no aspect",
+                "Generosity", generosity.host, generosity.guest,
+                ", ".join(generosity.dignities), "no aspect",
             ])
         for repulsion in report.repulsions_given:
             relation_rows.append([
-                "Repulsion (odbojnost)",
-                repulsion.host,
-                repulsion.guest,
-                ", ".join(repulsion.debilities),
-                repulsion.aspect_kind or "no major aspect",
+                "Repulsion (odbojnost)", repulsion.host, repulsion.guest,
+                ", ".join(repulsion.debilities), repulsion.aspect_kind or "no major aspect",
             ])
     parts.append(
         _md_table(["Type", "From / host", "To / guest", "Basis", "Contact"], relation_rows)
-        if relation_rows
-        else "No reception, generosity or repulsion relationships."
+        if relation_rows else "No reception, generosity or repulsion relationships."
     )
 
     parts.extend(["", "## 5. Lots", "", "### Seven Hermetic Lots", ""])
@@ -346,10 +345,8 @@ def build_technical_markdown(
                 [
                     row.factor,
                     "; ".join(row.evidence) or "—",
-                    str(row.scores["K"]),
-                    str(row.scores["S"]),
-                    str(row.scores["M"]),
-                    str(row.scores["F"]),
+                    str(row.scores["K"]), str(row.scores["S"]),
+                    str(row.scores["M"]), str(row.scores["F"]),
                     row.note or "",
                 ]
                 for row in technical.temperament.rows
@@ -367,19 +364,14 @@ def build_technical_markdown(
         _md_table(
             ["Source", "Element", "Formal motivation", "Detail", "Condition"],
             [
-                [
-                    factor.source,
-                    factor.element,
-                    factor.motivation,
-                    factor.detail,
-                    ", ".join(factor.condition) or "—",
-                ]
+                [factor.source, factor.element, factor.motivation, factor.detail, ", ".join(factor.condition) or "—"]
                 for factor in technical.primary_motivation.factors
             ],
         ),
         "",
-        "Elemental factor count: "
-        + ", ".join(f"{key}={value}" for key, value in technical.primary_motivation.elemental_counts.items()),
+        "Elemental factor count: " + ", ".join(
+            f"{key}={value}" for key, value in technical.primary_motivation.elemental_counts.items()
+        ),
         "",
         f"_{technical.primary_motivation.note}_",
         "",
@@ -395,13 +387,7 @@ def build_technical_markdown(
         _md_table(
             ["Planet", "House", "Mundane class", "Essential", "Accidental"],
             [
-                [
-                    item.planet,
-                    str(item.house),
-                    item.mundane_class,
-                    ", ".join(item.essential_condition),
-                    ", ".join(item.accidental_condition),
-                ]
+                [item.planet, str(item.house), item.mundane_class, ", ".join(item.essential_condition), ", ".join(item.accidental_condition)]
                 for item in technical.geniture.candidates
             ],
         ),
@@ -416,10 +402,8 @@ def build_technical_markdown(
         "### Moon (sensory / irrational mind)",
         *[f"- {item}" for item in technical.mind.moon],
         "",
-        f"**Almuten of Mercury degree:** {', '.join(technical.mind.mercury_almuten.winners) or '—'} "
-        f"({technical.mind.mercury_almuten.score})",
-        f"**Almuten of Moon degree:** {', '.join(technical.mind.moon_almuten.winners) or '—'} "
-        f"({technical.mind.moon_almuten.score})",
+        f"**Almuten of Mercury degree:** {', '.join(technical.mind.mercury_almuten.winners) or '—'} ({technical.mind.mercury_almuten.score})",
+        f"**Almuten of Moon degree:** {', '.join(technical.mind.moon_almuten.winners) or '—'} ({technical.mind.moon_almuten.score})",
         "",
         "### Secondary contacts",
         *([f"- {item}" for item in technical.mind.secondary_contacts] or ["- none"]),
@@ -429,28 +413,7 @@ def build_technical_markdown(
         "",
         f"_{technical.mind.note}_",
         "",
-        "## 11. Sreća / Nesreća — Capacity Factors",
-        "",
-        f"**Sect light:** {technical.fortune_adversity.sect_light} at {_position(technical.fortune_adversity.light_longitude)}",
-        f"**Triplicity element:** {technical.fortune_adversity.triplicity_element}",
-        "",
-        _md_table(
-            ["Ruler", "Role", "House", "Condition", "Relations among rulers"],
-            [
-                [
-                    item.planet,
-                    item.role,
-                    str(item.house),
-                    ", ".join(item.condition),
-                    "; ".join(item.aspects_to_other_rulers) or "—",
-                ]
-                for item in technical.fortune_adversity.rulers
-            ],
-        ),
-        "",
-        f"_{technical.fortune_adversity.note}_",
-        "",
-        "## 12. Almuten Figuris — Summary",
+        "## 11. Almuten Figuris — Summary",
         "",
         f"**Almuten:** {', '.join(technical.almuten.almuten) or '—'} ({technical.almuten.almuten_score})",
         "",
@@ -467,7 +430,7 @@ def build_technical_markdown(
             ],
         ),
         "",
-        "## 13. Detailed Planetary / Relationship Tables",
+        "## 12. Detailed Planetary / Relationship Tables",
         "",
         legacy_markdown,
         "",
