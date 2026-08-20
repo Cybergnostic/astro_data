@@ -131,6 +131,8 @@ def print_terminal_summary(
         f"({technical.almuten.almuten_score})"
     )
     behaviour = technical.behaviour.primary or "unresolved"
+    if technical.behaviour.primary is None and technical.behaviour.candidates:
+        behaviour += f" ({', '.join(technical.behaviour.candidates)})"
     secondary = f"; secondary {technical.behaviour.secondary}" if technical.behaviour.secondary else ""
     console.print(f"[bold]Ruler of behaviour:[/] {behaviour}{secondary}")
     console.print()
@@ -199,7 +201,10 @@ def _print_plain_summary(
     print("Asc:", _position(houses.asc))
     print("Temperament:", technical.temperament.totals, technical.temperament.dominant)
     print("Almuten Figuris:", technical.almuten.almuten, technical.almuten.almuten_score)
-    print("Ruler of behaviour:", technical.behaviour.primary)
+    behaviour = technical.behaviour.primary or "unresolved"
+    if technical.behaviour.primary is None and technical.behaviour.candidates:
+        behaviour += f" ({', '.join(technical.behaviour.candidates)})"
+    print("Ruler of behaviour:", behaviour)
     for report in reports:
         print(report.planet.name, _position(report.planet.longitude), "H", report.planet.house, _short_condition(report))
 
@@ -250,7 +255,7 @@ def build_technical_markdown(
             ],
         ),
         "",
-        "Sect uses apparent local sunrise/sunset; true solar altitude is displayed as an audit value.",
+        "Sect uses the Sun's true geometric altitude; apparent sunrise/sunset is retained for planetary-hour divisions.",
         "",
         "## 2. House Structure",
         "",
@@ -380,6 +385,7 @@ def build_technical_markdown(
         "## 8. Ruler of Behaviour",
         "",
         f"**Primary:** {technical.behaviour.primary or 'unresolved'}",
+        f"**Candidates:** {', '.join(technical.behaviour.candidates) or '—'}",
         f"**Secondary:** {technical.behaviour.secondary or '—'}",
         f"**Rule applied:** {technical.behaviour.rule}",
         *[f"- {item}" for item in technical.behaviour.evidence],
