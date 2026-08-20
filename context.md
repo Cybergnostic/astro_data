@@ -1,172 +1,124 @@
 Project purpose
 ---------------
-Read Morinus `.hor` files, build a neutral internal chart representation, and calculate traditional Astrology data using Swiss Ephemeris (pyswisseph). The goal is to produce a rich, machine-usable, and visually styled terminal dashboard for each planet: sign, House, dignities, sect condition, motion, aspects, fixed stars, synodic phases, and Almuten scoring.
+`hor-tools` is a Traditional Astrology calculation/reporting package built around Morinus `.hor` input and Swiss Ephemeris. The architectural goal is to keep four concerns separate:
 
-Repository layout
------------------
-- Project root: `astro_data/` (git root). Personal `.hor` files may live alongside code and are git-ignored.
-- Package folder: `hor_tools/`
-- Tooling: `pyproject.toml`, `uv.lock`, `README.md`, `context.md`
-- Helper scripts: `scan_events.py` (ingresses/aspects), `asc_window_scan.py` (Asc sign changes in a window)
-- Tests: `tests/`
+1. input normalization;
+2. astronomical calculation;
+3. astrological doctrine/calculation;
+4. presentation and command-line behavior.
 
-Current capabilities
---------------------
-- Parse Morinus `.hor` natal files into a typed `ChartInput`:
-  - Name
-  - UTC datetime (with timezone + DST handled)
-  - Decimal latitude/longitude
-  - House system (Whole sign) and zodiac (Tropical)
-- Compute:
-  - Planetary positions (Sun - Saturn) with Swiss Ephemeris
-  - Whole sign Houses from the Ascendant sign
-  - Ascendant and MC from Swiss Ephemeris
-  - Planetary hours/day rulers aligned with Morinus local civil date (sunrise→sunrise), timezone/DST fixed
-- Build a full traditional planet report (`PlanetReport`) for each planet:
-  - Essential dignity:
-    - Sign ruler / domicile
-    - Exaltation
-    - Dorothean triplicity
-    - Egyptian terms
-    - Chaldean decans (faces)
-    - Debility flags: detriment, fall
-  - Sect and condition:
-    - Day/night chart
-    - Planet sect (day/night, Mercury by oriental/occidental) with corrected oriental/occidental logic
-    - In sect or out of sect
-    - Hayz and Halb (hemisphere condition)
-    - Oriental / occidental relative to the Sun
-  - Motion:
-    - Direct / retrograde
-    - Daily speed in longitude
-    - Speed compared to mean (ratio + class: slow / average / swift)
-    - Ecliptic latitude
-  - Antiscia / contra-antiscia:
-    - Reflection points across the solstice and equinox axes
-    - Contacts to other traditional planets flagged using the larger planetary orb
-  - Domicile sight / aversion:
-    - Whole-sign visibility to each own domicile (sees vs in aversion)
-    - Aversion avoided if linked by translation of light to a planet in domicile or if placed in the domicile’s antiscia/contra-antiscia sign
-  - Synodic phases (superior, inferior, lunar) with elongation/orientation and stations
-  - Phase scoring (Ezra-style) for superior planets using elongation bands
-  - Fixed stars (1st/2nd magnitude list) within a user-defined orb (default 3°) using `sefstars.txt`
-  - Aspects to other traditional planets:
-    - Aspect type (conjunction, sextile, square, trine, opposition)
-    - Orb using the larger of the two planetary orbs
-    - Applying vs separating (using real speeds, including retrograde)
-    - Dexter vs sinister
-    - Mutual application / mutual separation flags; counter-ray markers
-  - Relationship logic:
-    - Sign-based domination/decimation with aktinobolia (counter-ray) flags
-    - Bonification/maltreatment sources (benefic/malefic rays, application, conjunction, domination, enclosure, dispositor)
-    - Benefic/malefic enclosures (by sign and by ray)
-    - Receptions and generosities from dignity holders
-    - Translation and collection of light (current speed plus natural-speed notes)
-    - Feral planets (no whole-sign aspects)
-- Render a high-fidelity terminal dashboard using `rich`:
-  - **Planetary State Table**:
-    - Columns: Planet, Position, House, Dignity, Sect, Motion, Synodic
-    - Multiline cells: Dignity (ruler/exalt/trip/term/face/debility), Sect (chart/planet, in-sect, hayz, halb, orientation), Motion (direction/speed/lat)
-    - Color-coded highlights: retrograde/slow, domicile/exalt/debility, in-sect/hayz/halb, orientation
-    - Spacer rows between planets for readability
-  - **Aspects Table**:
-    - Columns: Pair, Aspect, Orb (tight orbs highlighted), Status (applying/separating), Polarity (dexter/sinister)
-    - Sorted by orb tightness
-    - Shows mutual application/separation and counter-ray hints
-  - **Houses & Angles**:
-    - Compact “Houses (Whole sign)” table (house + sign only)
-    - Separate “Angles” table for Asc/MC
-    - Sign symbols suppressed in Rich/HTML to keep mono widths aligned
-  - **Almuten Tables**:
-    - Colored, with maxima highlighted per row and winners in green
-  - **Relationship tables**:
-    - Bonification/maltreatment + enclosures + feral markers per planet
-    - Domination/decimation with counter-ray orbs
-    - Translation/collection of light with natural-speed notes
-  - Export options:
-    - `--html out.html` saves a dark-themed HTML that matches the console layout (monospace, fixed widths)
-    - `--md out.md` saves a fenced code snapshot of the Rich/text output
-    - Relative HTML/MD paths default under `outputs/` (auto-created; git-ignored)
-    - CLI/text, HTML, and Markdown share the same renderer; layout changes propagate across all formats
+Engineering refactors should not silently change astrological rules. Source-backed doctrine belongs in calculation modules and should be protected by regression tests.
 
 Architecture
 ------------
-- `hor_tools/models.py`
-  - `ChartInput`: normalized birth data from Morinus `.hor`
-  - `PlanetPosition`: raw planetary data (lon/lat, speed, House, retrograde, synodic info)
-  - `Houses`: Whole sign cusps + Asc + MC
-  - `AspectInfo`: one aspect from a planet to another planet (mutual flags, counter-ray)
-  - Relationship dataclasses: domination, reception/generosity, translation/collection of light, enclosures, bonification sources, chart-level aggregates
-  - `PlanetReport`: full analysis bundle for a single planet
-- `hor_tools/hor_parser.py`
-  - Reads Morinus `.hor` files (ASCII), extracts:
-    - Name
-    - Timezone and DST (base + DST flag)
-    - Date and time
-    - Coordinates (lon/lat) from the final int block
-  - Produces `ChartInput` in UTC
-- `hor_tools/astro_engine.py`
-  - Swiss Ephemeris wrapper with a shared `EPHE_PATH` (points to ephemeris directory)
-  - `set_ephe_path(path)`: runtime override of the ephemeris directory (also respects `SWISSEPH_EPHE`)
-  - `compute_planets(chart)`: planets Sun - Saturn + Whole sign Houses
-    - Uses `FLG_SWIEPH | FLG_SPEED` to get speed and retrograde
-    - Fills elongation_from_sun and synodic_phase per planet
-  - `compute_houses(chart)`: Asc/MC + Whole sign cusps
-  - `julian_day_from_chart(chart)`: helper to reuse JD in other modules
-- `hor_tools/analysis/`
-  - `dignity.py`: rulers, exaltations, triplicities, terms, faces; mean speeds
-  - `sect.py`: chart sect, planet sect, hayz/halb, horizon tests
-  - `aspects.py`: aspect detection, orbs, applying/separating, dexter/sinister, mutual application/separation helpers
-  - `relationships.py`: domination/decimation, aktinobolia, bonification/maltreatment, receptions/generosities, enclosures, translation/collection of light, feral planets
-  - `stars.py`: fixed star lookup via Swiss Ephemeris
-  - `__init__.py`: `build_reports` glue for all analysis
-- `hor_tools/output.py`
-  - Rich/text/markdown rendering of reports; synodic column included
-  - Almuten tables rendered with Rich (fallback to text)
-  - Relationship sections/tables rendered with Rich + HTML
-  - HTML export (`export_rich_html`) for dark-themed output
-  - `build_markdown_report(..., include_almuten: bool)` allows lightweight reports (used by helpers)
-- `hor_tools/cli.py`
-  - `hor-reader` console script entry point:
-    - Usage: `hor-reader [--html out.html] [--md out.md] [--ephe ephe_dir] path/to/file.hor`
-    - Steps:
-      1. Parse `.hor` into `ChartInput`
-      2. Compute planets and Houses
-      3. Build `PlanetReport` list
-      4. Render Rich tables to stdout (or text if Rich missing)
-      5. Optional HTML/Markdown export
-    - Relative HTML/MD outputs are placed in `outputs/` by default
 
-Helper scripts (standalone, import the package)
------------------------------------------------
-- `scan_events.py`: list sign ingresses and exact aspects between two dates for a location.
-  - Inputs: start/end datetimes (ISO, timezone-aware or UTC), lat/lon, step/tolerance, optional custom aspects, optional `--ephe`.
-  - Outputs to stdout; does not modify files.
-- `asc_window_scan.py`: for a primer `.hor`, find every Ascendant sign change within a date range and daily time window.
-  - Inputs: `--primer`, start/end dates, local window times, step/tolerance, optional `--ephe`, optional `--out`.
-  - Default output is lightweight (no Almuten tables); `--verbose` includes full reports.
-  - Writes a consolidated Markdown to `outputs/asc_scan_<start>_<end>.md` by default and prints the path.
+### Input model — `hor_tools/hor_parser.py`, `hor_tools/models.py`
 
-External requirements
+`load_hor()` parses the classic Morinus protocol-0 natal/radix header into `ChartInput`.
+
+The parser validates the actual serialized Morinus fields rather than searching arbitrary integers. It currently supports Gregorian zone time, Greenwich time, and local mean time. BC dates, Julian-calendar dates, and local apparent time fail explicitly until implemented correctly.
+
+`ChartInput` stores:
+- chart name;
+- normalized UTC datetime;
+- civil UTC offset;
+- latitude/longitude;
+- house/zodiac identifiers;
+- Morinus place name when present;
+- altitude when present.
+
+Invalid coordinates never fall back to `(0, 0)`.
+
+### Astronomy — `hor_tools/astro_engine.py`
+
+This layer owns Swiss Ephemeris interaction:
+- Julian day conversion;
+- Sun–Saturn positions and speeds;
+- Ascendant and MC;
+- Whole Sign house assignment;
+- adjacent-day station detection;
+- lightweight longitude-only calculation for event scanners.
+
+`SWISSEPH_EPHE` or `--ephe` supplies the ephemeris directory. The path is validated before use; there is no machine-specific production default.
+
+### Traditional analysis — `hor_tools/analysis/`
+
+The analysis package is deliberately split by doctrine:
+- `dignity.py`: domicile, exaltation, Dorothean triplicity, Egyptian terms, Chaldean faces, mean-speed comparison;
+- `sect.py`: chart/planet sect, true-horizon Hayz/Halb;
+- `aspects.py`: teacher/project planetary orbs, sign-configuration rules, applying/separating and dexter/sinister geometry;
+- `ray_geometry.py`: exact major ray landing points used by relationship doctrines;
+- `conditions.py`: planetary joy, latitude testimony, Via Combusta, lunar void-of-course;
+- `antiscia.py`: antiscia/contra-antiscia;
+- `aversion.py`: domicile sight and aversion;
+- `stars.py`: course fixed-star catalogue with magnitude-sensitive orbs and latitude qualification;
+- `relationships.py`: domination/decimation, aktinobolia, enclosure, bonification/maltreatment, reception/generosity, translation/collection, feral condition.
+
+`analysis.build_reports()` is the orchestration layer that combines those calculations into typed `PlanetReport` instances.
+
+### Synodic state — `hor_tools/synodic.py`
+
+This module owns ordinary solar-contact conditions and the detailed superior/inferior/lunar synodic state machines. Ordinary cazimi and the stricter longitude+latitude true-cazimi testimony are kept distinct.
+
+### Almuten Figuris — `hor_tools/almuten.py`, `hor_tools/almuten_types.py`
+
+The Almuten calculation follows the teacher-configured Morinus setup rather than a generic software default:
+- five life points: Sun, Moon, Ascendant, Fortune, prenatal syzygy;
+- essential weights 5/4/3/2/1 for domicile/exaltation/triplicity/term/face;
+- all three Dorothean triplicity rulers receive the triplicity share;
+- Mercury exaltation in Virgo is used;
+- accidental house scores match the teacher's Morinus options, including VIII=4 and IX=5;
+- day ruler +7, hour ruler +6;
+- superior-planet phase score uses the directional Morinus bands 18–30 / 30–40 / 40–80 / 80–100 / 100–120 with weights 1/2/3/2/1.
+
+`AlmutenResult` and `AccidentalScores` provide typed result objects while retaining mapping compatibility for older renderer code.
+
+### Presentation — `hor_tools/output.py`
+
+The renderer currently owns text, Rich, HTML and Markdown presentation. It does not determine doctrine; it consumes typed calculation results.
+
+`output.py` is the largest remaining module and is a natural target for gradual renderer-only splitting. Any split should preserve public output functions and be protected by existing rendering tests.
+
+### Commands — `hor_tools/cli.py`, `hor_tools/commands/`
+
+Installed console commands:
+- `hor-reader` — read one `.hor` chart and render/export a report;
+- `hor-scan-events` — ingress/exact-aspect scanner using the lightweight longitude API;
+- `hor-scan-asc` — Ascendant-sign-window reports with optional IANA timezone support.
+
+The old root `scan_events.py` and `asc_window_scan.py` files are compatibility wrappers only.
+
+Testing and packaging
 ---------------------
-- Python 3.11+
-- `pyswisseph` installed via uv/pyproject
-- `rich` installed via uv/pyproject (for terminal output)
-- Ephemeris data:
-  - Directory with:
-    - Planet and Moon `.se1` files (e.g. `sepl_*.se1`, `semo_*.se1`, `seas_*.se1`)
-    - **`sefstars.txt`** for fixed stars
-  - Point to the folder via `SWISSEPH_EPHE` env var or CLI `--ephe`; default is `/home/cyber/swisseph_ephe`
-- Morinus `.hor` files exported in the expected format
 
-Generated/ignored files
+`pyproject.toml` uses setuptools package discovery for `hor_tools*`, so subpackages such as `hor_tools.analysis` and `hor_tools.commands` are included in built distributions.
+
+Runtime dependencies are separate from development dependencies. Pytest, Ruff and build tooling live in the dev dependency group.
+
+Permanent CI (`.github/workflows/ci.yml`) performs:
+- dependency installation;
+- full pytest suite;
+- package build;
+- installation of the built wheel into a clean virtual environment;
+- imports of package submodules;
+- `--help` smoke tests for all installed commands.
+
+This clean-wheel check is intentional: an editable source checkout can hide missing-package configuration.
+
+Domain invariants worth protecting
+----------------------------------
+- Traditional planets only.
+- Tropical zodiac.
+- Whole Sign house placement.
+- Teacher-supplied private planetary aspect orbs remain project overrides.
+- Aspect existence follows the course's sign-configuration/out-of-sign rule, not unrestricted geometric closeness.
+- True astronomical horizon is used where the doctrine requires above/below horizon.
+- Almuten scoring follows the teacher's actual Morinus configuration.
+- Calculation code should fail explicitly when an unsupported input would otherwise require guessing.
+
+Future engineering work
 -----------------------
-- `outputs/` (auto-created for HTML/MD exports and helper outputs) is git-ignored.
-
-Future work
------------
-- Add calculation of lots (Fortune, Spirit, etc.) using day/night formulas.
-- Add reception and collection/perfection detection based on aspects and dignities.
-- Implement XLSX export (via `openpyxl`) for tabular technical data.
-- Implement DOCX/ODT export (via `python-docx` / `odfpy`) for formatted written reports.
-- Flags to control which sections are printed (e.g. hide aspects or fixed stars).
+- Continue splitting presentation-only responsibilities out of `output.py` without changing calculations.
+- Add more representative anonymized Morinus fixtures if additional file variants are encountered.
+- Add native support for Julian/BC/local-apparent Morinus inputs only after reproducing Morinus conversion semantics exactly.
+- Optional structured export formats may be added behind separate extras.
