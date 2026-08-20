@@ -2,23 +2,43 @@ from __future__ import annotations
 
 from .models import PlanetPosition, SynodicPhaseInfo
 
-# Small orb used for cazimi (17 arcminutes ≈ 0.2833°)
+# Course solar-contact thresholds.
 CAZIMI_ORB_DEG = 17.0 / 60.0
+COMBUST_ORB_DEG = 7.5
+UNDER_BEAMS_ORB_DEG = 15.0
 
-# Threshold for considering a planet stationary by daily speed in longitude.
-STATION_THRESHOLD = 0.02
+# A station is a reversal point, not a universal absolute daily-speed band.
+# With a single ephemeris sample we only call a body stationary when its
+# longitudinal speed is effectively zero. Near-station judgments need a
+# time-series check around the chart moment.
+STATION_EPSILON = 1e-6
 
-SUPERIOR_COMBUST_ORB = {
-    "Saturn": 6.0,
-    "Jupiter": 6.0,
-    "Mars": 10.0,
-}
 
-SUPERIOR_UNDER_BEAMS_ORB = {
-    "Saturn": 15.0,
-    "Jupiter": 15.0,
-    "Mars": 18.0,
-}
+def _minimal_separation(a: float, b: float) -> float:
+    diff = abs((a - b) % 360.0)
+    return min(diff, 360.0 - diff)
+
+
+def is_true_cazimi(
+    planet: PlanetPosition,
+    sun: PlanetPosition,
+    orb_deg: float = CAZIMI_ORB_DEG,
+) -> bool:
+    """Return the stricter two-dimensional cazimi condition.
+
+    Ordinary course/Lilly-style cazimi uses <=17 arcminutes in ecliptic
+    longitude. The stricter medieval condition associated especially with
+    Bonatti also requires the planet to be within the same narrow distance in
+    ecliptic latitude from the Sun. Bonatti's surviving wording is commonly
+    translated as 16 arcminutes; this project defaults to the teacher/course
+    17-minute cazimi limit for both coordinates, while allowing callers to
+    supply another orb explicitly.
+    """
+    if planet.name == "Sun":
+        return False
+    longitude_close = _minimal_separation(planet.longitude, sun.longitude) <= orb_deg
+    latitude_close = abs(planet.latitude - sun.latitude) <= orb_deg
+    return longitude_close and latitude_close
 
 
 def compute_elongation_and_orientation(planet_long: float, sun_long: float) -> tuple[float, bool, bool]:
@@ -39,9 +59,9 @@ def compute_elongation_and_orientation(planet_long: float, sun_long: float) -> t
 
 
 def motion_flags(speed_long: float) -> tuple[bool, bool, bool]:
-    is_direct = speed_long > 0
-    is_retro = speed_long < 0
-    is_station = abs(speed_long) < STATION_THRESHOLD
+    is_station = abs(speed_long) <= STATION_EPSILON
+    is_direct = speed_long > STATION_EPSILON
+    is_retro = speed_long < -STATION_EPSILON
     return is_direct, is_retro, is_station
 
 
@@ -50,30 +70,17 @@ def _phase(group: str, code: str, index: int, label: str) -> SynodicPhaseInfo:
 
 
 def compute_superior_synodic_phase(planet: PlanetPosition, sun_long: float) -> SynodicPhaseInfo:
-    """
-    Classify Saturn, Jupiter or Mars into a synodic phase bucket.
-
-    Uses:
-      - cazimi orb (~0.27°)
-      - combust / under-beams orbs:
-          Saturn/Jupiter: combust <=6°, under beams 6 - 15°
-          Mars: combust <=10°, under beams 10 - 18°
-      - oriental vs occidental orientation
-      - direct / retro / station status
-      - rough band markers at 60°, 90°, ~168° (opposition), 22°/18°, 15°
-    """
+    """Classify Saturn, Jupiter or Mars into a traditional synodic phase bucket."""
     elong, is_oriental, _ = compute_elongation_and_orientation(planet.longitude, sun_long)
     is_direct, is_retro, is_station = motion_flags(planet.speed_long)
-    combust_orb = SUPERIOR_COMBUST_ORB.get(planet.name, 6.0)
-    under_orb = SUPERIOR_UNDER_BEAMS_ORB.get(planet.name, 15.0)
 
     if elong <= CAZIMI_ORB_DEG:
         return _phase("superior", "cazimi", 1, "Cazimi")
 
     if is_oriental:
-        if elong <= combust_orb:
+        if elong <= COMBUST_ORB_DEG:
             return _phase("superior", "combust_east", 2, "Combust (east)")
-        if elong <= under_orb:
+        if elong <= UNDER_BEAMS_ORB_DEG:
             return _phase("superior", "under_beams_east", 3, "Under beams (east)")
         if is_station:
             return _phase("superior", "first_station", 7, "First station (east)")
@@ -82,8 +89,18 @@ def compute_superior_synodic_phase(planet: PlanetPosition, sun_long: float) -> S
             if elong >= 168.0:
                 return _phase("superior", "around_opposition", 9, "Around opposition")
             if ahead_from_sun > 180.0 and elong > 120.0:
-                return _phase("superior", "retrograde_receding_or_pre_second_station", 10, "Retrograde receding / pre-second station")
-            return _phase("superior", "retrograde_approaching_opposition", 8, "Retrograde approaching opposition")
+                return _phase(
+                    "superior",
+                    "retrograde_receding_or_pre_second_station",
+                    10,
+                    "Retrograde receding / pre-second station",
+                )
+            return _phase(
+                "superior",
+                "retrograde_approaching_opposition",
+                8,
+                "Retrograde approaching opposition",
+            )
         if is_direct:
             ahead_from_sun = (planet.longitude - sun_long) % 360.0
             if ahead_from_sun >= 300.0:
@@ -96,18 +113,24 @@ def compute_superior_synodic_phase(planet: PlanetPosition, sun_long: float) -> S
         return _phase("superior", "oriental_weak", 5, "Oriental weak")
 
     # Occidental side
-    if elong <= combust_orb:
+    if elong <= COMBUST_ORB_DEG:
         return _phase("superior", "combust_west", 17, "Combust (west)")
-    if elong <= under_orb:
+    if elong <= UNDER_BEAMS_ORB_DEG:
         return _phase("superior", "under_beams_west", 16, "Under beams (west)")
     if is_station:
         return _phase("superior", "second_station", 11, "Second station (west)")
     if is_retro:
         if elong >= 168.0:
             return _phase("superior", "around_opposition", 9, "Around opposition")
-        return _phase("superior", "retrograde_receding_or_pre_second_station", 10, "Retrograde receding / pre-second station")
+        return _phase(
+            "superior",
+            "retrograde_receding_or_pre_second_station",
+            10,
+            "Retrograde receding / pre-second station",
+        )
 
-    # Direct, occidental
+    # Direct, occidental. These later phase labels are retained; the solar-ray
+    # condition above now follows the common 15°/7°30'/17' course thresholds.
     setting_threshold = 22.0 if planet.name in {"Saturn", "Jupiter"} else 18.0
     if elong < setting_threshold:
         return _phase("superior", "occidental_setting_degrees", 15, "Occidental setting degrees")
@@ -119,56 +142,45 @@ def compute_superior_synodic_phase(planet: PlanetPosition, sun_long: float) -> S
 
 
 def compute_inferior_synodic_phase(planet: PlanetPosition, sun_long: float) -> SynodicPhaseInfo:
-    """
-    Classify Venus or Mercury into a synodic phase bucket.
-
-    Uses:
-      - cazimi orb
-      - combust orb 7°
-      - under-beams bands (east: 7-12°, west: 7-15°)
-      - oriental vs occidental
-      - direct / retro / station
-    """
+    """Classify Venus or Mercury into a synodic phase bucket."""
     elong, is_oriental, _ = compute_elongation_and_orientation(planet.longitude, sun_long)
     is_direct, is_retro, is_station = motion_flags(planet.speed_long)
-
-    combust_orb = 7.0
-    under_east = 15.0
-    under_west = 15.0
 
     if elong <= CAZIMI_ORB_DEG:
         return _phase("inferior", "cazimi", 1, "Cazimi")
 
     if is_oriental:
-        if is_retro:
-            if elong <= combust_orb:
-                return _phase("inferior", "combust_east_return", 8, "Combust (east, return)")
-            if elong <= under_east:
-                return _phase("inferior", "under_beams_east_return", 7, "Under beams (east, return)")
-            if is_station:
-                return _phase("inferior", "second_station_east", 5, "Second station (east)")
-            return _phase("inferior", "direct_east_closing", 6, "Direct east closing")
-        if elong <= combust_orb:
-            return _phase("inferior", "combust_east", 2, "Combust (east)")
-        if elong <= under_east:
-            return _phase("inferior", "under_beams_east", 3, "Under beams (east)")
+        if elong <= COMBUST_ORB_DEG:
+            code = "combust_east_return" if is_retro else "combust_east"
+            index = 8 if is_retro else 2
+            label = "Combust (east, return)" if is_retro else "Combust (east)"
+            return _phase("inferior", code, index, label)
+        if elong <= UNDER_BEAMS_ORB_DEG:
+            code = "under_beams_east_return" if is_retro else "under_beams_east"
+            index = 7 if is_retro else 3
+            label = "Under beams (east, return)" if is_retro else "Under beams (east)"
+            return _phase("inferior", code, index, label)
         if is_station:
             return _phase("inferior", "second_station_east", 5, "Second station (east)")
-        # Direct, oriental
-        return _phase("inferior", "oriental_strong_before_second_station", 4, "Oriental strong (before station)")
+        if is_retro:
+            return _phase("inferior", "direct_east_closing", 6, "Retrograde east closing")
+        return _phase(
+            "inferior",
+            "oriental_strong_before_second_station",
+            4,
+            "Oriental strong (before station)",
+        )
 
     # Occidental side
-    if elong <= CAZIMI_ORB_DEG:
-        return _phase("inferior", "cazimi_return", 9, "Cazimi (return)")
-    if elong <= combust_orb:
+    if elong <= COMBUST_ORB_DEG:
         code = "combust_west" if is_direct else "combust_west_return"
         index = 10 if is_direct else 16
         label = "Combust (west)" if is_direct else "Combust (west, return)"
         return _phase("inferior", code, index, label)
-    if elong <= under_west:
-        code = "under_beams_west_7_15" if is_direct else "under_beams_west_15_7_return"
+    if elong <= UNDER_BEAMS_ORB_DEG:
+        code = "under_beams_west" if is_direct else "under_beams_west_return"
         index = 11 if is_direct else 15
-        label = "Under beams (west 7-15)" if is_direct else "Under beams (west 15-7 return)"
+        label = "Under beams (west)" if is_direct else "Under beams (west, return)"
         return _phase("inferior", code, index, label)
     if is_station:
         return _phase("inferior", "first_station_west", 13, "First station (west)")
@@ -178,20 +190,17 @@ def compute_inferior_synodic_phase(planet: PlanetPosition, sun_long: float) -> S
 
 
 def compute_lunar_synodic_phase(moon: PlanetPosition, sun_long: float) -> SynodicPhaseInfo:
-    """
-    Classify the Moon’s synodic phase using elongation bands from the Sun.
-    """
+    """Classify the Moon's synodic phase while using the common solar-ray thresholds."""
     elong, _, _ = compute_elongation_and_orientation(moon.longitude, sun_long)
     waxing = ((moon.longitude - sun_long) % 360.0) < 180.0
-    waning = not waxing
 
     if elong <= CAZIMI_ORB_DEG:
         return _phase("lunar", "cazimi", 1, "Cazimi")
 
     if waxing:
-        if elong <= 6.0:
+        if elong <= COMBUST_ORB_DEG:
             return _phase("lunar", "combust", 2, "Combust")
-        if elong <= 12.0:
+        if elong <= UNDER_BEAMS_ORB_DEG:
             return _phase("lunar", "under_beams", 3, "Under beams")
         if elong <= 45.0:
             return _phase("lunar", "waxing_crescent", 4, "Waxing crescent")
@@ -203,17 +212,14 @@ def compute_lunar_synodic_phase(moon: PlanetPosition, sun_long: float) -> Synodi
             return _phase("lunar", "waxing_near_full", 7, "Waxing near full")
         return _phase("lunar", "full", 8, "Full")
 
-    if waning:
-        if elong <= 6.0:
-            return _phase("lunar", "combust_west", 14, "Combust (west)")
-        if elong <= 12.0:
-            return _phase("lunar", "under_beams_west", 13, "Under beams (west)")
-        if elong <= 45.0:
-            return _phase("lunar", "waning_crescent", 12, "Waning crescent")
-        if elong <= 90.0:
-            return _phase("lunar", "waning_quarter", 11, "Waning quarter")
-        if elong <= 135.0:
-            return _phase("lunar", "waning_gibbous", 10, "Waning gibbous")
-        return _phase("lunar", "waning_near_full", 9, "Waning near full")
-
-    return _phase("lunar", "full", 8, "Full")
+    if elong <= COMBUST_ORB_DEG:
+        return _phase("lunar", "combust_west", 14, "Combust (west)")
+    if elong <= UNDER_BEAMS_ORB_DEG:
+        return _phase("lunar", "under_beams_west", 13, "Under beams (west)")
+    if elong <= 45.0:
+        return _phase("lunar", "waning_crescent", 12, "Waning crescent")
+    if elong <= 90.0:
+        return _phase("lunar", "waning_quarter", 11, "Waning quarter")
+    if elong <= 135.0:
+        return _phase("lunar", "waning_gibbous", 10, "Waning gibbous")
+    return _phase("lunar", "waning_near_full", 9, "Waning near full")
