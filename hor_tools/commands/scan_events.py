@@ -279,9 +279,9 @@ def parse_aspects(values: Iterable[str]) -> dict[float, str]:
         try:
             degree = float(degree_text)
         except ValueError as exc:
-            raise argparse.ArgumentTypeError(f"invalid aspect degree: {degree_text!r}") from exc
+            raise ValueError(f"invalid aspect degree: {degree_text!r}") from exc
         if not 0.0 <= degree <= 180.0:
-            raise argparse.ArgumentTypeError("aspect degrees must be between 0 and 180")
+            raise ValueError("aspect degrees must be between 0 and 180")
         aspects[degree] = name
     return aspects
 
