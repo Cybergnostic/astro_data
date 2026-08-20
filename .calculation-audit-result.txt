@@ -1,7 +1,7 @@
 exit_code=1
-commit=7797ff0b3464d49e3e08fee9fe493f77bf662525
+commit=cd190a370fd2fd9edbad66fd9b7cce6427df0e20
 --- pytest ---
-............................FF........                                   [100%]
+............................F.........                                   [100%]
 =================================== FAILURES ===================================
 ___ RelationshipDetectionTest.test_collection_requires_faster_planet_closer ____
 
@@ -12,56 +12,11 @@ self = <test_relationships.RelationshipDetectionTest testMethod=test_collection_
         fast = _make_pos("Mars", 58.0, 0.5)
         slow = _make_pos("Venus", 61.0, 0.2)
         planets = [_make_pos("Sun", 120.0, 1.0, house=10), collector, fast, slow]
->       _reports, relationships = build_reports(_dummy_chart(), planets, _dummy_houses())
-                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        _reports, relationships = build_reports(_dummy_chart(), planets, _dummy_houses())
+>       self.assertFalse(relationships.collections)
+E       AssertionError: [CollectionOfLight(collector='Venus', from_planets=('Sun', 'Mars'), aspect_from_first=AspectInfo(other='Venus', kind='sextile', orb=1.0, applying=True, dexter=True, self_applying=True, mutual_application=False, mutual_separation=False, counter_ray=False), aspect_from_second=AspectInfo(other='Venus', kind='conjunction', orb=3.0, applying=True, dexter=False, self_applying=True, mutual_application=False, mutual_separation=False, counter_ray=False), collector_naturally_slower=False, naturally_fastest='Sun')] is not false
 
-tests/test_relationships.py:91: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
-
-chart = ChartInput(name='synthetic', datetime_utc=datetime.datetime(2000, 1, 1, 0, 0, tzinfo=datetime.timezone.utc), tz_offset_hours=0.0, latitude=0.0, longitude=0.0, house_system='W', zodiac='T')
-planets = [PlanetPosition(name='Sun', longitude=120.0, latitude=0.0, speed_long=1.0, speed_lat=0.0, house=10, retrograde=False, ... latitude=0.0, speed_long=0.2, speed_lat=0.0, house=1, retrograde=False, elongation_from_sun=None, synodic_phase=None)]
-houses = Houses(cusps=[0.0, 0.0, 30.0, 60.0, 90.0, 120.0, 150.0, 180.0, 210.0, 240.0, 270.0, 300.0, 330.0], asc=0.0, mc=90.0)
-
-    def build_reports(
-        chart: ChartInput, planets: List[PlanetPosition], houses: Houses
-    ) -> Tuple[List[PlanetReport], ChartRelationships]:
-        """Build the complete traditional report for every planet."""
-        sun = next(p for p in planets if p.name == "Sun")
->       moon = next(p for p in planets if p.name == "Moon")
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-E       StopIteration
-
-hor_tools/analysis/__init__.py:27: StopIteration
-__________ RelationshipDetectionTest.test_fast_planet_cannot_collect ___________
-
-self = <test_relationships.RelationshipDetectionTest testMethod=test_fast_planet_cannot_collect>
-
-    def test_fast_planet_cannot_collect(self) -> None:
-        collector = _make_pos("Mercury", 0.0, 1.0)
-        ven = _make_pos("Venus", 60.0, 0.8)
-        mar = _make_pos("Mars", 120.0, 0.6)
-        planets = [_make_pos("Sun", 180.0, 1.0, house=10), collector, ven, mar]
->       _reports, relationships = build_reports(_dummy_chart(), planets, _dummy_houses())
-                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-tests/test_relationships.py:99: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
-
-chart = ChartInput(name='synthetic', datetime_utc=datetime.datetime(2000, 1, 1, 0, 0, tzinfo=datetime.timezone.utc), tz_offset_hours=0.0, latitude=0.0, longitude=0.0, house_system='W', zodiac='T')
-planets = [PlanetPosition(name='Sun', longitude=180.0, latitude=0.0, speed_long=1.0, speed_lat=0.0, house=10, retrograde=False, ... latitude=0.0, speed_long=0.6, speed_lat=0.0, house=1, retrograde=False, elongation_from_sun=None, synodic_phase=None)]
-houses = Houses(cusps=[0.0, 0.0, 30.0, 60.0, 90.0, 120.0, 150.0, 180.0, 210.0, 240.0, 270.0, 300.0, 330.0], asc=0.0, mc=90.0)
-
-    def build_reports(
-        chart: ChartInput, planets: List[PlanetPosition], houses: Houses
-    ) -> Tuple[List[PlanetReport], ChartRelationships]:
-        """Build the complete traditional report for every planet."""
-        sun = next(p for p in planets if p.name == "Sun")
->       moon = next(p for p in planets if p.name == "Moon")
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-E       StopIteration
-
-hor_tools/analysis/__init__.py:27: StopIteration
+tests/test_relationships.py:92: AssertionError
 =========================== short test summary info ============================
-FAILED tests/test_relationships.py::RelationshipDetectionTest::test_collection_requires_faster_planet_closer - StopIteration
-FAILED tests/test_relationships.py::RelationshipDetectionTest::test_fast_planet_cannot_collect - StopIteration
-2 failed, 36 passed in 0.21s
+FAILED tests/test_relationships.py::RelationshipDetectionTest::test_collection_requires_faster_planet_closer - AssertionError: [CollectionOfLight(collector='Venus', from_planets=('Sun', 'Mars'), aspect_from_first=AspectInfo(other='Venus', kind='sextile', orb=1.0, applying=True, dexter=True, self_applying=True, mutual_application=False, mutual_separation=False, counter_ray=False), aspect_from_second=AspectInfo(other='Venus', kind='conjunction', orb=3.0, applying=True, dexter=False, self_applying=True, mutual_application=False, mutual_separation=False, counter_ray=False), collector_naturally_slower=False, naturally_fastest='Sun')] is not false
+1 failed, 37 passed in 0.30s
