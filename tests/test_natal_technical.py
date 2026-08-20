@@ -10,10 +10,12 @@ from hor_tools.analysis import build_reports
 from hor_tools.analysis.duads import dodekatemorion_longitude
 from hor_tools.analysis.lots import _sees_by_sign
 from hor_tools.analysis.repulsion import _debilities_of_host_at_guest
+from hor_tools.analysis.stars import COURSE_FIRST_MAGNITUDE_PRIMARY_NATURE
 from hor_tools.analysis.technical import build_natal_technical_report
 from hor_tools.analysis.temperament import (
     DUAD_CONTACT_ORB,
     _planet_qualities,
+    _primary_nature_qualities,
     _qualities_to_scores,
 )
 from hor_tools.hor_parser import load_hor
@@ -73,10 +75,30 @@ def test_teacher_temperament_keeps_superior_natures_fixed() -> None:
     assert _planet_qualities(mercury_occidental) == {"cold", "dry"}
 
 
+def test_course_first_magnitude_stars_use_primary_planet_nature() -> None:
+    assert COURSE_FIRST_MAGNITUDE_PRIMARY_NATURE["Aldebaran"] == "Mars"
+    assert COURSE_FIRST_MAGNITUDE_PRIMARY_NATURE["Regulus"] == "Mars"
+    assert COURSE_FIRST_MAGNITUDE_PRIMARY_NATURE["Spica"] == "Venus"
+    assert COURSE_FIRST_MAGNITUDE_PRIMARY_NATURE["Sirius"] == "Jupiter"
+    assert COURSE_FIRST_MAGNITUDE_PRIMARY_NATURE["Canopus"] == "Saturn"
+    assert _qualities_to_scores(_primary_nature_qualities("Mars")) == {
+        "K": 1,
+        "S": 0,
+        "M": 0,
+        "F": 0,
+    }
+    assert _qualities_to_scores(_primary_nature_qualities("Venus")) == {
+        "K": 0,
+        "S": 0,
+        "M": 0,
+        "F": 1,
+    }
+
+
 def test_lot_ruler_sight_is_sign_based_not_degree_orb_based() -> None:
-    assert _sees_by_sign(1.0, 28.0) is True  # same sign, far outside a degree orb
-    assert _sees_by_sign(1.0, 61.0) is True  # sextile signs
-    assert _sees_by_sign(1.0, 151.0) is False  # quincunx / aversion
+    assert _sees_by_sign(1.0, 28.0) is True
+    assert _sees_by_sign(1.0, 61.0) is True
+    assert _sees_by_sign(1.0, 151.0) is False
 
 
 def test_repulsion_uses_host_detriment_or_fall() -> None:
