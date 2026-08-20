@@ -1,0 +1,77 @@
+name: Final Almuten wiring
+
+on:
+  push:
+    branches:
+      - fix/calculation-audit
+    paths:
+      - .github/workflows/final-almuten-wire.yml
+
+permissions:
+  contents: write
+
+jobs:
+  wire-and-test:
+    runs-on: ubuntu-latest
+    env:
+      SWISSEPH_EPHE: /tmp
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/calculation-audit
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Wire teacher Morinus Almuten rules
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('hor_tools/almuten.py')
+          text = path.read_text()
+
+          old_house = '''# Ibn Ezra ordering used for Almuten Figuris accidental house points.\nHOUSE_STRENGTH_ORDER = [1, 10, 7, 4, 11, 5, 2, 8, 9, 3, 12, 6]\nHOUSE_STRENGTH_SCORES = {house: score for house, score in zip(HOUSE_STRENGTH_ORDER, range(12, 0, -1))}\n'''
+          new_house = '''# Teacher-configured Morinus Almuten Figuris accidental house scores.\n# This setup intentionally gives VIII=4 and IX=5 (the teacher's actual Morinus\n# options), which differs from the 5/4 ordering printed in the course PDF.\nHOUSE_STRENGTH_SCORES = {\n    1: 12,\n    2: 6,\n    3: 3,\n    4: 9,\n    5: 7,\n    6: 1,\n    7: 10,\n    8: 4,\n    9: 5,\n    10: 11,\n    11: 8,\n    12: 2,\n}\n'''
+          if old_house not in text:
+              raise SystemExit('Expected old house-score block not found')
+          text = text.replace(old_house, new_house, 1)
+
+          start = text.index('def phase_score(')
+          end = text.index('\ndef compute_accidental_scores', start)
+          new_phase = '''def phase_score(planet: PlanetPosition, sun_longitude: float) -> int:\n    \"\"\"Return the teacher-configured Morinus Sun-phase score.\n\n    Morinus scores only Mars, Jupiter, and Saturn.  It measures the directional\n    zodiacal distance from the superior planet forward to the Sun,\n    ``(Sun - planet) mod 360``, and uses five strict bands:\n\n    18-30 = weak (1), 30-40 = medium (2), 40-80 = strong (3),\n    80-100 = medium (2), 100-120 = weak (1).\n\n    The original Morinus ``inorbsinister`` implementation uses strict\n    inequalities, so exact band boundaries receive no phase score.  It does\n    not test direct/retrograde motion or station state here.\n    \"\"\"\n    if planet.name not in {\"Saturn\", \"Jupiter\", \"Mars\"}:\n        return 0\n\n    separation = (sun_longitude - planet.longitude) % 360.0\n    bands = (\n        (18.0, 30.0, 1),\n        (30.0, 40.0, 2),\n        (40.0, 80.0, 3),\n        (80.0, 100.0, 2),\n        (100.0, 120.0, 1),\n    )\n    for lower, upper, score in bands:\n        if lower < separation < upper:\n            return score\n    return 0\n\n\n'''
+          text = text[:start] + new_phase + text[end + 1:]
+          path.write_text(text)
+          PY
+
+      - name: Install project
+        run: pip install -e .
+
+      - name: Run full suite and record result
+        shell: bash
+        run: |
+          set +e
+          python -m pytest -q > /tmp/pytest.out 2>&1
+          code=$?
+          {
+            echo "exit_code=$code"
+            echo "tested_commit=$(git rev-parse HEAD)"
+            cat /tmp/pytest.out
+          } > .almuten-final-result.txt
+          cat .almuten-final-result.txt
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if [ "$code" -eq 0 ]; then
+            git add hor_tools/almuten.py .almuten-final-result.txt
+            git commit -m "Wire teacher Morinus Almuten scoring"
+          else
+            git checkout -- hor_tools/almuten.py
+            git add .almuten-final-result.txt
+            git commit -m "Record failed Almuten verification"
+          fi
+          git push
+          exit 0
