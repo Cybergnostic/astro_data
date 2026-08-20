@@ -1,0 +1,462 @@
+"""Deterministic natal-synthesis factors from the course.
+
+This module deliberately separates algorithmic selection from astrological
+judgment.  Primary motivation, geniture and general chart capacity expose their
+factors without pretending to make the final synthesis; the ruler of behaviour
+is selected where the course gives an explicit priority algorithm.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+
+from ..almuten import ALMUTEN_PLANETS, essential_contributions_at_degree
+from ..models import Houses, PlanetPosition, PlanetReport
+from ..synodic import COMBUST_ORB_DEG, UNDER_BEAMS_ORB_DEG
+from .aspects import ASPECTS, _aspect_angle_for_contact, _distance_to_aspect
+from .dignity import SIGNS, SIGN_RULERS, TRIPLICITIES, sign_index_from_longitude
+from .sect import is_above_horizon
+
+PRIMARY_CONTACT_ORB = 5.0
+
+ELEMENT_BY_SIGN = {
+    0: "fire", 1: "earth", 2: "air", 3: "water",
+    4: "fire", 5: "earth", 6: "air", 7: "water",
+    8: "fire", 9: "earth", 10: "air", 11: "water",
+}
+MOTIVATION_LABELS = {
+    "fire": "power, success, independence and freedom",
+    "air": "freedom of expression, exchange of information and movement",
+    "water": "emotional security and stability",
+    "earth": "material and physical security",
+}
+ANGULAR_HOUSES = {1, 4, 7, 10}
+SUCCEDENT_HOUSES = {2, 5, 8, 11}
+
+
+@dataclass
+class PrimaryMotivationFactor:
+    source: str
+    element: str
+    motivation: str
+    detail: str
+    planet: str | None = None
+    condition: list[str] = field(default_factory=list)
+
+
+@dataclass
+class PrimaryMotivationReport:
+    factors: list[PrimaryMotivationFactor]
+    elemental_counts: dict[str, int]
+    note: str = "Factors only; final primary-motivation synthesis belongs to the astrologer."
+
+
+@dataclass
+class BehaviourRulerReport:
+    primary: str | None
+    secondary: str | None
+    rule: str
+    evidence: list[str]
+
+
+@dataclass
+class GenitureCandidate:
+    planet: str
+    house: int
+    mundane_class: str
+    essential_condition: list[str]
+    accidental_condition: list[str]
+
+
+@dataclass
+class GenitureFactorsReport:
+    candidates: list[GenitureCandidate]
+    note: str = (
+        "Lilly-style geniture requires qualitative comparison of mundane and essential "
+        "strength; no mechanical winner is selected."
+    )
+
+
+@dataclass
+class DegreeAlmuten:
+    point: str
+    longitude: float
+    winners: list[str]
+    score: int
+    scores: dict[str, int]
+
+
+@dataclass
+class MindFactorsReport:
+    mercury: list[str]
+    moon: list[str]
+    mercury_almuten: DegreeAlmuten
+    moon_almuten: DegreeAlmuten
+    secondary_contacts: list[str]
+    mercury_moon_relation: list[str]
+    note: str = "Formal factors/descriptors only; final quality-of-mind synthesis belongs to the astrologer."
+
+
+@dataclass
+class CapacityRulerFactor:
+    planet: str
+    role: str
+    house: int
+    condition: list[str]
+    aspects_to_other_rulers: list[str]
+
+
+@dataclass
+class FortuneAdversityFactorsReport:
+    sect_light: str
+    light_longitude: float
+    triplicity_element: str
+    rulers: list[CapacityRulerFactor]
+    note: str = (
+        "Sreća/nesreća factors only; the program does not pronounce the nativity fortunate, "
+        "unfortunate, eminent or socially limited."
+    )
+
+
+def _element(longitude: float) -> str:
+    return ELEMENT_BY_SIGN[sign_index_from_longitude(longitude)]
+
+
+def _condition(report: PlanetReport) -> list[str]:
+    result: list[str] = []
+    if report.is_domicile:
+        result.append("domicile")
+    if report.is_exalted:
+        result.append("exaltation")
+    if report.is_detriment:
+        result.append("detriment")
+    if report.is_fall:
+        result.append("fall")
+    if not any((report.is_domicile, report.is_exalted, report.is_detriment, report.is_fall)):
+        result.append("no major dignity/debility")
+    result.append("in sect" if report.in_sect else "out of sect")
+    if report.hayz:
+        result.append("hayz")
+    elif report.halb:
+        result.append("halb")
+    if report.planet.retrograde:
+        result.append("retrograde")
+    if report.planet.station:
+        result.append(f"{report.planet.station} station")
+    result.append(report.speed_class)
+    if report.is_true_cazimi:
+        result.append("true cazimi")
+    elif report.is_cazimi:
+        result.append("cazimi")
+    if report.is_maltreated:
+        result.append("maltreated")
+    if report.is_bonified:
+        result.append("bonified")
+    return result
+
+
+def _contact(source_longitude: float, target_longitude: float, orb: float) -> tuple[str, float] | None:
+    angle = _aspect_angle_for_contact(source_longitude, target_longitude, orb)
+    if angle is None:
+        return None
+    return ASPECTS[angle], _distance_to_aspect(source_longitude, target_longitude, angle)
+
+
+def build_primary_motivation(
+    planets: list[PlanetPosition], houses: Houses, reports: list[PlanetReport]
+) -> PrimaryMotivationReport:
+    """Return the four source categories used to judge primary motivation."""
+
+    by_name = {report.planet.name: report for report in reports}
+    asc_sign = sign_index_from_longitude(houses.asc)
+    asc_ruler = SIGN_RULERS[asc_sign]
+    ruler_report = by_name[asc_ruler]
+    factors: list[PrimaryMotivationFactor] = []
+
+    asc_element = _element(houses.asc)
+    factors.append(
+        PrimaryMotivationFactor(
+            source="Ascendant sign",
+            element=asc_element,
+            motivation=MOTIVATION_LABELS[asc_element],
+            detail=SIGNS[asc_sign],
+        )
+    )
+
+    ruler_element = _element(ruler_report.planet.longitude)
+    factors.append(
+        PrimaryMotivationFactor(
+            source="Ascendant ruler",
+            element=ruler_element,
+            motivation=MOTIVATION_LABELS[ruler_element],
+            detail=(
+                f"{asc_ruler} in {ruler_report.sign}, House {ruler_report.planet.house}"
+            ),
+            planet=asc_ruler,
+            condition=_condition(ruler_report),
+        )
+    )
+
+    for report in reports:
+        contact = _contact(report.planet.longitude, houses.asc, PRIMARY_CONTACT_ORB)
+        if contact is None:
+            continue
+        kind, orb = contact
+        element = _element(report.planet.longitude)
+        source = "Planet on Ascendant" if kind == "conjunction" else "Aspect to Ascendant"
+        factors.append(
+            PrimaryMotivationFactor(
+                source=source,
+                element=element,
+                motivation=MOTIVATION_LABELS[element],
+                detail=f"{report.planet.name} {kind}, orb {orb:.2f}° from {report.sign}",
+                planet=report.planet.name,
+                condition=_condition(report),
+            )
+        )
+
+    counts = {element: 0 for element in MOTIVATION_LABELS}
+    for factor in factors:
+        counts[factor.element] += 1
+    return PrimaryMotivationReport(factors=factors, elemental_counts=counts)
+
+
+def build_behaviour_ruler(
+    planets: list[PlanetPosition], houses: Houses, reports: list[PlanetReport]
+) -> BehaviourRulerReport:
+    """Apply the course's explicit ruler-of-behaviour priority sequence."""
+
+    asc_ruler = SIGN_RULERS[sign_index_from_longitude(houses.asc)]
+    by_name = {report.planet.name: report for report in reports}
+    house_one = [planet for planet in planets if planet.house == 1]
+    if house_one:
+        winner = min(
+            house_one,
+            key=lambda planet: abs((planet.longitude - houses.asc + 180.0) % 360.0 - 180.0),
+        )
+        distance = abs((winner.longitude - houses.asc + 180.0) % 360.0 - 180.0)
+        return BehaviourRulerReport(
+            primary=winner.name,
+            secondary=asc_ruler if asc_ruler != winner.name else None,
+            rule="planet in House I; nearest Ascendant has priority",
+            evidence=[f"{winner.name} in House I, {distance:.2f}° from ASC"],
+        )
+
+    conjunction_candidates: list[tuple[float, str, str]] = []
+    for target in ("Mercury", "Moon"):
+        target_report = by_name[target]
+        for aspect in target_report.aspects:
+            if aspect.kind == "conjunction":
+                conjunction_candidates.append((aspect.orb, aspect.other, target))
+    if conjunction_candidates:
+        orb, winner, target = min(conjunction_candidates)
+        return BehaviourRulerReport(
+            primary=winner,
+            secondary=None,
+            rule="no planet in House I; use planet conjunct Mercury or Moon",
+            evidence=[f"{winner} conjunct {target}, orb {orb:.2f}°"],
+        )
+
+    aspect_candidates: list[tuple[float, str, str, str]] = []
+    for target in ("Mercury", "Moon"):
+        target_report = by_name[target]
+        for aspect in target_report.aspects:
+            aspect_candidates.append((aspect.orb, aspect.other, target, aspect.kind))
+    if aspect_candidates:
+        orb, winner, target, kind = min(aspect_candidates)
+        return BehaviourRulerReport(
+            primary=winner,
+            secondary=None,
+            rule="no House-I planet or conjunction; use closest aspect to Mercury or Moon",
+            evidence=[f"{winner} {kind} {target}, orb {orb:.2f}°"],
+        )
+
+    return BehaviourRulerReport(
+        primary=None,
+        secondary=None,
+        rule="no qualifying ruler found from the stated hierarchy",
+        evidence=[],
+    )
+
+
+def build_geniture_factors(reports: list[PlanetReport]) -> GenitureFactorsReport:
+    """Expose qualitative geniture evidence without manufacturing a score."""
+
+    candidates: list[GenitureCandidate] = []
+    for report in reports:
+        house = report.planet.house
+        if house in ANGULAR_HOUSES:
+            mundane = "angular"
+        elif house in SUCCEDENT_HOUSES:
+            mundane = "succedent"
+        else:
+            mundane = "cadent"
+        essential = [
+            item
+            for item in _condition(report)
+            if item in {"domicile", "exaltation", "detriment", "fall", "no major dignity/debility"}
+        ]
+        accidental = [
+            item
+            for item in _condition(report)
+            if item not in essential
+        ]
+        candidates.append(
+            GenitureCandidate(
+                planet=report.planet.name,
+                house=house,
+                mundane_class=mundane,
+                essential_condition=essential,
+                accidental_condition=accidental,
+            )
+        )
+    rank = {"angular": 0, "succedent": 1, "cadent": 2}
+    candidates.sort(key=lambda item: (rank[item.mundane_class], item.house))
+    return GenitureFactorsReport(candidates=candidates)
+
+
+def _degree_almuten(point: str, longitude: float, is_day_chart: bool) -> DegreeAlmuten:
+    contributions = essential_contributions_at_degree(longitude, is_day_chart)
+    scores = {planet: sum(contributions[planet]) for planet in ALMUTEN_PLANETS}
+    maximum = max(scores.values(), default=0)
+    winners = [planet for planet, score in scores.items() if score == maximum and score > 0]
+    return DegreeAlmuten(point=point, longitude=longitude, winners=winners, score=maximum, scores=scores)
+
+
+def build_mind_factors(
+    chart,
+    reports: list[PlanetReport],
+) -> MindFactorsReport:
+    """Return Mercury/Moon factors and source-explicit Mercury descriptors."""
+
+    by_name = {report.planet.name: report for report in reports}
+    mercury = by_name["Mercury"]
+    moon = by_name["Moon"]
+    is_day = mercury.sect_chart == "day"
+
+    mercury_items = [
+        f"{mercury.sign}, House {mercury.planet.house}",
+        "above horizon: easier expression and communication"
+        if is_above_horizon(chart, mercury.planet)
+        else "below horizon: more resourceful and reflective",
+    ]
+    if mercury.oriental:
+        mercury_items.append("oriental: more direct, open and free")
+    elif mercury.occidental:
+        mercury_items.append("occidental: more reflective, closed and conservative")
+
+    elongation = mercury.planet.elongation_from_sun
+    if elongation is not None:
+        if elongation <= COMBUST_ORB_DEG:
+            mercury_items.append("combust: dispersion; mind can get lost in irrelevant details")
+        elif elongation <= UNDER_BEAMS_ORB_DEG:
+            mercury_items.append("under beams: dispersion; mind can get lost in irrelevant details")
+
+    if mercury.speed_class == "swift":
+        mercury_items.append("swift: quick and penetrating, but less persistent")
+    elif mercury.speed_class == "slow":
+        mercury_items.append("slow: slower, hesitant, fewer ideas")
+    if mercury.planet.retrograde:
+        mercury_items.append("retrograde: indecisive, changeable, rebellious")
+    elif mercury.planet.station:
+        mercury_items.append(f"{mercury.planet.station} station")
+    else:
+        mercury_items.append("direct: objective, less hesitation")
+    mercury_items.extend(f"condition: {item}" for item in _condition(mercury))
+
+    moon_items = [
+        f"{moon.sign}, House {moon.planet.house}",
+        f"dispositor: {moon.ruler}",
+        *[f"condition: {item}" for item in _condition(moon)],
+    ]
+    if moon.planet.synodic_phase:
+        moon_items.append(f"phase: {moon.planet.synodic_phase.label}")
+
+    secondary: list[str] = []
+    seen: set[tuple[str, str]] = set()
+    for target in (mercury, moon):
+        for aspect in target.aspects:
+            key = tuple(sorted((target.planet.name, aspect.other)))
+            if key in seen:
+                continue
+            seen.add(key)
+            if aspect.kind == "conjunction" or aspect.orb <= 6.0:
+                secondary.append(
+                    f"{target.planet.name} {aspect.kind} {aspect.other}, orb {aspect.orb:.2f}°"
+                )
+
+    relation: list[str] = []
+    merc_moon = next((asp for asp in mercury.aspects if asp.other == "Moon"), None)
+    if merc_moon:
+        relation.append(f"Mercury {merc_moon.kind} Moon, orb {merc_moon.orb:.2f}°")
+    else:
+        relation.append("Mercury and Moon: no major degree contact")
+    for reception in mercury.receptions_given:
+        if reception.guest == "Moon":
+            relation.append(f"Mercury receives Moon by {', '.join(reception.dignities)}")
+    for reception in moon.receptions_given:
+        if reception.guest == "Mercury":
+            relation.append(f"Moon receives Mercury by {', '.join(reception.dignities)}")
+    for repulsion in mercury.repulsions_given:
+        if repulsion.guest == "Moon":
+            relation.append(f"Mercury repels Moon by {', '.join(repulsion.debilities)}")
+    for repulsion in moon.repulsions_given:
+        if repulsion.guest == "Mercury":
+            relation.append(f"Moon repels Mercury by {', '.join(repulsion.debilities)}")
+
+    return MindFactorsReport(
+        mercury=mercury_items,
+        moon=moon_items,
+        mercury_almuten=_degree_almuten("Mercury", mercury.planet.longitude, is_day),
+        moon_almuten=_degree_almuten("Moon", moon.planet.longitude, is_day),
+        secondary_contacts=secondary,
+        mercury_moon_relation=relation,
+    )
+
+
+def build_fortune_adversity_factors(
+    reports: list[PlanetReport],
+) -> FortuneAdversityFactorsReport:
+    """Expose the course's sect-light and triplicity-ruler capacity factors."""
+
+    by_name = {report.planet.name: report for report in reports}
+    is_day = reports[0].sect_chart == "day"
+    light = by_name["Sun"] if is_day else by_name["Moon"]
+    element = _element(light.planet.longitude)
+    day_ruler, night_ruler, participating = TRIPLICITIES[element]
+    roles = (
+        (day_ruler, "day triplicity ruler"),
+        (night_ruler, "night triplicity ruler"),
+        (participating, "participating triplicity ruler"),
+    )
+
+    factors: list[CapacityRulerFactor] = []
+    ruler_names = {name for name, _role in roles}
+    for name, role in roles:
+        report = by_name[name]
+        mutual: list[str] = []
+        for aspect in report.aspects:
+            if aspect.other in ruler_names - {name}:
+                mutual.append(f"{aspect.kind} {aspect.other}, orb {aspect.orb:.2f}°")
+        for reception in report.receptions_given:
+            if reception.guest in ruler_names - {name}:
+                mutual.append(f"receives {reception.guest} by {', '.join(reception.dignities)}")
+        for repulsion in report.repulsions_given:
+            if repulsion.guest in ruler_names - {name}:
+                mutual.append(f"repels {repulsion.guest} by {', '.join(repulsion.debilities)}")
+        factors.append(
+            CapacityRulerFactor(
+                planet=name,
+                role=role,
+                house=report.planet.house,
+                condition=_condition(report),
+                aspects_to_other_rulers=mutual,
+            )
+        )
+
+    return FortuneAdversityFactorsReport(
+        sect_light=light.planet.name,
+        light_longitude=light.planet.longitude,
+        triplicity_element=element,
+        rulers=factors,
+    )
