@@ -1,4 +1,4 @@
-name: Engineering branch diagnostic
+name: Engineering branch final diagnostic
 
 on:
   push:
@@ -27,7 +27,7 @@ jobs:
 
       - uses: astral-sh/setup-uv@v6
 
-      - name: Run diagnostics (correctness lint gate)
+      - name: Run final diagnostics
         shell: bash
         run: |
           set +e
@@ -39,16 +39,16 @@ jobs:
           echo "exit_code=$sync_code" >> .engineering-check-result.txt
 
           echo >> .engineering-check-result.txt
-          echo "== pytest ==" >> .engineering-check-result.txt
-          uv run pytest -q >> .engineering-check-result.txt 2>&1
-          pytest_code=$?
-          echo "exit_code=$pytest_code" >> .engineering-check-result.txt
-
-          echo >> .engineering-check-result.txt
           echo "== ruff ==" >> .engineering-check-result.txt
           uv run ruff check hor_tools tests scan_events.py asc_window_scan.py >> .engineering-check-result.txt 2>&1
           ruff_code=$?
           echo "exit_code=$ruff_code" >> .engineering-check-result.txt
+
+          echo >> .engineering-check-result.txt
+          echo "== pytest ==" >> .engineering-check-result.txt
+          uv run pytest -q >> .engineering-check-result.txt 2>&1
+          pytest_code=$?
+          echo "exit_code=$pytest_code" >> .engineering-check-result.txt
 
           echo >> .engineering-check-result.txt
           echo "== build ==" >> .engineering-check-result.txt
@@ -67,9 +67,12 @@ jobs:
           import hor_tools.analysis
           import hor_tools.commands.scan_events
           import hor_tools.commands.asc_window
+          import hor_tools.rendering.almuten
+          import hor_tools.rendering.relationships
           print("clean wheel imports: ok")
           PY
             /tmp/hor-wheel/bin/hor-reader --help >/dev/null 2>&1 && \
+            /tmp/hor-wheel/bin/hor-reader --version >/dev/null 2>&1 && \
             /tmp/hor-wheel/bin/hor-scan-events --help >/dev/null 2>&1 && \
             /tmp/hor-wheel/bin/hor-scan-asc --help >/dev/null 2>&1
             wheel_code=$?
@@ -78,11 +81,11 @@ jobs:
 
           echo >> .engineering-check-result.txt
           echo "tested_commit=$(git rev-parse HEAD)" >> .engineering-check-result.txt
-          echo "summary sync=$sync_code pytest=$pytest_code ruff=$ruff_code build=$build_code wheel=$wheel_code" >> .engineering-check-result.txt
+          echo "summary sync=$sync_code ruff=$ruff_code pytest=$pytest_code build=$build_code wheel=$wheel_code" >> .engineering-check-result.txt
           cat .engineering-check-result.txt
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add uv.lock .engineering-check-result.txt
-          git commit -m "Record engineering diagnostic and refresh lock" || true
+          git commit -m "Record final engineering diagnostic" || true
           git push
