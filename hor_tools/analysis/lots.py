@@ -58,9 +58,22 @@ def _house_from_longitude(longitude: float, asc: float) -> int:
     return ((sign - asc_sign) % 12) + 1
 
 
+def _sees_by_sign(source_longitude: float, target_longitude: float) -> bool:
+    """Traditional sign sight: conjunction, sextile, square, trine or opposition."""
+    source_sign = sign_index_from_longitude(source_longitude)
+    target_sign = sign_index_from_longitude(target_longitude)
+    distance = (target_sign - source_sign) % 12
+    return distance in {0, 2, 3, 4, 6, 8, 9, 10}
+
+
 def _planetary_aspects_to_lot(
     lot_longitude: float, planets: list[PlanetPosition]
 ) -> list[LotAspect]:
+    """Return close degree contacts cast by planets to a passive Lot.
+
+    Lots do not cast rays and have no orb of their own. The allowed orb is
+    therefore the orb of the planet casting the ray, exactly as in the course.
+    """
     hits: list[LotAspect] = []
     for planet in planets:
         allowed = PLANET_ORBS.get(planet.name, 0.0)
@@ -86,7 +99,6 @@ def _make_result(
     by_name = {planet.name: planet for planet in planets}
     ruler_planet = by_name.get(ruler)
     aspects = _planetary_aspects_to_lot(longitude, planets)
-    ruler_hits = [hit for hit in aspects if hit.planet == ruler]
     return LotResult(
         name=name,
         longitude=longitude,
@@ -95,7 +107,11 @@ def _make_result(
         ruler=ruler,
         ruler_longitude=ruler_planet.longitude if ruler_planet else None,
         ruler_house=ruler_planet.house if ruler_planet else None,
-        ruler_sees_lot=bool(ruler_hits),
+        ruler_sees_lot=(
+            _sees_by_sign(ruler_planet.longitude, longitude)
+            if ruler_planet is not None
+            else False
+        ),
         aspects=aspects,
         group=group,
         formula=formula,
@@ -109,11 +125,11 @@ def build_lots(
 
     The corpus contains two explicitly different Eros formulas: the seven-Lot
     Hermetic sequence derives Eros from Spirit, while the natal relationship
-    formula registry derives a topical Eros from Fortune.  Both are retained and
+    formula registry derives a topical Eros from Fortune. Both are retained and
     labelled rather than silently conflated.
 
     Sensitive disease/death Lots are deliberately not calculated in the default
-    technical report.  The Hermes marriage Lot is also not guessed because its
+    technical report. The Hermes marriage Lot is also not guessed because its
     course formula is sex-specific and Morinus ``.hor`` input does not encode
     the native's sex.
     """
@@ -143,15 +159,31 @@ def build_lots(
     hermetic_values = [
         ("Fortune", fortune, "Asc + Moon - Sun" if is_day_chart else "Asc + Sun - Moon"),
         ("Spirit", spirit, "Asc + Sun - Moon" if is_day_chart else "Asc + Moon - Sun"),
-        ("Enemy", enemy, "Asc + Fortune - Saturn" if is_day_chart else "Asc + Saturn - Fortune"),
-        ("Victory", victory, "Asc + Jupiter - Spirit" if is_day_chart else "Asc + Spirit - Jupiter"),
-        ("Courage", courage, "Asc + Fortune - Mars" if is_day_chart else "Asc + Mars - Fortune"),
+        (
+            "Enemy",
+            enemy,
+            "Asc + Fortune - Saturn" if is_day_chart else "Asc + Saturn - Fortune",
+        ),
+        (
+            "Victory",
+            victory,
+            "Asc + Jupiter - Spirit" if is_day_chart else "Asc + Spirit - Jupiter",
+        ),
+        (
+            "Courage",
+            courage,
+            "Asc + Fortune - Mars" if is_day_chart else "Asc + Mars - Fortune",
+        ),
         (
             "Eros (Hermetic)",
             hermetic_eros,
             "Asc + Venus - Spirit" if is_day_chart else "Asc + Spirit - Venus",
         ),
-        ("Necessity", necessity, "Asc + Fortune - Mercury" if is_day_chart else "Asc + Mercury - Fortune"),
+        (
+            "Necessity",
+            necessity,
+            "Asc + Fortune - Mercury" if is_day_chart else "Asc + Mercury - Fortune",
+        ),
     ]
     hermetic = [
         _make_result(name, lon, planets, houses, group="hermetic", formula=formula)
@@ -165,21 +197,32 @@ def build_lots(
 
     topical_raw: list[tuple[str, float, str]] = []
     siblings, note = sect_formula(pos["Jupiter"], pos["Saturn"])
-    topical_raw.append(("Siblings", siblings, note + ": Asc + Jupiter - Saturn / reversed"))
     topical_raw.append(
-        ("Number of siblings", _lot(asc, pos["Saturn"], pos["Mercury"]), "Asc + Saturn - Mercury")
+        ("Siblings", siblings, note + ": Asc + Jupiter - Saturn / reversed")
+    )
+    topical_raw.append(
+        (
+            "Number of siblings",
+            _lot(asc, pos["Saturn"], pos["Mercury"]),
+            "Asc + Saturn - Mercury",
+        )
     )
     father, note = sect_formula(pos["Saturn"], sun)
     topical_raw.append(("Father", father, note + ": Asc + Saturn - Sun / reversed"))
     mother, note = sect_formula(moon, pos["Venus"])
     topical_raw.append(("Mother", mother, note + ": Asc + Moon - Venus / reversed"))
-    topical_raw.append(("Friends", _lot(asc, pos["Mercury"], moon), "Asc + Mercury - Moon"))
+    topical_raw.append(
+        ("Friends", _lot(asc, pos["Mercury"], moon), "Asc + Mercury - Moon")
+    )
 
-    # Houses.cusps is 1-indexed by design: index 1 is House I, index 9 House IX.
     ninth_cusp = houses.cusps[9] % 360.0
     ninth_ruler = SIGN_RULERS[sign_index_from_longitude(ninth_cusp)]
     topical_raw.append(
-        ("Travel", _lot(asc, ninth_cusp, pos[ninth_ruler]), f"Asc + 9th House - {ninth_ruler}")
+        (
+            "Travel",
+            _lot(asc, ninth_cusp, pos[ninth_ruler]),
+            f"Asc + 9th House - {ninth_ruler}",
+        )
     )
 
     if is_day_chart:
@@ -193,13 +236,19 @@ def build_lots(
     faith, note = sect_formula(pos["Mercury"], moon)
     topical_raw.append(("Faith", faith, note + ": Asc + Mercury - Moon / reversed"))
     children, note = sect_formula(pos["Saturn"], pos["Jupiter"])
-    topical_raw.append(("Children", children, note + ": Asc + Saturn - Jupiter / reversed"))
+    topical_raw.append(
+        ("Children", children, note + ": Asc + Saturn - Jupiter / reversed")
+    )
     daughters, note = sect_formula(pos["Venus"], pos["Jupiter"])
-    topical_raw.append(("Daughters", daughters, note + ": Asc + Venus - Jupiter / reversed"))
+    topical_raw.append(
+        ("Daughters", daughters, note + ": Asc + Venus - Jupiter / reversed")
+    )
     sons, note = sect_formula(pos["Mercury"], pos["Jupiter"])
     topical_raw.append(("Sons", sons, note + ": Asc + Mercury - Jupiter / reversed"))
     divorce, note = sect_formula(pos["Venus"], pos["Jupiter"])
-    topical_raw.append(("Divorce", divorce, note + ": Asc + Venus - Jupiter / reversed"))
+    topical_raw.append(
+        ("Divorce", divorce, note + ": Asc + Venus - Jupiter / reversed")
+    )
 
     relationship_eros, note = sect_formula(pos["Venus"], fortune)
     topical_raw.append(
@@ -209,7 +258,9 @@ def build_lots(
             note + ": Asc + Venus - Fortune / reversed",
         )
     )
-    topical_raw.append(("Profession", _lot(asc, moon, pos["Saturn"]), "Asc + Moon - Saturn"))
+    topical_raw.append(
+        ("Profession", _lot(asc, moon, pos["Saturn"]), "Asc + Moon - Saturn")
+    )
 
     topical = [
         _make_result(name, lon, planets, houses, group="topical", formula=formula)
@@ -220,9 +271,13 @@ def build_lots(
             "Marriage (Hermes)",
             "Course formula is sex-specific; .hor input does not encode the native's sex.",
         ),
-        UnsupportedLot("Death (Paul)", "Sensitive formula omitted from the default technical report."),
         UnsupportedLot(
-            "Hermes disease", "Sensitive/variant formula omitted from the default technical report."
+            "Death (Paul)",
+            "Sensitive formula omitted from the default technical report.",
+        ),
+        UnsupportedLot(
+            "Hermes disease",
+            "Sensitive/variant formula omitted from the default technical report.",
         ),
     ]
     return LotsReport(hermetic=hermetic, topical=topical, unsupported=unsupported)
