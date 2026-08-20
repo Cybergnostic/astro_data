@@ -16,29 +16,19 @@ from .conditions import (
     moon_void_of_course,
 )
 from ..synodic import compute_elongation_and_orientation, CAZIMI_ORB_DEG, is_true_cazimi
-from .relationship_rules import aggregate_relationships
+from .relationships import aggregate_relationships
 
 
 def build_reports(
     chart: ChartInput, planets: List[PlanetPosition], houses: Houses
 ) -> Tuple[List[PlanetReport], ChartRelationships]:
-    """
-    Build a full PlanetReport for each planet:
-    - essential dignity
-    - true-horizon sect, hayz and halb
-    - solar orientation and ordinary/strict cazimi
-    - speed relative to the planet's mean
-    - planetary joy, latitude testimony, via combusta and lunar void-of-course
-    - fixed stars and aspects
-    - chart-level relationship techniques
-    """
+    """Build the complete traditional report for every planet."""
     sun = next(p for p in planets if p.name == "Sun")
     moon = next(p for p in planets if p.name == "Moon")
     sect_chart = chart_sect(chart, sun)
     sun_long = sun.longitude
 
-    # VOC is primarily a lunar condition in this report. Compute it once from
-    # future ephemeris positions rather than recomputing it for every planet.
+    # Lunar VOC requires future ephemeris positions; calculate once per chart.
     moon_voc = moon_void_of_course(chart, moon)
 
     reports: List[PlanetReport] = []
