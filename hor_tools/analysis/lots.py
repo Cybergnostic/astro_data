@@ -105,7 +105,12 @@ def _make_result(
 def build_lots(
     planets: list[PlanetPosition], houses: Houses, is_day_chart: bool
 ) -> LotsReport:
-    """Calculate the course's seven Hermetic Lots plus supported topical Lots.
+    """Calculate the seven Hermetic Lots plus supported topical course Lots.
+
+    The corpus contains two explicitly different Eros formulas: the seven-Lot
+    Hermetic sequence derives Eros from Spirit, while the natal relationship
+    formula registry derives a topical Eros from Fortune.  Both are retained and
+    labelled rather than silently conflated.
 
     Sensitive disease/death Lots are deliberately not calculated in the default
     technical report.  The Hermes marriage Lot is also not guessed because its
@@ -124,7 +129,7 @@ def build_lots(
         enemy = _lot(asc, fortune, pos["Saturn"])
         victory = _lot(asc, pos["Jupiter"], spirit)
         courage = _lot(asc, fortune, pos["Mars"])
-        eros = _lot(asc, pos["Venus"], spirit)
+        hermetic_eros = _lot(asc, pos["Venus"], spirit)
         necessity = _lot(asc, fortune, pos["Mercury"])
     else:
         fortune = _lot(asc, sun, moon)
@@ -132,7 +137,7 @@ def build_lots(
         enemy = _lot(asc, pos["Saturn"], fortune)
         victory = _lot(asc, spirit, pos["Jupiter"])
         courage = _lot(asc, pos["Mars"], fortune)
-        eros = _lot(asc, spirit, pos["Venus"])
+        hermetic_eros = _lot(asc, spirit, pos["Venus"])
         necessity = _lot(asc, pos["Mercury"], fortune)
 
     hermetic_values = [
@@ -141,7 +146,11 @@ def build_lots(
         ("Enemy", enemy, "Asc + Fortune - Saturn" if is_day_chart else "Asc + Saturn - Fortune"),
         ("Victory", victory, "Asc + Jupiter - Spirit" if is_day_chart else "Asc + Spirit - Jupiter"),
         ("Courage", courage, "Asc + Fortune - Mars" if is_day_chart else "Asc + Mars - Fortune"),
-        ("Eros", eros, "Asc + Venus - Spirit" if is_day_chart else "Asc + Spirit - Venus"),
+        (
+            "Eros (Hermetic)",
+            hermetic_eros,
+            "Asc + Venus - Spirit" if is_day_chart else "Asc + Spirit - Venus",
+        ),
         ("Necessity", necessity, "Asc + Fortune - Mercury" if is_day_chart else "Asc + Mercury - Fortune"),
     ]
     hermetic = [
@@ -166,14 +175,13 @@ def build_lots(
     topical_raw.append(("Mother", mother, note + ": Asc + Moon - Venus / reversed"))
     topical_raw.append(("Friends", _lot(asc, pos["Mercury"], moon), "Asc + Mercury - Moon"))
 
-    ninth_cusp = houses.cusps[8] % 360.0
+    # Houses.cusps is 1-indexed by design: index 1 is House I, index 9 House IX.
+    ninth_cusp = houses.cusps[9] % 360.0
     ninth_ruler = SIGN_RULERS[sign_index_from_longitude(ninth_cusp)]
     topical_raw.append(
         ("Travel", _lot(asc, ninth_cusp, pos[ninth_ruler]), f"Asc + 9th House - {ninth_ruler}")
     )
 
-    knowledge, note = sect_formula(pos["Jupiter"], pos["Saturn"])
-    # Knowledge is projected from Mercury, not the Ascendant.
     if is_day_chart:
         knowledge = (pos["Mercury"] + pos["Jupiter"] - pos["Saturn"]) % 360.0
         k_formula = "Mercury + Jupiter - Saturn"
@@ -192,6 +200,15 @@ def build_lots(
     topical_raw.append(("Sons", sons, note + ": Asc + Mercury - Jupiter / reversed"))
     divorce, note = sect_formula(pos["Venus"], pos["Jupiter"])
     topical_raw.append(("Divorce", divorce, note + ": Asc + Venus - Jupiter / reversed"))
+
+    relationship_eros, note = sect_formula(pos["Venus"], fortune)
+    topical_raw.append(
+        (
+            "Eros (relationship-course variant)",
+            relationship_eros,
+            note + ": Asc + Venus - Fortune / reversed",
+        )
+    )
     topical_raw.append(("Profession", _lot(asc, moon, pos["Saturn"]), "Asc + Moon - Saturn"))
 
     topical = [
