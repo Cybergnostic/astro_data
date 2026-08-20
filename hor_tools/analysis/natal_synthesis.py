@@ -51,15 +51,15 @@ MOTIVATION_LABELS = {
 SIGN_MOTIVATION = {
     0: "initiative, ambition, conquest, freedom and independence",
     1: "accumulation and preservation of material values",
-    2: "initiating conversation and free exchange of ideas and information",
+    2: "transmission of ideas and information and freedom of movement",
     3: "initiating nurturing and protection",
     4: "accumulation of power, freedom, independence and authority",
     5: "investment, trading and exchange of material values",
-    6: "accumulation of knowledge and free exchange of information",
+    6: "initiating conversation and free exchange of ideas and information",
     7: "absorption and retention of emotional contents",
     8: "power through energetic exchange and interaction with others",
     9: "initiating the acquisition of material security",
-    10: "transmission of ideas and information and freedom of movement",
+    10: "accumulation of knowledge and free exchange of information",
     11: "adaptation and release of emotional contents",
 }
 MERCURY_ELEMENT_LABELS = {
@@ -145,7 +145,9 @@ class MindFactorsReport:
     note: str = (
         "Formal factors/descriptors only. The composite Almuten is the summed dignity "
         "score of Mercury and Moon positions; its interpretive dominance still depends "
-        "on condition and contact with the significators."
+        "on condition and contact with the significators. Non-conjunction Mercury/Moon "
+        "contacts are shown as candidates because the course gives no numerical cutoff "
+        "for what counts as a close aspect."
     )
 
 
@@ -648,9 +650,14 @@ def build_mind_factors(
             if key in seen:
                 continue
             seen.add(key)
-            if aspect.kind == "conjunction" or aspect.orb <= 6.0:
+            if aspect.kind == "conjunction":
                 secondary.append(
-                    f"{target.planet.name} {aspect.kind} {aspect.other}, orb {aspect.orb:.2f}°"
+                    f"{target.planet.name} conjunction {aspect.other}, orb {aspect.orb:.2f}°"
+                )
+            else:
+                secondary.append(
+                    f"candidate close aspect: {target.planet.name} {aspect.kind} "
+                    f"{aspect.other}, orb {aspect.orb:.2f}° — source gives no numeric cutoff"
                 )
 
     mercury_almuten = _degree_almuten(
