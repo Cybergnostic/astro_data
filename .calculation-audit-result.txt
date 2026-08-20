@@ -1,0 +1,65 @@
+exit_code=1
+commit=9fe3e01b6dc9790eca8250111e789060a15a1ee5
+......................................FF............................     [100%]
+=================================== FAILURES ===================================
+________ PlanetaryHoursTest.test_planetary_hour_uses_geographic_sunrise ________
+
+self = <test_planetary_hours.PlanetaryHoursTest testMethod=test_planetary_hour_uses_geographic_sunrise>
+
+    def test_planetary_hour_uses_geographic_sunrise(self) -> None:
+        chart = self._chart()
+>       day_ruler, hour_ruler = planetary_day_hour_rulers(chart)
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_planetary_hours.py:37: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+hor_tools/almuten.py:300: in planetary_day_hour_rulers
+    sunrise_today, sunset_today = _sunrise_sunset(base_jd, chart.latitude, chart.longitude)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+hor_tools/almuten.py:260: in _sunrise_sunset
+    ensure_ephe_path()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def ensure_ephe_path() -> str:
+        """Resolve and activate the Swiss Ephemeris path."""
+        path = EPHE_PATH or os.environ.get("SWISSEPH_EPHE")
+        if not path:
+>           raise RuntimeError(
+                "Swiss Ephemeris path is not set. Set SWISSEPH_EPHE or pass --ephe to hor-reader."
+            )
+E           RuntimeError: Swiss Ephemeris path is not set. Set SWISSEPH_EPHE or pass --ephe to hor-reader.
+
+hor_tools/astro_engine.py:41: RuntimeError
+______ PlanetaryHoursTest.test_timezone_offset_does_not_replace_longitude ______
+
+self = <test_planetary_hours.PlanetaryHoursTest testMethod=test_timezone_offset_does_not_replace_longitude>
+
+    def test_timezone_offset_does_not_replace_longitude(self) -> None:
+        chart = self._chart()
+        dt_local = chart.datetime_utc.astimezone(timezone.utc).replace(tzinfo=None) + timedelta(hours=2)
+        utc_midnight = dt_local.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(hours=2)
+        base_jd = swe.julday(utc_midnight.year, utc_midnight.month, utc_midnight.day, utc_midnight.hour, swe.GREG_CAL)
+    
+>       sunrise_a, sunset_a = _sunrise_sunset(base_jd, NIS_LAT, NIS_LON, 1.0)
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_planetary_hours.py:72: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+hor_tools/almuten.py:260: in _sunrise_sunset
+    ensure_ephe_path()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def ensure_ephe_path() -> str:
+        """Resolve and activate the Swiss Ephemeris path."""
+        path = EPHE_PATH or os.environ.get("SWISSEPH_EPHE")
+        if not path:
+>           raise RuntimeError(
+                "Swiss Ephemeris path is not set. Set SWISSEPH_EPHE or pass --ephe to hor-reader."
+            )
+E           RuntimeError: Swiss Ephemeris path is not set. Set SWISSEPH_EPHE or pass --ephe to hor-reader.
+
+hor_tools/astro_engine.py:41: RuntimeError
+=========================== short test summary info ============================
+FAILED tests/test_planetary_hours.py::PlanetaryHoursTest::test_planetary_hour_uses_geographic_sunrise - RuntimeError: Swiss Ephemeris path is not set. Set SWISSEPH_EPHE or pass --ephe to hor-reader.
+FAILED tests/test_planetary_hours.py::PlanetaryHoursTest::test_timezone_offset_does_not_replace_longitude - RuntimeError: Swiss Ephemeris path is not set. Set SWISSEPH_EPHE or pass --ephe to hor-reader.
+2 failed, 66 passed in 0.16s
