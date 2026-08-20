@@ -225,6 +225,7 @@ def build_technical_markdown(
 ) -> str:
     """Return the complete technical worksheet plus the existing detailed tables."""
     local_dt = chart.datetime_utc + timedelta(hours=chart.tz_offset_hours)
+    native_sex = "male" if chart.male is True else "female" if chart.male is False else "unknown"
     parts: list[str] = [
         f"# Natal Technical Report — {chart.name}",
         "",
@@ -236,6 +237,7 @@ def build_technical_markdown(
                 ["Local time", local_dt.strftime("%Y-%m-%d %H:%M:%S")],
                 ["UTC", chart.datetime_utc.strftime("%Y-%m-%d %H:%M:%S")],
                 ["Location", f"{chart.latitude:.6f}, {chart.longitude:.6f}"],
+                ["Native sex (Morinus)", native_sex],
                 ["Sect", "Day" if technical.solar.is_day else "Night"],
                 ["Apparent sunrise", technical.solar.sunrise_local.strftime("%H:%M:%S")],
                 ["Apparent sunset", technical.solar.sunset_local.strftime("%H:%M:%S")],
@@ -262,7 +264,7 @@ def build_technical_markdown(
         "",
         "## 3. Duads / Dodekatemoria",
         "",
-        "Temperament uses a fixed **5° orb** when a planetary duad is tested against the Ascendant.",
+        "Temperament and behaviour supplements use a fixed **5° orb** when a planetary duad is tested against the Ascendant.",
         "",
         _md_table(
             ["Body / Point", "Source position", "Duad"],
