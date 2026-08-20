@@ -30,6 +30,22 @@ MOTIVATION_LABELS = {
     "water": "emotional security and stability",
     "earth": "material and physical security",
 }
+# The course refines the four elemental motives by sign. Keep the specific
+# sign-level formulation in the report instead of flattening all fire/air/etc.
+SIGN_MOTIVATION = {
+    0: "initiative, ambition, conquest, freedom and independence",  # Aries
+    1: "accumulation and preservation of material values",  # Taurus
+    2: "initiating conversation and free exchange of ideas and information",  # Gemini
+    3: "initiating nurturing and protection",  # Cancer
+    4: "accumulation of power, freedom, independence and authority",  # Leo
+    5: "investment, trading and exchange of material values",  # Virgo
+    6: "accumulation of knowledge and free exchange of information",  # Libra
+    7: "absorption and retention of emotional contents",  # Scorpio
+    8: "power through energetic exchange and interaction with others",  # Sagittarius
+    9: "initiating the acquisition of material security",  # Capricorn
+    10: "transmission of ideas and information and freedom of movement",  # Aquarius
+    11: "adaptation and release of emotional contents",  # Pisces
+}
 ANGULAR_HOUSES = {1, 4, 7, 10}
 SUCCEDENT_HOUSES = {2, 5, 8, 11}
 
@@ -138,6 +154,16 @@ def _condition(report: PlanetReport) -> list[str]:
     return result
 
 
+def _asc_ruler_condition(report: PlanetReport, asc_sign_name: str) -> list[str]:
+    result = _condition(report)
+    if any(
+        item.domicile_sign == asc_sign_name and item.avoided
+        for item in report.domicile_aversions
+    ):
+        result.append("in aversion to Ascendant sign")
+    return result
+
+
 def _contact(
     source_longitude: float, target_longitude: float, orb: float
 ) -> tuple[str, float] | None:
@@ -152,7 +178,7 @@ def _contact(
 def build_primary_motivation(
     planets: list[PlanetPosition], houses: Houses, reports: list[PlanetReport]
 ) -> PrimaryMotivationReport:
-    """Return the four source categories used to judge primary motivation."""
+    """Return the source-defined factors used to judge primary motivation."""
     del planets
     by_name = {report.planet.name: report for report in reports}
     asc_sign = sign_index_from_longitude(houses.asc)
@@ -165,20 +191,21 @@ def build_primary_motivation(
         PrimaryMotivationFactor(
             source="Ascendant sign",
             element=asc_element,
-            motivation=MOTIVATION_LABELS[asc_element],
-            detail=SIGNS[asc_sign],
+            motivation=SIGN_MOTIVATION[asc_sign],
+            detail=f"{SIGNS[asc_sign]} ({MOTIVATION_LABELS[asc_element]})",
         )
     )
 
-    ruler_element = _element(ruler_report.planet.longitude)
+    ruler_sign = sign_index_from_longitude(ruler_report.planet.longitude)
+    ruler_element = ELEMENT_BY_SIGN[ruler_sign]
     factors.append(
         PrimaryMotivationFactor(
             source="Ascendant ruler",
             element=ruler_element,
-            motivation=MOTIVATION_LABELS[ruler_element],
+            motivation=SIGN_MOTIVATION[ruler_sign],
             detail=f"{asc_ruler} in {ruler_report.sign}, House {ruler_report.planet.house}",
             planet=asc_ruler,
-            condition=_condition(ruler_report),
+            condition=_asc_ruler_condition(ruler_report, SIGNS[asc_sign]),
         )
     )
 
@@ -189,7 +216,8 @@ def build_primary_motivation(
         if contact is None:
             continue
         kind, orb = contact
-        element = _element(report.planet.longitude)
+        sign_idx = sign_index_from_longitude(report.planet.longitude)
+        element = ELEMENT_BY_SIGN[sign_idx]
         source = (
             "Planet on Ascendant" if kind == "conjunction" else "Aspect to Ascendant"
         )
@@ -197,7 +225,7 @@ def build_primary_motivation(
             PrimaryMotivationFactor(
                 source=source,
                 element=element,
-                motivation=MOTIVATION_LABELS[element],
+                motivation=SIGN_MOTIVATION[sign_idx],
                 detail=(
                     f"{report.planet.name} {kind}, orb {orb:.2f}° from {report.sign}"
                 ),
