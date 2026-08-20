@@ -1,0 +1,21 @@
+name: Calculation audit tests
+
+on:
+  push:
+    branches:
+      - fix/calculation-audit
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      SWISSEPH_EPHE: /tmp
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install project
+        run: python -m pip install -e .
+      - name: Run tests
+        run: pytest -q
