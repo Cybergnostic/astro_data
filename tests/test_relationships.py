@@ -35,10 +35,10 @@ def _dummy_houses() -> Houses:
     return Houses(cusps=cusps, asc=0.0, mc=90.0)
 
 
-@patch("hor_tools.analysis.stars.stars_near_longitude", return_value=[])
+@patch("hor_tools.analysis.stars_near_longitude", new=lambda *args, **kwargs: [])
+@patch("hor_tools.analysis.moon_void_of_course", new=lambda *args, **kwargs: False)
 class RelationshipDetectionTest(unittest.TestCase):
-    def test_primary_relationships(self, _mock_stars) -> None:
-        """Chart A: mutual application, decimation, enclosures, bonification/maltreatment."""
+    def test_primary_relationships(self) -> None:
         planets = [
             _make_pos("Sun", 0.0, 1.0, house=10),
             _make_pos("Venus", 10.0, 0.6),
@@ -48,10 +48,7 @@ class RelationshipDetectionTest(unittest.TestCase):
             _make_pos("Saturn", 270.0, 0.02),
             _make_pos("Moon", 210.0, 13.0),
         ]
-        chart = _dummy_chart()
-        houses = _dummy_houses()
-
-        reports, relationships = build_reports(chart, planets, houses)
+        reports, relationships = build_reports(_dummy_chart(), planets, _dummy_houses())
 
         merc = next(r for r in reports if r.planet.name == "Mercury")
         mars_aspect = next(a for a in merc.aspects if a.other == "Mars")
@@ -61,8 +58,6 @@ class RelationshipDetectionTest(unittest.TestCase):
         saturn_aspect = next(a for a in moon.aspects if a.other == "Saturn")
         self.assertTrue(saturn_aspect.mutual_separation)
 
-        # Saturn dominates the Sun by square, but an exact/non-applying square
-        # is not aktinobolia. Application is tested separately in regressions.
         dom = next(d for d in relationships.dominations if d.dominated == "Sun" and d.dominator == "Saturn")
         self.assertFalse(dom.has_counter_ray)
         self.assertEqual(dom.relationship, "square_decimation")
@@ -71,7 +66,7 @@ class RelationshipDetectionTest(unittest.TestCase):
         self.assertTrue(merc.is_maltreated)
         self.assertTrue(merc.benefic_enclosure_by_sign)
 
-    def test_translation_collection_and_malefic_enclosure(self, _mock_stars) -> None:
+    def test_translation_collection_and_malefic_enclosure(self) -> None:
         planets = [
             _make_pos("Sun", 120.0, 1.0, house=10),
             _make_pos("Moon", 5.0, 13.0),
@@ -81,59 +76,40 @@ class RelationshipDetectionTest(unittest.TestCase):
             _make_pos("Jupiter", 310.0, 0.2),
             _make_pos("Saturn", 358.0, 0.05),
         ]
-        chart = _dummy_chart()
-        houses = _dummy_houses()
-
-        reports, relationships = build_reports(chart, planets, houses)
+        reports, relationships = build_reports(_dummy_chart(), planets, _dummy_houses())
         self.assertTrue(any(t.translator == "Moon" for t in relationships.translations))
         self.assertTrue(any(c.collector == "Saturn" for c in relationships.collections))
 
         jupiter_rep = next(r for r in reports if r.planet.name == "Jupiter")
         self.assertTrue(jupiter_rep.malefic_enclosure_by_sign)
 
-    def test_collection_requires_faster_planet_closer(self, _mock_stars) -> None:
+    def test_collection_requires_faster_planet_closer(self) -> None:
         collector = _make_pos("Saturn", 0.0, 0.05)
         fast = _make_pos("Mars", 58.0, 0.5)
         slow = _make_pos("Venus", 61.0, 0.2)
-        planets = [
-            _make_pos("Sun", 120.0, 1.0, house=10),
-            collector,
-            fast,
-            slow,
-        ]
-        chart = _dummy_chart()
-        houses = _dummy_houses()
-
-        _reports, relationships = build_reports(chart, planets, houses)
+        planets = [_make_pos("Sun", 120.0, 1.0, house=10), collector, fast, slow]
+        _reports, relationships = build_reports(_dummy_chart(), planets, _dummy_houses())
         self.assertFalse(relationships.collections)
 
-    def test_fast_planet_cannot_collect(self, _mock_stars) -> None:
+    def test_fast_planet_cannot_collect(self) -> None:
         collector = _make_pos("Mercury", 0.0, 1.0)
         ven = _make_pos("Venus", 60.0, 0.8)
         mar = _make_pos("Mars", 120.0, 0.6)
-        planets = [
-            _make_pos("Sun", 180.0, 1.0, house=10),
-            collector,
-            ven,
-            mar,
-        ]
-        chart = _dummy_chart()
-        houses = _dummy_houses()
-
-        _reports, relationships = build_reports(chart, planets, houses)
+        planets = [_make_pos("Sun", 180.0, 1.0, house=10), collector, ven, mar]
+        _reports, relationships = build_reports(_dummy_chart(), planets, _dummy_houses())
         self.assertFalse(relationships.collections)
 
-    def test_feral_detection(self, _mock_stars) -> None:
+    def test_feral_detection(self) -> None:
         planets = [
             _make_pos("Sun", 0.0, 1.0, house=10),
             _make_pos("Venus", 30.0, 0.6),
             _make_pos("Mars", 330.0, -0.5),
             _make_pos("Saturn", 150.0, 0.05),
+            # build_reports expects a Moon for chart conditions; keep it far
+            # enough not to change the Sun's whole-sign feral test.
+            _make_pos("Moon", 210.0, 13.0),
         ]
-        chart = _dummy_chart()
-        houses = _dummy_houses()
-
-        reports, _relationships = build_reports(chart, planets, houses)
+        reports, _relationships = build_reports(_dummy_chart(), planets, _dummy_houses())
         sun_rep = next(r for r in reports if r.planet.name == "Sun")
         self.assertTrue(sun_rep.is_feral)
 
