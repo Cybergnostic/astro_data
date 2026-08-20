@@ -1,0 +1,88 @@
+name: Engineering branch diagnostic
+
+on:
+  push:
+    branches:
+      - engineering-hardening
+    paths:
+      - .github/workflows/engineering-check.yml
+
+permissions:
+  contents: write
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    env:
+      SWISSEPH_EPHE: /tmp
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: engineering-hardening
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Run diagnostics
+        shell: bash
+        run: |
+          set +e
+          : > .engineering-check-result.txt
+
+          echo "== uv sync ==" >> .engineering-check-result.txt
+          uv sync --all-groups >> .engineering-check-result.txt 2>&1
+          sync_code=$?
+          echo "exit_code=$sync_code" >> .engineering-check-result.txt
+
+          echo >> .engineering-check-result.txt
+          echo "== pytest ==" >> .engineering-check-result.txt
+          uv run pytest -q >> .engineering-check-result.txt 2>&1
+          pytest_code=$?
+          echo "exit_code=$pytest_code" >> .engineering-check-result.txt
+
+          echo >> .engineering-check-result.txt
+          echo "== ruff ==" >> .engineering-check-result.txt
+          uv run ruff check hor_tools tests scan_events.py asc_window_scan.py >> .engineering-check-result.txt 2>&1
+          ruff_code=$?
+          echo "exit_code=$ruff_code" >> .engineering-check-result.txt
+
+          echo >> .engineering-check-result.txt
+          echo "== build ==" >> .engineering-check-result.txt
+          uv build >> .engineering-check-result.txt 2>&1
+          build_code=$?
+          echo "exit_code=$build_code" >> .engineering-check-result.txt
+
+          wheel_code=99
+          if [ "$build_code" -eq 0 ]; then
+            echo >> .engineering-check-result.txt
+            echo "== clean wheel smoke ==" >> .engineering-check-result.txt
+            python -m venv /tmp/hor-wheel
+            /tmp/hor-wheel/bin/pip install -q dist/*.whl >> .engineering-check-result.txt 2>&1
+            /tmp/hor-wheel/bin/python - <<'PY' >> .engineering-check-result.txt 2>&1
+          import hor_tools
+          import hor_tools.analysis
+          import hor_tools.commands.scan_events
+          import hor_tools.commands.asc_window
+          print("clean wheel imports: ok")
+          PY
+            /tmp/hor-wheel/bin/hor-reader --help >/dev/null 2>&1 && \
+            /tmp/hor-wheel/bin/hor-scan-events --help >/dev/null 2>&1 && \
+            /tmp/hor-wheel/bin/hor-scan-asc --help >/dev/null 2>&1
+            wheel_code=$?
+            echo "exit_code=$wheel_code" >> .engineering-check-result.txt
+          fi
+
+          echo >> .engineering-check-result.txt
+          echo "tested_commit=$(git rev-parse HEAD)" >> .engineering-check-result.txt
+          echo "summary sync=$sync_code pytest=$pytest_code ruff=$ruff_code build=$build_code wheel=$wheel_code" >> .engineering-check-result.txt
+          cat .engineering-check-result.txt
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add uv.lock .engineering-check-result.txt
+          git commit -m "Record engineering diagnostic and refresh lock" || true
+          git push
