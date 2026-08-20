@@ -48,8 +48,11 @@ jobs:
           import hor_tools.analysis
           import hor_tools.commands.scan_events
           import hor_tools.commands.asc_window
+          import hor_tools.rendering.almuten
+          import hor_tools.rendering.relationships
           print("clean wheel imports: ok")
           PY
           /tmp/hor-tools-wheel/bin/hor-reader --help >/dev/null
+          /tmp/hor-tools-wheel/bin/hor-reader --version >/dev/null
           /tmp/hor-tools-wheel/bin/hor-scan-events --help >/dev/null
           /tmp/hor-tools-wheel/bin/hor-scan-asc --help >/dev/null
