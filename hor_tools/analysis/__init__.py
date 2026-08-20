@@ -9,8 +9,8 @@ from .stars import stars_near_longitude
 from .aspects import aspects_for_planet
 from .antiscia import antiscia_longitude, contra_antiscia_longitude, reflection_hits_for_planet
 from .aversion import compute_domicile_aversion
-from ..synodic import compute_elongation_and_orientation, CAZIMI_ORB_DEG
-from .relationships import aggregate_relationships
+from ..synodic import compute_elongation_and_orientation, CAZIMI_ORB_DEG, is_true_cazimi
+from .relationship_rules import aggregate_relationships
 
 
 def build_reports(
@@ -19,14 +19,14 @@ def build_reports(
     """
     Build a full PlanetReport for each planet:
     - essential dignity (rulership, exaltation, triplicity, terms, faces)
-    - sect, oriental/occidental, hayz/halb
+    - sect, oriental/occidental, hayz/halb using the true horizon
     - speed class and ratio
     - fixed stars within orb
     - aspects to all other planets
     """
-    # identify Sun and chart sect
+    # identify Sun and chart sect from the actual astronomical horizon
     sun = next(p for p in planets if p.name == "Sun")
-    sect_chart = chart_sect(sun.house)
+    sect_chart = chart_sect(chart, sun)
     sun_long = sun.longitude
 
     reports: List[PlanetReport] = []
@@ -40,9 +40,10 @@ def build_reports(
             oriental = False
             occidental = False
         is_cazimi = p.name != "Sun" and elong <= CAZIMI_ORB_DEG
+        strict_cazimi = is_true_cazimi(p, sun)
         sect_plan = planet_sect(p.name, oriental)
         in_sect = sect_plan == sect_chart
-        hayz, halb = compute_hayz_and_halb(p, sect_chart, sect_plan)
+        hayz, halb = compute_hayz_and_halb(p, chart, sect_chart, sect_plan)
 
         # speed
         ratio, speed_class = classify_speed(p.name, p.speed_long)
@@ -101,6 +102,7 @@ def build_reports(
                 generosities_given=[],
                 generosities_received=[],
                 is_feral=False,
+                is_true_cazimi=strict_cazimi,
             )
         )
 
