@@ -26,7 +26,8 @@ PLANETS: list[tuple[str, int]] = [
     ("Jupiter", swe.JUPITER),
     ("Saturn", swe.SATURN),
 ]
-FLAGS = swe.FLG_SWIEPH | swe.FLG_SPEED
+POSITION_FLAGS = swe.FLG_SWIEPH | swe.FLG_SPEED
+LONGITUDE_FLAGS = swe.FLG_SWIEPH
 _STATION_PLANETS = {swe.MERCURY, swe.VENUS, swe.MARS, swe.JUPITER, swe.SATURN}
 
 
@@ -74,17 +75,23 @@ def _station_phase_near(jd_ut: float, planet_id: int) -> str | None:
     return None
 
 
+def _planet_longitude(jd_ut: float, planet_id: int) -> float:
+    """Return only ecliptic longitude, without requesting speed data."""
+    result = swe.calc_ut(jd_ut, planet_id, LONGITUDE_FLAGS)
+    position = result[0] if len(result) == 2 and isinstance(result[0], (tuple, list)) else result
+    return float(position[0]) % 360.0
+
+
 def compute_longitudes(chart: ChartInput) -> dict[str, float]:
     """Return only Sun-Saturn longitudes for lightweight scanning tasks.
 
-    This deliberately avoids Ascendant/house calculation, station checks and
-    synodic post-processing. Event scanners call this repeatedly during coarse
-    stepping and binary refinement, where the extra work in ``compute_planets``
-    is unnecessary.
+    This deliberately avoids Ascendant/house calculation, speed calculation,
+    station checks and synodic post-processing. Event scanners call this many
+    times during coarse stepping and binary refinement.
     """
     ensure_ephe_path()
     jd_ut = julian_day_from_chart(chart)
-    return {name: _planet_position(jd_ut, swe_id)[0] for name, swe_id in PLANETS}
+    return {name: _planet_longitude(jd_ut, swe_id) for name, swe_id in PLANETS}
 
 
 def compute_planets(chart: ChartInput) -> list[PlanetPosition]:
@@ -112,7 +119,6 @@ def compute_planets(chart: ChartInput) -> list[PlanetPosition]:
             )
         )
 
-    # Post-process synodic data once Sun longitude is known.
     sun = next(p for p in positions if p.name == "Sun")
     for planet in positions:
         elong, _, _ = compute_elongation_and_orientation(planet.longitude, sun.longitude)
@@ -159,7 +165,7 @@ def julian_day_from_chart(chart: ChartInput) -> float:
 
 def _planet_position(jd_ut: float, planet_id: int) -> tuple[float, float, float, float]:
     """Return ecliptic longitude/latitude and daily speeds for a planet."""
-    result = swe.calc_ut(jd_ut, planet_id, FLAGS)
+    result = swe.calc_ut(jd_ut, planet_id, POSITION_FLAGS)
     if len(result) == 2 and isinstance(result[0], (tuple, list)):
         position = result[0]
     else:
