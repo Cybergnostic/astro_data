@@ -1,0 +1,139 @@
+name: Apply typed-result and lint cleanup
+
+on:
+  push:
+    branches:
+      - engineering-hardening
+    paths:
+      - .github/workflows/type-and-lint-patch.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    env:
+      SWISSEPH_EPHE: /tmp
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: engineering-hardening
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Apply targeted refactors
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          def replace_once(path_str: str, old: str, new: str) -> None:
+              path = Path(path_str)
+              text = path.read_text()
+              if old not in text:
+                  raise SystemExit(f"Expected text not found in {path_str}: {old[:80]!r}")
+              path.write_text(text.replace(old, new, 1))
+
+          # Almuten: remove stale imports and return typed result objects.
+          replace_once(
+              "hor_tools/almuten.py",
+              "from .analysis.dignity import SIGNS, TRIPLICITIES, essential_dignity, degree_in_sign, sign_index_from_longitude\n",
+              "from .analysis.dignity import TRIPLICITIES, essential_dignity, sign_index_from_longitude\n",
+          )
+          replace_once(
+              "hor_tools/almuten.py",
+              "from .analysis.sect import chart_sect\n",
+              "from .analysis.sect import chart_sect\nfrom .almuten_types import AccidentalScores, AlmutenResult\n",
+          )
+
+          almuten_path = Path("hor_tools/almuten.py")
+          text = almuten_path.read_text()
+          start = text.index("def compute_accidental_scores(")
+          build_start = text.index("\ndef build_almuten_figuris", start)
+          accidental_block = '''def compute_accidental_scores(\n    chart: ChartInput, planets: List[PlanetPosition]\n) -> AccidentalScores:\n    house_scores = {p.name: HOUSE_STRENGTH_SCORES.get(p.house, 0) for p in planets}\n    day_ruler, hour_ruler = planetary_day_hour_rulers(chart)\n    day_bonus = {\n        planet: DAY_RULER_BONUS if planet == day_ruler else 0\n        for planet in ALMUTEN_PLANETS\n    }\n    hour_bonus = {\n        planet: HOUR_RULER_BONUS if planet == hour_ruler else 0\n        for planet in ALMUTEN_PLANETS\n    }\n    sun = next(p for p in planets if p.name == "Sun")\n    phase_scores = {p.name: phase_score(p, sun.longitude) for p in planets}\n\n    accidental_totals = {\n        planet: house_scores.get(planet, 0)\n        + day_bonus.get(planet, 0)\n        + hour_bonus.get(planet, 0)\n        + phase_scores.get(planet, 0)\n        for planet in ALMUTEN_PLANETS\n    }\n\n    return AccidentalScores(\n        house_scores=house_scores,\n        day_ruler=day_ruler,\n        hour_ruler=hour_ruler,\n        day_bonus=day_bonus,\n        hour_bonus=hour_bonus,\n        phase_scores=phase_scores,\n        accidental_totals=accidental_totals,\n    )\n\n\n'''
+          text = text[:start] + accidental_block + text[build_start + 1:]
+
+          build_start = text.index("def build_almuten_figuris(")
+          build_block = '''def build_almuten_figuris(\n    chart: ChartInput, planets: List[PlanetPosition], houses: Houses\n) -> AlmutenResult:\n    rows, total_shares, total_scores = build_essential_rows(chart, planets, houses)\n    accidental = compute_accidental_scores(chart, planets)\n\n    essential_totals = total_scores\n    grand_scores = {\n        planet: essential_totals.get(planet, 0)\n        + accidental.accidental_totals.get(planet, 0)\n        for planet in ALMUTEN_PLANETS\n    }\n    max_score = max(grand_scores.values()) if grand_scores else 0\n    almuten = [planet for planet, score in grand_scores.items() if score == max_score]\n\n    return AlmutenResult(\n        rows=rows,\n        total_shares=total_shares,\n        essential_totals=essential_totals,\n        accidental=accidental,\n        grand_scores=grand_scores,\n        almuten=almuten,\n        almuten_score=max_score,\n    )\n'''
+          text = text[:build_start] + build_block
+          almuten_path.write_text(text)
+
+          # Put module docstrings before __future__ imports.
+          for path_str in ("hor_tools/analysis/conditions.py", "hor_tools/analysis/ray_geometry.py"):
+              path = Path(path_str)
+              text = path.read_text()
+              match = re.match(r'from __future__ import annotations\n\n(""".*?""")\n\n', text, re.S)
+              if not match:
+                  raise SystemExit(f"Expected future/docstring header not found in {path_str}")
+              doc = match.group(1)
+              text = doc + "\n\nfrom __future__ import annotations\n\n" + text[match.end():]
+              path.write_text(text)
+
+          # Remove an unused re-export/import.
+          replace_once(
+              "hor_tools/analysis/__init__.py",
+              "from .dignity import essential_dignity, classify_speed, SIGNS\n",
+              "from .dignity import essential_dignity, classify_speed\n",
+          )
+
+          # Renderer annotation referred to InfluenceSource without importing it.
+          replace_once(
+              "hor_tools/output.py",
+              "from .models import AspectInfo, ChartInput, ChartRelationships, Houses, PlanetPosition, PlanetReport, ReflectionHit\n",
+              "from .models import AspectInfo, ChartInput, ChartRelationships, Houses, InfluenceSource, PlanetPosition, PlanetReport, ReflectionHit\n",
+          )
+
+          # Preserve clean exception context in the optional Rich fallback.
+          replace_once(
+              "hor_tools/cli.py",
+              "            raise RuntimeError(\"HTML export requires the 'rich' package.\")\n",
+              "            raise RuntimeError(\"HTML export requires the 'rich' package.\") from None\n",
+          )
+
+          # Test-only unused imports.
+          replace_once("tests/test_aversion.py", "    DomicileAversion,\n", "")
+          replace_once("tests/test_aversion.py", "    ReflectionHit,\n", "")
+
+          # Scanners are package modules now; tests no longer need sys.path mutation.
+          calc = Path("tests/test_calculation_regressions.py")
+          text = calc.read_text()
+          text = text.replace("from pathlib import Path\nimport sys\n", "")
+          block = '''# The event/Ascendant scanners are intentionally root-level scripts rather than\n# installed package modules. Add the repository root explicitly so the tests\n# exercise those public helpers under pytest/importlib mode as well.\nROOT = Path(__file__).resolve().parents[1]\nif str(ROOT) not in sys.path:\n    sys.path.insert(0, str(ROOT))\n\n'''
+          if block not in text:
+              raise SystemExit("Expected legacy sys.path block not found")
+          text = text.replace(block, "", 1)
+          text = text.replace(
+              "from asc_window_scan import offset_hours_at, resolve_zone\n",
+              "from hor_tools.commands.asc_window import offset_hours_at, resolve_zone\n",
+              1,
+          )
+          text = text.replace(
+              "from scan_events import _crossed_aspect_target\n",
+              "from hor_tools.commands.scan_events import _crossed_aspect_target\n",
+              1,
+          )
+          calc.write_text(text)
+          PY
+
+      - name: Install and verify
+        shell: bash
+        run: |
+          uv sync --all-groups
+          uv run pytest -q
+          uv run ruff check hor_tools tests scan_events.py asc_window_scan.py
+
+      - name: Commit refactor
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add hor_tools tests
+          git commit -m "Type Almuten results and clean correctness lint"
+          git push
