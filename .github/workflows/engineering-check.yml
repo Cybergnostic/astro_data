@@ -27,7 +27,7 @@ jobs:
 
       - uses: astral-sh/setup-uv@v6
 
-      - name: Run diagnostics
+      - name: Run diagnostics (correctness lint gate)
         shell: bash
         run: |
           set +e
