@@ -12,12 +12,10 @@ from .duads import DuadPosition, dodekatemorion
 from .lots import LotsReport, build_lots
 from .natal_synthesis import (
     BehaviourRulerReport,
-    FortuneAdversityFactorsReport,
     GenitureFactorsReport,
     MindFactorsReport,
     PrimaryMotivationReport,
     build_behaviour_ruler,
-    build_fortune_adversity_factors,
     build_geniture_factors,
     build_mind_factors,
     build_primary_motivation,
@@ -56,7 +54,6 @@ class NatalTechnicalReport:
     behaviour: BehaviourRulerReport
     geniture: GenitureFactorsReport
     mind: MindFactorsReport
-    fortune_adversity: FortuneAdversityFactorsReport
     syzygy_longitude: float
 
 
@@ -127,6 +124,5 @@ def build_natal_technical_report(
         behaviour=build_behaviour_ruler(planets, houses, reports),
         geniture=build_geniture_factors(reports),
         mind=build_mind_factors(chart, reports),
-        fortune_adversity=build_fortune_adversity_factors(reports),
         syzygy_longitude=syzygy,
     )
