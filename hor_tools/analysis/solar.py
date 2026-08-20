@@ -1,10 +1,9 @@
 """Shared solar-horizon and planetary-hour calculations.
 
-Sect is defined from apparent local sunrise to apparent local sunset.  Swiss
-Ephemeris' default rise/set calculation uses refraction and the solar limb;
-we deliberately do not set ``BIT_DISC_CENTER`` here.  This keeps borderline
-charts consistent with observed sunrise/sunset rather than a geometric
-Sun-centre altitude test.
+Sect is determined by the Sun's true geometric position above or below the
+local horizon, as stated in the course. Apparent sunrise/sunset (including
+refraction and the solar limb) are retained separately because planetary hours
+are divided from observed sunrise to sunset and through the following night.
 """
 
 from __future__ import annotations
@@ -31,7 +30,7 @@ DAY_RULERS = {
 
 @dataclass(frozen=True)
 class SolarFrame:
-    """Local solar frame used by sect and planetary hours."""
+    """True sect state plus apparent local rise/set boundaries."""
 
     is_day: bool
     sunrise_jd: float
@@ -39,7 +38,7 @@ class SolarFrame:
     sunrise_local: datetime
     sunset_local: datetime
     sun_true_altitude: float
-    method: str = "apparent_sunrise_sunset"
+    method: str = "true_horizon_sect_apparent_rise_set_hours"
 
 
 def _naive_utc(dt: datetime) -> datetime:
@@ -129,11 +128,11 @@ def _sun_true_altitude(chart: ChartInput) -> float:
 
 
 def solar_frame_for_chart(chart: ChartInput) -> SolarFrame:
-    """Return the chart's apparent sunrise/sunset frame and sect state."""
+    """Return true sect state together with apparent sunrise/sunset boundaries."""
 
-    birth_jd = julian_day_from_chart(chart)
     sunrise_jd, sunset_jd = rise_set_for_local_day(chart)
-    is_day = sunrise_jd <= birth_jd < sunset_jd
+    sun_true_altitude = _sun_true_altitude(chart)
+    is_day = sun_true_altitude > 0.0
 
     offset = timedelta(hours=chart.tz_offset_hours)
     sunrise_local = (_jd_to_utc_datetime(sunrise_jd) + offset).replace(tzinfo=None)
@@ -144,12 +143,12 @@ def solar_frame_for_chart(chart: ChartInput) -> SolarFrame:
         sunset_jd=sunset_jd,
         sunrise_local=sunrise_local,
         sunset_local=sunset_local,
-        sun_true_altitude=_sun_true_altitude(chart),
+        sun_true_altitude=sun_true_altitude,
     )
 
 
 def planetary_day_hour_rulers(chart: ChartInput) -> tuple[str, str]:
-    """Return planetary day/hour rulers using the same apparent solar frame."""
+    """Return planetary day/hour rulers from apparent sunrise/sunset divisions."""
 
     birth_jd = julian_day_from_chart(chart)
     dt_utc = _naive_utc(chart.datetime_utc)
