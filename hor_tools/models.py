@@ -41,6 +41,10 @@ class PlanetPosition:
     retrograde: bool
     elongation_from_sun: float | None = None
     synodic_phase: SynodicPhaseInfo | None = None
+    # ``first`` = direct -> retrograde reversal nearby; ``second`` =
+    # retrograde -> direct. Real chart calculations derive this from adjacent
+    # ephemeris days instead of a universal absolute-speed threshold.
+    station: str | None = None
 
 
 @dataclass
