@@ -22,7 +22,7 @@ _CAL_GREGORIAN = 0
 _CAL_JULIAN = 1
 
 # The classic Morinus natal/radix .hor header contains 24 integer values before
-# any optional trailing payload.  The order is the same one used by Morinus'
+# any optional trailing payload. The order is the same one used by Morinus'
 # chart.Time and chart.Place constructors:
 #
 #   male, chart_type, bc,
@@ -37,13 +37,11 @@ _UNICODE_ESCAPE_RE = re.compile(r"\\u([0-9a-fA-F]{4})")
 
 def _decode_morinus_text(value: str) -> str:
     """Decode the ``\\uXXXX`` escapes used in Morinus protocol-0 strings."""
-
     return _UNICODE_ESCAPE_RE.sub(lambda m: chr(int(m.group(1), 16)), value)
 
 
 def _extract_strings(raw_text: str) -> tuple[str | None, str | None]:
     """Return ``(chart_name, place_name)`` from protocol-0 V/.V strings."""
-
     name: str | None = None
     place: str | None = None
     for raw_line in raw_text.splitlines():
@@ -85,7 +83,6 @@ def _validate_range(name: str, value: int, minimum: int, maximum: int) -> int:
 
 def _parse_datetime_and_offset(values: list[int], longitude: float) -> tuple[datetime, float]:
     """Parse Morinus civil time and return ``(UTC datetime, civil UTC offset)``."""
-
     bc = _validate_flag("BC", values[2])
     if bc:
         raise HorParseError("BC charts are not supported by hor-tools yet.")
@@ -103,9 +100,6 @@ def _parse_datetime_and_offset(values: list[int], longitude: float) -> tuple[dat
 
     calendar = values[9]
     if calendar == _CAL_JULIAN:
-        # ChartInput currently stores a Python datetime and the astronomical
-        # engine assumes Gregorian civil-date semantics.  Failing explicitly is
-        # safer than silently shifting a historical Julian date.
         raise HorParseError("Julian-calendar .hor files are not supported yet.")
     if calendar != _CAL_GREGORIAN:
         raise HorParseError(f"Unknown Morinus calendar code: {calendar!r}.")
@@ -131,13 +125,8 @@ def _parse_datetime_and_offset(values: list[int], longitude: float) -> tuple[dat
     elif time_type == _TIME_GREENWICH:
         base_offset = 0.0
     elif time_type == _TIME_LOCAL_MEAN:
-        # Local mean time differs from Greenwich by 4 minutes per longitude
-        # degree, i.e. longitude / 15 hours. Longitude is already signed E/W.
         base_offset = longitude / 15.0
     else:
-        # Morinus' LOCALAPPARENT path additionally applies the equation of time.
-        # The old parser treated it as zone time, which could silently produce a
-        # wrong chart. Reject it until that conversion is implemented explicitly.
         raise HorParseError("Local-apparent-time .hor files are not supported yet.")
 
     tz_offset_hours = base_offset + (1.0 if daylight else 0.0)
@@ -147,7 +136,6 @@ def _parse_datetime_and_offset(values: list[int], longitude: float) -> tuple[dat
 
 def _parse_place(values: list[int]) -> tuple[float, float, float]:
     """Return ``(latitude, longitude, altitude_m)`` from the Morinus header."""
-
     (
         lon_deg,
         lon_min,
@@ -187,20 +175,17 @@ def _parse_place(values: list[int]) -> tuple[float, float, float]:
 
 def load_hor(path: str | Path) -> ChartInput:
     """Parse a supported Morinus ``.hor`` file into a validated ``ChartInput``."""
-
     file_path = Path(path).expanduser()
     if not file_path.is_file():
         raise FileNotFoundError(f".hor file not found: {file_path}")
 
-    # Morinus' classic protocol-0 files are ASCII and escape non-ASCII text as
-    # ``\\uXXXX``. ``errors='strict'`` prevents a corrupt/binary file from being
-    # silently altered during parsing.
     try:
         raw_text = file_path.read_text(encoding="ascii", errors="strict")
     except UnicodeDecodeError as exc:
         raise HorParseError("The .hor file is not valid Morinus ASCII protocol-0 data.") from exc
 
     values = _extract_header_ints(raw_text)
+    male = _validate_flag("male", values[0])
     name, location_name = _extract_strings(raw_text)
     latitude, longitude, altitude_m = _parse_place(values)
     dt_utc, tz_offset_hours = _parse_datetime_and_offset(values, longitude)
@@ -215,4 +200,5 @@ def load_hor(path: str | Path) -> ChartInput:
         zodiac="T",
         location_name=location_name,
         altitude_m=altitude_m,
+        male=male,
     )
