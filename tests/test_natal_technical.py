@@ -9,6 +9,7 @@ from hor_tools import astro_engine
 from hor_tools.analysis import build_reports
 from hor_tools.analysis.duads import dodekatemorion_longitude
 from hor_tools.analysis.lots import _sees_by_sign
+from hor_tools.analysis.natal_synthesis import BEHAVIOUR_DUAD_ORB
 from hor_tools.analysis.repulsion import _debilities_of_host_at_guest
 from hor_tools.analysis.stars import COURSE_FIRST_MAGNITUDE_PRIMARY_NATURE
 from hor_tools.analysis.technical import build_natal_technical_report
@@ -46,6 +47,7 @@ def test_course_duad_examples() -> None:
         90 + 3 + 24 / 60, abs=1e-9
     )
     assert DUAD_CONTACT_ORB == 5.0
+    assert BEHAVIOUR_DUAD_ORB == 5.0
 
 
 def test_partial_planetary_quality_is_not_forced_into_one_temperament() -> None:
@@ -139,7 +141,9 @@ def test_reference_chart_behaviour_ruler_uses_mercury_moon_fallback(
 ) -> None:
     _chart, _planets, _houses, _reports, technical = _fixture_report(monkeypatch, tmp_path)
     assert technical.behaviour.primary == "Venus"
+    assert technical.behaviour.secondary == "Jupiter"
     assert "conjunct Mercury" in technical.behaviour.evidence[0]
+    assert any(item.startswith("Venus condition:") for item in technical.behaviour.evidence)
 
 
 def test_reference_chart_preserves_specific_primary_motivation(
