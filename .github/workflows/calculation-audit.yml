@@ -13,6 +13,8 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      SWISSEPH_EPHE: /tmp
     steps:
       - uses: actions/checkout@v4
         with:
