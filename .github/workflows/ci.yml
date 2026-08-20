@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - engineering-hardening
+  pull_request:
+
+jobs:
+  test-and-package:
+    runs-on: ubuntu-latest
+    env:
+      # Tests use Swiss Ephemeris' built-in Moshier fallback where external
+      # ephemeris files are not specifically under test. /tmp is a real,
+      # writable directory and satisfies hor-tools' path validation.
+      SWISSEPH_EPHE: /tmp
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Install project and development dependencies
+        run: uv sync --all-groups
+
+      - name: Run tests
+        run: uv run pytest -q
+
+      - name: Build wheel and source distribution
+        run: uv build
+
+      - name: Smoke-test clean wheel installation
+        shell: bash
+        run: |
+          python -m venv /tmp/hor-tools-wheel
+          /tmp/hor-tools-wheel/bin/pip install --upgrade pip
+          /tmp/hor-tools-wheel/bin/pip install dist/*.whl
+          /tmp/hor-tools-wheel/bin/python - <<'PY'
+          import hor_tools
+          import hor_tools.analysis
+          import hor_tools.commands.scan_events
+          import hor_tools.commands.asc_window
+          print("clean wheel imports: ok")
+          PY
+          /tmp/hor-tools-wheel/bin/hor-reader --help >/dev/null
+          /tmp/hor-tools-wheel/bin/hor-scan-events --help >/dev/null
+          /tmp/hor-tools-wheel/bin/hor-scan-asc --help >/dev/null
