@@ -9,10 +9,10 @@ from typing import List, Optional
 
 @dataclass
 class SynodicPhaseInfo:
-    group: str  # "superior", "inferior", "lunar", or "none"
-    code: str   # short machine name
-    index: int  # numeric phase index in that group
-    label: str  # human-readable label
+    group: str
+    code: str
+    index: int
+    label: str
 
 
 @dataclass
@@ -61,8 +61,7 @@ class AspectInfo:
     orb: float
     applying: bool
     dexter: bool
-    # Extended relationship flags
-    self_applying: bool = False  # Is this planet moving toward perfection?
+    self_applying: bool = False
     mutual_application: bool = False
     mutual_separation: bool = False
     counter_ray: bool = False
@@ -153,9 +152,7 @@ class ChartRelationships:
 
 @dataclass
 class PlanetReport:
-    """
-    Full traditional analysis for a single planet.
-    """
+    """Full traditional analysis for a single planet."""
 
     planet: PlanetPosition
 
@@ -212,5 +209,11 @@ class PlanetReport:
     generosities_given: List[ReceptionInfo]
     generosities_received: List[ReceptionInfo]
     is_feral: bool
-    # Stricter two-dimensional cazimi: close in longitude AND latitude.
+
+    # Additional source-backed accidental conditions. These remain separate
+    # testimonies rather than being collapsed into a single score.
     is_true_cazimi: bool = False
+    is_in_planetary_joy: bool = False
+    latitude_condition: str = "on_ecliptic"
+    is_in_via_combusta: bool = False
+    is_void_of_course: bool = False
