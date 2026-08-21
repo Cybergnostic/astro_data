@@ -88,5 +88,3 @@ CI runs lint, tests, package builds, clean-wheel imports, and CLI smoke tests.
 ## Documentation
 
 See [`context.md`](context.md) for the architecture, calculation boundaries, parser details, source-specific rules, and maintainer notes.
-
-Electional material lives in [`docs/electional_astrology_rules.md`](docs/electional_astrology_rules.md).
