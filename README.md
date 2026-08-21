@@ -14,8 +14,6 @@ The project currently uses:
 - Swiss Ephemeris for astronomical positions and angles
 - course/project traditional rules and the teacher-configured Morinus Almuten setup
 
-![hor-reader terminal dashboard](docs/img/report_example.png)
-
 ## Current output
 
 `hor-reader` now has three levels of presentation:
