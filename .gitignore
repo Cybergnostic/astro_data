@@ -9,4 +9,11 @@ wheels/
 # Virtual environments
 .venv
 
+# Generated reports
+outputs/*
+!outputs/jovan.md
+!outputs/jovan.html
+
 # Common transient/generated files
+*.tmp
+*.log
