@@ -66,11 +66,34 @@ Where the source requires qualitative judgment, the program presents the factors
 - [Markdown report](outputs/jovan.md)
 - [HTML report](outputs/jovan.html)
 
+## Normalized report input
+
+Integrations that already have validated birth data do not need to manufacture a
+Morinus `.hor` file. The normalized report command feeds the same report engine:
+
+```bash
+uv run hor-report \
+  --name "Client" \
+  --date 1988-06-08 \
+  --time 19:20 \
+  --tz Europe/Belgrade \
+  --lat 43.316667 \
+  --lon 21.9 \
+  --location "Nish, Yugoslavia" \
+  --sex unknown \
+  --md outputs/hint_users/client_report.md \
+  --html outputs/hint_users/client_report.html
+```
+
+The command uses the same Traditional Astrology calculations and renderers as
+`hor-reader`; only the input adapter differs.
+
 ## Other commands
 
 ```bash
 uv run hor-scan-events --help
 uv run hor-scan-asc --help
+uv run hor-report --help
 ```
 
 `hor-scan-events` scans ingresses and exact aspects. `hor-scan-asc` scans Ascendant-sign windows and supports IANA timezones for DST-aware ranges.

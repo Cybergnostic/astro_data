@@ -17,6 +17,7 @@ dependencies = [
 hor-reader = "hor_tools.cli:main"
 hor-scan-events = "hor_tools.commands.scan_events:main"
 hor-scan-asc = "hor_tools.commands.asc_window:main"
+hor-report = "hor_tools.commands.report:main"
 
 # Optional extras reserved for future exports and document outputs.
 [project.optional-dependencies]
